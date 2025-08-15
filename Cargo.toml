@@ -12,3 +12,8 @@ rust-s3 = "0.35.1"
 dotenv = "0.15.0"
 log = "0.4.27"
 env_logger = "0.11"
+
+[workspace]
+members = [
+    "tools/cargo-upload"
+]

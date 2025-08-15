@@ -5,6 +5,7 @@ use s3::creds::Credentials;
 use s3::error::S3Error;
 use s3::serde_types::Part;
 use tokio::sync::{RwLock, Semaphore};
+use crate::config::config;
 
 pub struct R2Service {
     bucket: Bucket,
@@ -20,10 +21,10 @@ struct ActiveUpload {
 impl R2Service {
     pub fn new(access_key: &str, secret_key: &str) -> Result<R2Service, S3Error> {
         let bucket = Bucket::new(
-            "ledger-testing",
+            &config().bucket.bucket_name,
             Region::Custom {
                 region: "auto".to_string(),
-                endpoint: "https://s3.us-east-005.backblazeb2.com".to_string()
+                endpoint: config().bucket.r2_url.to_string()
             },
             Credentials::new(
                 Some(access_key),

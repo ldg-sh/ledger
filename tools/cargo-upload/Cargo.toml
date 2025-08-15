@@ -1,0 +1,10 @@
+[package]
+name = "cargo-upload"
+version = "0.1.0"
+edition = "2021"
+description = "Cargo subcommand to proxy upload.sh"
+authors = ["Crush"]
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+anyhow = "1"

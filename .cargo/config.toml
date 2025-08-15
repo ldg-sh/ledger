@@ -1,0 +1,2 @@
+[alias]
+upload = "run --release --package cargo-upload --"
