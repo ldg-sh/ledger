@@ -82,7 +82,7 @@ impl R2Service {
             } else {
                 uploads.push(ActiveUpload {
                     upload_id: upload_id.to_string(),
-                    parts: vec![],
+                    parts: vec![completed_part],
                     semaphore: Arc::new(Semaphore::new(3)),
                 });
             }
@@ -92,6 +92,7 @@ impl R2Service {
             .iter()
             .any(|upload| upload.upload_id == upload_id && upload.parts.len() == total_chunks as usize) {
 
+            log::info!("All parts uploaded for file: {}", file_name);
             let parts = self.active_uploads.read().await
                 .iter()
                 .find(|upload| upload.upload_id == upload_id)
@@ -102,28 +103,30 @@ impl R2Service {
                 })
                 .unwrap();
 
+            log::info!("Completing multipart upload for file: {}", file_name);
+
             self.bucket.complete_multipart_upload(
                 file_name,
                 upload_id,
                 parts
             ).await?;
 
+
             let mut map = self.active_uploads.write().await;
             map.retain(|upload| upload.upload_id != upload_id);
 
             log::info!("Multipart upload completed for file: {}", file_name);
+        } else {
+            let amount_of_chunks_uploaded = self.active_uploads.read().await
+                .iter()
+                .find(|upload| upload.upload_id == upload_id)
+                .map_or(0, |upload| upload.parts.len());
+
+            let upload_percent = (amount_of_chunks_uploaded as f64 / total_chunks as f64) * 100.0;
+            let upload_percent = (upload_percent * 100.0).round() / 100.0;
+
+            log::info!("Uploaded chunk {}/{} for file {} ({}% complete)", amount_of_chunks_uploaded, total_chunks, file_name, upload_percent);
         }
-
-
-        let amount_of_chunks_uploaded = self.active_uploads.read().await
-            .iter()
-            .find(|upload| upload.upload_id == upload_id)
-            .map_or(0, |upload| upload.parts.len());
-
-        let upload_percent = (amount_of_chunks_uploaded as f64 / total_chunks as f64) * 100.0;
-        let upload_percent = (upload_percent * 100.0).round() / 100.0;
-        
-        log::info!("Uploaded chunk {}/{} for file {} ({}% complete)", chunk_number, total_chunks, file_name, upload_percent);
 
         drop(permit);
         Ok(())
