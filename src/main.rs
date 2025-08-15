@@ -5,24 +5,29 @@ use crate::r2_service::R2Service;
 use actix_web::web::Data;
 use actix_web::{App, HttpServer};
 use std::sync::Arc;
+use env_logger::Env;
+use actix_web::middleware::Logger;
+use log::debug;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    tracing_subscriber::fmt::init();
+    env_logger::init_from_env(Env::default().default_filter_or("info"));
     dotenv::dotenv().ok();
 
-    let account_id = std::env::var("R2_ACCOUNT_ID").expect("R2_ACCOUNT_ID not set");
-    let access_token = std::env::var("R2_ACCESS_TOKEN").expect("R2_ACCESS_TOKEN not set");
+    let access_token = std::env::var("R2_ACCESS_KEY").expect("R2_ACCESS_TOKEN not set");
     let secret_key = std::env::var("R2_SECRET_KEY").expect("R2_SECRET_KEY not set");
 
     let r2_service = Arc::new(R2Service::new(
-        &account_id,
         &access_token,
         &secret_key,
     ).expect("Failed to create R2 service"));
 
+    debug!("Starting server...");
+
     HttpServer::new(move || {
         App::new()
+            .wrap(Logger::default())
+            .wrap(Logger::new("%a %{User-Agent}i"))
             .app_data(Data::new(Arc::clone(&r2_service)))
             .service(upload::upload)
     })
