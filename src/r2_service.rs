@@ -121,6 +121,8 @@ impl R2Service {
             .map_or(0, |upload| upload.parts.len());
 
         let upload_percent = (amount_of_chunks_uploaded as f64 / total_chunks as f64) * 100.0;
+        let upload_percent = (upload_percent * 100.0).round() / 100.0;
+        
         log::info!("Uploaded chunk {}/{} for file {} ({}% complete)", chunk_number, total_chunks, file_name, upload_percent);
 
         drop(permit);

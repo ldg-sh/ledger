@@ -26,8 +26,6 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
-            .wrap(Logger::default())
-            .wrap(Logger::new("%a %{User-Agent}i"))
             .app_data(Data::new(Arc::clone(&r2_service)))
             .service(upload::upload)
     })
