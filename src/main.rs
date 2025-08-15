@@ -1,14 +1,33 @@
-use axum::Router;
-use axum::routing::{get, post};
+mod upload;
+mod r2_service;
 
-#[tokio::main]
-async fn main() {
+use std::sync::Arc;
+use actix_web::{App, HttpServer};
+use actix_web::web::{post, Data};
+use crate::r2_service::R2Service;
+
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
     tracing_subscriber::fmt::init();
+    dotenv::dotenv().ok();
 
-    let app = Router::new()
-        .route("/", get(root))
-        .route("/upload", post(create_user));
+    let account_id = std::env::var("R2_ACCOUNT_ID").expect("R2_ACCOUNT_ID not set");
+    let access_token = std::env::var("R2_ACCESS_TOKEN").expect("R2_ACCESS_TOKEN not set");
+    let secret_key = std::env::var("R2_SECRET_KEY").expect("R2_SECRET_KEY not set");
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+    let r2_service = Arc::new(R2Service::new(
+        &account_id,
+        &access_token,
+        &secret_key,
+    ).expect("Failed to create R2 service"));
+
+    HttpServer::new(move || {
+        App::new()
+            .app_data(Data::new(Arc::clone(&r2_service)))
+            .service(upload::upload)
+    })
+        .bind(("::", 3000))?
+        .run()
+        .await
+
 }
