@@ -1,10 +1,10 @@
 mod upload;
 mod r2_service;
 
-use std::sync::Arc;
-use actix_web::{App, HttpServer};
-use actix_web::web::{post, Data};
 use crate::r2_service::R2Service;
+use actix_web::web::Data;
+use actix_web::{App, HttpServer};
+use std::sync::Arc;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
