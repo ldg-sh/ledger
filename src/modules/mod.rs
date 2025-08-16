@@ -1,1 +1,1 @@
-pub mod r2_service;
+pub mod s3_service;

@@ -1,4 +1,4 @@
-use crate::modules::r2_service::R2Service;
+use crate::modules::s3_service::S3Service;
 use actix_web::web::Data;
 use actix_web::{App, HttpServer};
 use std::sync::Arc;
@@ -15,17 +15,17 @@ async fn main() -> std::io::Result<()> {
     let config = config::EnvConfig::from_env();
     config::CONFIG.set(config.clone()).unwrap(); // Should panic and exit 
 
-    let r2_service = Arc::new(R2Service::new(
-        &config.bucket.r2_access_key,
-        &config.bucket.r2_secret_key,
+    let s3_service = Arc::new(S3Service::new(
+        &config.bucket.s3_access_key,
+        &config.bucket.s3_secret_key,
         &config.bucket.bucket_name
-    ).expect("Failed to create R2 service"));
+    ).expect("Failed to create S3 service"));
 
     debug!("Starting server...");
 
     HttpServer::new(move || {
         App::new()
-            .app_data(Data::new(Arc::clone(&r2_service)))
+            .app_data(Data::new(Arc::clone(&s3_service)))
             .configure(|cfg| {
                 routes::configure_routes(cfg);
             })

@@ -5,7 +5,7 @@ use std::sync::Arc;
 use actix_multipart::form::MultipartForm;
 use actix_multipart::form::text::Text;
 use actix_web::{post, web, Responder};
-use crate::modules::r2_service::R2Service;
+use crate::modules::s3_service::S3Service;
 
 #[derive(MultipartForm)]
 pub struct ChunkUploadForm {
@@ -24,7 +24,7 @@ pub struct ChunkUploadForm {
 }
 
 #[post("")]
-pub async fn upload(r2_service: web::Data<Arc<R2Service>>, MultipartForm(form): MultipartForm<ChunkUploadForm>) -> impl Responder {
+pub async fn upload(s3_service: web::Data<Arc<S3Service>>, MultipartForm(form): MultipartForm<ChunkUploadForm>) -> impl Responder {
     let file_name = sanitize_filename::sanitize(&form.file_name.0);
     let chunk_size: u64 = form.chunk_data.iter().map(|f| f.size as u64).sum();
     log::debug!("Chunk size: {} bytes", chunk_size);
@@ -38,7 +38,7 @@ pub async fn upload(r2_service: web::Data<Arc<R2Service>>, MultipartForm(form): 
 
     if form.chunk_number.0 == 1 {
         log::debug!("Starting new upload for file: {}", file_name);
-        let id = r2_service.initiate_upload(file_name.clone()).await;
+        let id = s3_service.initiate_upload(file_name.clone()).await;
 
         let id = match id {
             Ok(id) => id,
@@ -48,7 +48,7 @@ pub async fn upload(r2_service: web::Data<Arc<R2Service>>, MultipartForm(form): 
             }
         };
 
-        match r2_service.upload_part(
+        match s3_service.upload_part(
             &id,
             &file_name,
             form.chunk_number.0,
@@ -72,7 +72,7 @@ pub async fn upload(r2_service: web::Data<Arc<R2Service>>, MultipartForm(form): 
 
         let upload_id = form.upload_id.as_ref().unwrap().0.clone();
 
-        let result = r2_service.upload_part(
+        let result = s3_service.upload_part(
             &upload_id,
             &file_name,
             form.chunk_number.0,

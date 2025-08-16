@@ -12,10 +12,10 @@ pub struct EnvConfig {
 #[derive(Clone, Debug)]
 pub struct BucketDetails {
     pub bucket_name: String,
-    pub r2_access_key: String,
-    pub r2_secret_key: String,
-    pub r2_url: String,
-    pub r2_region: String,
+    pub s3_access_key: String,
+    pub s3_secret_key: String,
+    pub s3_url: String,
+    pub s3_region: String,
 
 }
 
@@ -26,11 +26,11 @@ impl EnvConfig {
         
         EnvConfig {
             bucket: BucketDetails {
-                bucket_name: Self::get_env("R2_BUCKET_NAME"),
-                r2_access_key: Self::get_env("R2_ACCESS_KEY"),
-                r2_secret_key: Self::get_env("R2_SECRET_KEY"),
-                r2_url: Self::get_env("R2_URL"),
-                r2_region: Self::get_env("R2_BUCKET_REGION"),
+                bucket_name: Self::get_env("S3_BUCKET_NAME"),
+                s3_access_key: Self::get_env("S3_ACCESS_KEY"),
+                s3_secret_key: Self::get_env("S3_SECRET_KEY"),
+                s3_url: Self::get_env("S3_URL"),
+                s3_region: Self::get_env("S3_BUCKET_REGION"),
             }
         }
     }

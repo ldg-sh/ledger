@@ -13,7 +13,7 @@ use std::sync::Arc;
 use tokio::sync::{RwLock, Semaphore};
 use crate::config::config;
 
-pub struct R2Service {
+pub struct S3Service {
     bucket: String,
     client: Client,
     active_uploads: Arc<RwLock<Vec<ActiveUpload>>>,
@@ -30,12 +30,12 @@ struct CompletedPart {
     upload_part_output: UploadPartOutput,
 }
 
-impl R2Service {
-    pub fn new(access_key: &str, secret_key: &str, bucket: &str) -> Result<R2Service, Error> {
+impl S3Service {
+    pub fn new(access_key: &str, secret_key: &str, bucket: &str) -> Result<S3Service, Error> {
         let config = aws_sdk_s3::config::Builder::new()
-            .region(Region::from_static(&config().bucket.r2_region))
+            .region(Region::from_static(&config().bucket.s3_region))
             .behavior_version_latest()
-            .endpoint_url(&config().bucket.r2_url)
+            .endpoint_url(&config().bucket.s3_url)
             .credentials_provider(
                 Credentials::builder()
                     .provider_name("backblaze")
@@ -45,7 +45,7 @@ impl R2Service {
             ).build();
 
         let client = Client::from_conf(config);
-        Ok(R2Service { bucket: bucket.to_string(), client, active_uploads: Arc::new(RwLock::new(Vec::new())),  })
+        Ok(S3Service { bucket: bucket.to_string(), client, active_uploads: Arc::new(RwLock::new(Vec::new())),  })
     }
 
     pub async fn upload_part(
