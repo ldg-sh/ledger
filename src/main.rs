@@ -18,6 +18,7 @@ async fn main() -> std::io::Result<()> {
     let r2_service = Arc::new(R2Service::new(
         &config.bucket.r2_access_key,
         &config.bucket.r2_secret_key,
+        &config.bucket.bucket_name
     ).expect("Failed to create R2 service"));
 
     debug!("Starting server...");

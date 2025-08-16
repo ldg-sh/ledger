@@ -1,6 +1,6 @@
 extern crate sanitize_filename;
 
-use std::io::Read;
+use std::io::{Read};
 use std::sync::Arc;
 use actix_multipart::form::MultipartForm;
 use actix_multipart::form::text::Text;
@@ -11,6 +11,8 @@ use crate::modules::r2_service::R2Service;
 pub struct ChunkUploadForm {
     #[multipart(rename = "uploadId")]
     upload_id: Option<Text<String>>,
+    #[multipart(rename="checksum")]
+    checksum: Text<String>,
     #[multipart(rename = "fileName")]
     file_name: Text<String>,
     #[multipart(rename = "chunkNumber")]
@@ -22,10 +24,7 @@ pub struct ChunkUploadForm {
 }
 
 #[post("")]
-pub async fn upload(
-    r2_service: web::Data<Arc<R2Service>>,
-    MultipartForm(form): MultipartForm<ChunkUploadForm>
-) -> impl Responder {
+pub async fn upload(r2_service: web::Data<Arc<R2Service>>, MultipartForm(form): MultipartForm<ChunkUploadForm>) -> impl Responder {
     let file_name = sanitize_filename::sanitize(&form.file_name.0);
     let chunk_size: u64 = form.chunk_data.iter().map(|f| f.size as u64).sum();
     log::debug!("Chunk size: {} bytes", chunk_size);
@@ -39,15 +38,31 @@ pub async fn upload(
 
     if form.chunk_number.0 == 1 {
         log::debug!("Starting new upload for file: {}", file_name);
-        let id = r2_service.initiate_upload(file_name.clone()).await.expect("Failed to initiate upload");
-        log::debug!("Initiated upload for file: {} with upload ID: {}", file_name, id);
-        r2_service.upload_part(
+        let id = r2_service.initiate_upload(file_name.clone()).await;
+
+        let id = match id {
+            Ok(id) => id,
+            Err(e) => {
+                log::error!("Failed to initiate upload for file {}: {}", file_name, e);
+                return format!("Failed to initiate upload: {}", e);
+            }
+        };
+
+        match r2_service.upload_part(
             &id,
             &file_name,
             form.chunk_number.0,
             form.total_chunks.0,
             chunk_data.clone(),
-        ).await.expect("Failed to upload first chunk");
+            form.checksum.0.clone()
+        ).await {
+            Ok(_) => {
+                log::debug!("Successfully uploaded first chunk for file {}", file_name);
+            }
+            Err(e) => {
+                return format!("Failed to upload chunk: {}", e);
+            }
+        }
 
         return id;
     } else {
@@ -63,6 +78,7 @@ pub async fn upload(
             form.chunk_number.0,
             form.total_chunks.0,
             chunk_data,
+            form.checksum.0.clone()
         ).await;
 
         if let Err(e) = result {
