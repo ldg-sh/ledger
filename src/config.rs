@@ -5,7 +5,7 @@ use std::sync::OnceLock;
 #[allow(dead_code)]
 #[derive(Clone, Debug)]
 pub struct EnvConfig {
-    pub bucket: BucketDetails
+    pub bucket: BucketDetails,
 }
 
 #[allow(dead_code)]
@@ -16,14 +16,12 @@ pub struct BucketDetails {
     pub s3_secret_key: String,
     pub s3_url: String,
     pub s3_region: String,
-
 }
 
 impl EnvConfig {
     pub fn from_env() -> Self {
         dotenv::dotenv().ok();
 
-        
         EnvConfig {
             bucket: BucketDetails {
                 bucket_name: Self::get_env("S3_BUCKET_NAME"),
@@ -31,7 +29,7 @@ impl EnvConfig {
                 s3_secret_key: Self::get_env("S3_SECRET_KEY"),
                 s3_url: Self::get_env("S3_URL"),
                 s3_region: Self::get_env("S3_BUCKET_REGION"),
-            }
+            },
         }
     }
 

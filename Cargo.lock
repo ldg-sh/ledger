@@ -2226,6 +2226,8 @@ dependencies = [
  "log",
  "rust-s3",
  "sanitize-filename",
+ "serde",
+ "serde_json",
  "tokio",
 ]
 

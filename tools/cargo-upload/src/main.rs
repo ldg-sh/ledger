@@ -186,7 +186,7 @@ async fn main() -> Result<()> {
     }
 
     while let Some(res) = tasks.next().await {
-        res??;
+        res??; //dafuq are there two ?????s here
     }
 
     let duration = start.elapsed().as_secs().max(1);

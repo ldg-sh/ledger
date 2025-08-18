@@ -1,17 +1,17 @@
 extern crate sanitize_filename;
 
-use std::io::{Read};
-use std::sync::Arc;
+use crate::modules::s3::s3_service::S3Service;
 use actix_multipart::form::MultipartForm;
 use actix_multipart::form::text::Text;
-use actix_web::{post, web, Responder};
-use crate::modules::s3_service::S3Service;
+use actix_web::{Responder, post, web};
+use std::io::Read;
+use std::sync::Arc;
 
 #[derive(MultipartForm)]
 pub struct ChunkUploadForm {
     #[multipart(rename = "uploadId")]
     upload_id: Option<Text<String>>,
-    #[multipart(rename="checksum")]
+    #[multipart(rename = "checksum")]
     checksum: Text<String>,
     #[multipart(rename = "fileName")]
     file_name: Text<String>,
@@ -24,7 +24,10 @@ pub struct ChunkUploadForm {
 }
 
 #[post("")]
-pub async fn upload(s3_service: web::Data<Arc<S3Service>>, MultipartForm(form): MultipartForm<ChunkUploadForm>) -> impl Responder {
+pub async fn upload(
+    s3_service: web::Data<Arc<S3Service>>,
+    MultipartForm(form): MultipartForm<ChunkUploadForm>,
+) -> impl Responder {
     let file_name = sanitize_filename::sanitize(&form.file_name.0);
     let chunk_size: u64 = form.chunk_data.iter().map(|f| f.size as u64).sum();
     log::debug!("Chunk size: {} bytes", chunk_size);
@@ -48,14 +51,17 @@ pub async fn upload(s3_service: web::Data<Arc<S3Service>>, MultipartForm(form): 
             }
         };
 
-        match s3_service.upload_part(
-            &id,
-            &file_name,
-            form.chunk_number.0,
-            form.total_chunks.0,
-            chunk_data.clone(),
-            form.checksum.0.clone()
-        ).await {
+        match s3_service
+            .upload_part(
+                &id,
+                &file_name,
+                form.chunk_number.0,
+                form.total_chunks.0,
+                chunk_data.clone(),
+                form.checksum.0.clone(),
+            )
+            .await
+        {
             Ok(_) => {
                 log::debug!("Successfully uploaded first chunk for file {}", file_name);
             }
@@ -72,22 +78,38 @@ pub async fn upload(s3_service: web::Data<Arc<S3Service>>, MultipartForm(form): 
 
         let upload_id = form.upload_id.as_ref().unwrap().0.clone();
 
-        let result = s3_service.upload_part(
-            &upload_id,
-            &file_name,
-            form.chunk_number.0,
-            form.total_chunks.0,
-            chunk_data,
-            form.checksum.0.clone()
-        ).await;
+        let result = s3_service
+            .upload_part(
+                &upload_id,
+                &file_name,
+                form.chunk_number.0,
+                form.total_chunks.0,
+                chunk_data,
+                form.checksum.0.clone(),
+            )
+            .await;
 
         if let Err(e) = result {
-            log::error!("Failed to upload chunk {} of {} for file {}: {}", form.chunk_number.0, form.total_chunks.0, file_name, e);
+            log::error!(
+                "Failed to upload chunk {} of {} for file {}: {}",
+                form.chunk_number.0,
+                form.total_chunks.0,
+                file_name,
+                e
+            );
             return format!("Failed to upload chunk {}: {}", form.chunk_number.0, e);
         } else {
-            log::debug!("Successfully uploaded chunk {} of {} for file {}", form.chunk_number.0, form.total_chunks.0, file_name);
+            log::debug!(
+                "Successfully uploaded chunk {} of {} for file {}",
+                form.chunk_number.0,
+                form.total_chunks.0,
+                file_name
+            );
         }
     }
 
-    format!("Uploaded chunk {} of {} for file {}", form.chunk_number.0, form.total_chunks.0, file_name)
+    format!(
+        "Uploaded chunk {} of {} for file {}",
+        form.chunk_number.0, form.total_chunks.0, file_name
+    )
 }
