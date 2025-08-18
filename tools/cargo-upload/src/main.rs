@@ -89,7 +89,7 @@ async fn main() -> Result<()> {
     let file_size = parse_size_bytes(&cli.size)?;
     let chunk_size = parse_size_bytes(&cli.chunk_size)?;
     let max_concurrent = if cli.single { 1 } else { cli.max_concurrent };
-    let total_chunks = (file_size + chunk_size - 1) / chunk_size;
+    let total_chunks = file_size.div_ceil(chunk_size);
 
     let tmpfile = std::env::temp_dir().join("uploadfile.bin");
 

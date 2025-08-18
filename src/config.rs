@@ -1,4 +1,3 @@
-use dotenv;
 use std::env;
 use std::sync::OnceLock;
 

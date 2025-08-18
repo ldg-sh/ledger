@@ -2,7 +2,7 @@ use aws_sdk_s3::error::ProvideErrorMetadata;
 use aws_sdk_s3::types::builders::CompletedMultipartUploadBuilder;
 use aws_sdk_s3::types::{ChecksumAlgorithm, ChecksumType};
 use aws_sdk_s3::{operation::upload_part::UploadPartOutput, primitives::ByteStream};
-use base64::{Engine, prelude::BASE64_STANDARD};
+use base64::{prelude::BASE64_STANDARD, Engine};
 use tokio::sync::Semaphore;
 
 use crate::modules::s3::s3_service::S3Service;
@@ -64,7 +64,7 @@ impl S3Service {
                 .upload_id(upload_id)
                 .part_number(chunk_number as i32)
                 .body(ByteStream::from(chunk_data.clone()))
-                .checksum_algorithm(aws_sdk_s3::types::ChecksumAlgorithm::Sha256)
+                .checksum_algorithm(ChecksumAlgorithm::Sha256)
                 .checksum_sha256(&encoded_checksum)
                 .send()
                 .await
@@ -82,8 +82,7 @@ impl S3Service {
                                 ));
                             }
                             Some(code) => {
-                                return Err(Error::new(
-                                    std::io::ErrorKind::Other,
+                                return Err(Error::other(
                                     format!("Failed to upload part: {}", code),
                                 ));
                             }
@@ -92,8 +91,7 @@ impl S3Service {
                             }
                         }
 
-                        return Err(Error::new(
-                            std::io::ErrorKind::Other,
+                        return Err(Error::other(
                             format!("Failed to upload part after 3 attempts: {}", e),
                         ));
                     }
@@ -149,8 +147,7 @@ impl S3Service {
                 }
                 None => {
                     log::error!("No active upload found with ID: {}", upload_id);
-                    return Err(Error::new(
-                        std::io::ErrorKind::Other,
+                    return Err(Error::other(
                         format!("No active upload found with ID: {}", upload_id),
                     ));
                 }
@@ -179,8 +176,7 @@ impl S3Service {
                         file_name,
                         e
                     );
-                    return Err(Error::new(
-                        std::io::ErrorKind::Other,
+                    return Err(Error::other(
                         format!("Failed to complete multipart upload: {}", e),
                     ));
                 }
