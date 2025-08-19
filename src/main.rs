@@ -1,4 +1,5 @@
 use crate::modules::s3::s3_service::S3Service;
+use actix_multipart::form::MultipartFormConfig;
 use actix_web::web::Data;
 use actix_web::{App, HttpServer};
 use env_logger::Env;
@@ -29,6 +30,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(Data::new(Arc::clone(&s3_service)))
+            .app_data(MultipartFormConfig::default().total_limit(1000 * 1024 * 1024))
             .configure(|cfg| {
                 routes::configure_routes(cfg);
             })
