@@ -16,8 +16,10 @@ aws-sdk-s3 = "1.103.0"
 base64 = "0.22.1"
 hex = "0.4.3"
 serde = { version = "1.0.219", features = ["derive"] }
+tokio-util = "0.7.16"
 
 [workspace]
 members = [
-    "tools/cargo-upload"
+    "tools/cargo-upload",
+    "tools/cargo-download",
 ]

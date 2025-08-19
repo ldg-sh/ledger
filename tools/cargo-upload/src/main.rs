@@ -4,7 +4,7 @@ use futures::stream::{FuturesUnordered, StreamExt};
 use reqwest::multipart;
 use sha2::{Digest, Sha256};
 use std::fs::File;
-use std::io::{Read, Seek, SeekFrom};
+use std::io::Read;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Instant;
@@ -89,14 +89,28 @@ async fn main() -> Result<()> {
         let mut buf = Vec::with_capacity(file_size.min(64 * 1024 * 1024) as usize);
         File::open(&path)?.read_to_end(&mut buf)?;
         let filename = path.file_name().unwrap().to_string_lossy().to_string();
+
+        // Determine content type from path (fallback to octet-stream)
+        let content_type = mime_guess::from_path(&path)
+            .first_or_octet_stream()
+            .essence_str()
+            .to_string();
+
         let checksum = sha256_bytes(&buf);
 
-        println!("[*] Uploading real file: {} ({}, {})", filename, file_size, pretty_bytes(file_size));
+        println!(
+            "[*] Uploading real file: {} ({}, {}, ct={})",
+            filename,
+            file_size,
+            pretty_bytes(file_size),
+            &content_type
+        );
 
         let form = multipart::Form::new()
             .text("fileName", filename)
             .text("chunkNumber", "1")
             .text("totalChunks", "1")
+            .text("contentType", content_type)
             .text("checksum", checksum)
             .part("chunk", multipart::Part::bytes(buf));
 
@@ -115,9 +129,17 @@ async fn main() -> Result<()> {
     let total_chunks = size.div_ceil(chunk_size);
     let max_concurrent = if cli.single { 1 } else { cli.max_concurrent };
 
+    // For dummy data, content type is generic binary
+    let content_type = "application/octet-stream".to_string();
+
     println!(
-        "[*] Dummy upload: {} ({}), chunk={}, chunks={}, concurr={}",
-        size, pretty_bytes(size), pretty_bytes(chunk_size), total_chunks, max_concurrent
+        "[*] Dummy upload: {} ({}), chunk={}, chunks={}, concurr={}, ct={}",
+        size,
+        pretty_bytes(size),
+        pretty_bytes(chunk_size),
+        total_chunks,
+        max_concurrent,
+        &content_type
     );
 
     // Generate first chunk in-memory
@@ -132,6 +154,7 @@ async fn main() -> Result<()> {
         .text("fileName", filename.clone())
         .text("chunkNumber", "1")
         .text("totalChunks", total_chunks.to_string())
+        .text("contentType", content_type.clone())
         .text("checksum", first_hash)
         .part("chunk", multipart::Part::bytes(first_chunk));
 
@@ -161,7 +184,8 @@ async fn main() -> Result<()> {
         let filename = filename.clone();
         let chunk_size = chunk_size;
         let size = size;
-         let semaphore = semaphore.clone();
+        let content_type = content_type.clone();
+        let semaphore = semaphore.clone();
 
         tasks.push(tokio::spawn(async move {
             let _permit = semaphore.acquire().await.unwrap();
@@ -176,6 +200,7 @@ async fn main() -> Result<()> {
                 .text("fileName", filename)
                 .text("chunkNumber", chunk_num.to_string())
                 .text("totalChunks", total_chunks.to_string())
+                .text("contentType", content_type)
                 .text("checksum", hash)
                 .part("chunk", multipart::Part::bytes(buffer));
 

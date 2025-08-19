@@ -3,9 +3,10 @@ extern crate sanitize_filename;
 use crate::modules::s3::s3_service::S3Service;
 use actix_multipart::form::text::Text;
 use actix_multipart::form::MultipartForm;
-use actix_web::http::header::{ACCEPT_RANGES, CONTENT_TYPE};
+use actix_web::http::header::{ACCEPT_RANGES, CONTENT_DISPOSITION, CONTENT_TYPE};
 use actix_web::http::StatusCode;
-use actix_web::{web, get, head, HttpResponse, Responder};
+use actix_web::{web, get, HttpResponse};
+use tokio_util::io::ReaderStream;
 use std::sync::Arc;
 
 #[derive(MultipartForm)]
@@ -18,6 +19,7 @@ pub struct ChunkDownload {
     range_end: Text<u64>,
 }
 
+
 #[derive(MultipartForm)]
 pub struct DownloadMetadata {
     #[multipart(rename = "fileName")]
@@ -28,10 +30,12 @@ pub struct DownloadMetadata {
 pub async fn metadata(
     s3_service: web::Data<Arc<S3Service>>,
     MultipartForm(metadata): MultipartForm<DownloadMetadata>,
-) -> impl Responder {
+) -> HttpResponse {
     let metadata = s3_service.get_metadata(&metadata.file_name).await.unwrap();
 
-    web::Json(metadata)
+    HttpResponse::build(StatusCode::OK)
+        .insert_header((ACCEPT_RANGES, "bytes"))
+        .json(web::Json(metadata))
 }
 
 #[get("")]
@@ -52,4 +56,25 @@ pub async fn download(
         .insert_header((ACCEPT_RANGES, "bytes"))
         .insert_header((CONTENT_TYPE, mime_type))
         .body(object_output.body.collect().await.unwrap().into_bytes())
+}
+
+#[get("/view/{key}")]
+pub async fn download_full(
+    s3_service: web::Data<Arc<S3Service>>,
+    key: web::Path<String>
+) -> HttpResponse {
+    let object_output = match s3_service.download_file(&key).await {
+        Ok(object) => {object}
+        Err(e) => {
+            return HttpResponse::InternalServerError().json(e.to_string());
+        }
+    };
+
+    let mime_type = object_output.content_type().unwrap_or("application/octet-stream");
+
+    HttpResponse::Ok()
+        .insert_header((ACCEPT_RANGES, "bytes"))
+        .insert_header((CONTENT_TYPE, mime_type))
+        .insert_header((CONTENT_DISPOSITION, "inline"))
+        .streaming(ReaderStream::new(object_output.body.into_async_read()))
 }

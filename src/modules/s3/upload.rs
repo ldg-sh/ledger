@@ -211,15 +211,15 @@ impl S3Service {
         Ok(())
     }
 
-    pub async fn initiate_upload(&self, file_name: String) -> Result<String, String> {
+    pub async fn initiate_upload(&self, file_name: &str, content_type: &str) -> Result<String, String> {
         let initiation = self
             .client
             .create_multipart_upload()
             .bucket(&self.bucket)
             .checksum_algorithm(ChecksumAlgorithm::Sha256)
             .checksum_type(ChecksumType::Composite)
-            // helloooooo rustrover
-            .key(&file_name)
+            .content_type(content_type)
+            .key(file_name)
             .send()
             .await;
 

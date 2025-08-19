@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::Error;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct GetMetadataResponse {
     content_size: i64,
     metadata: HashMap<String, String>,
@@ -52,6 +52,16 @@ impl S3Service {
             .bucket(&self.bucket)
             .key(key)
             .range(&range)
+            .send()
+            .await
+            .map_err(|e| Error::other(e.to_string()))
+    }
+
+    pub async fn download_file(&self, key: &str) -> Result<GetObjectOutput, Error> {
+        self.client
+            .get_object()
+            .bucket(&self.bucket)
+            .key(key)
             .send()
             .await
             .map_err(|e| Error::other(e.to_string()))

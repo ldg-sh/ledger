@@ -19,6 +19,8 @@ pub struct ChunkUploadForm {
     chunk_number: Text<u32>,
     #[multipart(rename = "totalChunks")]
     total_chunks: Text<u32>,
+    #[multipart(rename = "contentType")]
+    content_type: Text<String>,
     #[multipart(rename = "chunk")]
     pub(crate) chunk_data: Vec<actix_multipart::form::tempfile::TempFile>,
 }
@@ -27,7 +29,7 @@ pub struct ChunkUploadForm {
 pub async fn upload(
     s3_service: web::Data<Arc<S3Service>>,
     MultipartForm(form): MultipartForm<ChunkUploadForm>,
-) -> impl Responder { // Do you do content type on chunk or init?
+) -> impl Responder {
     let file_name = sanitize_filename::sanitize(&form.file_name.0);
     let chunk_size: u64 = form.chunk_data.iter().map(|f| f.size as u64).sum();
     log::debug!("Chunk size: {} bytes", chunk_size);
@@ -41,7 +43,7 @@ pub async fn upload(
 
     if form.chunk_number.0 == 1 {
         log::debug!("Starting new upload for file: {}", file_name);
-        let id = s3_service.initiate_upload(file_name.clone()).await;
+        let id = s3_service.initiate_upload(file_name.clone().as_str(), form.content_type.as_str()).await;
 
         let id = match id {
             Ok(id) => id,

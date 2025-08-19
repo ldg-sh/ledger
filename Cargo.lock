@@ -914,12 +914,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "cargo-download"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "futures",
+ "mime",
+ "mime_guess",
+ "reqwest",
+ "serde_json",
+ "sha2 0.11.0-rc.0",
+ "tokio",
+]
+
+[[package]]
 name = "cargo-upload"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
  "futures",
+ "mime",
+ "mime_guess",
  "reqwest",
  "sha2 0.11.0-rc.0",
  "tokio",
@@ -2121,6 +2138,7 @@ dependencies = [
  "sanitize-filename",
  "serde",
  "tokio",
+ "tokio-util",
 ]
 
 [[package]]
