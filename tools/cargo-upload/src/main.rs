@@ -4,7 +4,7 @@ use futures::stream::{FuturesUnordered, StreamExt};
 use reqwest::multipart;
 use sha2::{Digest, Sha256};
 use std::fs::File;
-use std::io::Read;
+use std::io::{Read, Seek, SeekFrom};
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Instant;
@@ -26,15 +26,15 @@ struct Cli {
     #[arg(long)]
     size: Option<String>,
 
-    /// Path to an existing file (uploaded as a single part)
+    /// Path to an existing file (uploaded as chunked parts)
     #[arg(long)]
     path: Option<PathBuf>,
 
-    /// Chunk size for dummy uploads, e.g. 5mb
-    #[arg(long, requires = "size", default_value = "5mb")]
+    /// Chunk size for uploads (dummy and real), e.g. 8mb
+    #[arg(long, default_value = "8mb")]
     chunk_size: String,
 
-    /// Max concurrent uploads (dummy only)
+    /// Max concurrent uploads (applies to dummy and real)
     #[arg(long, default_value_t = 4)]
     max_concurrent: usize,
 
@@ -82,54 +82,121 @@ fn sha256_bytes(data: &[u8]) -> String {
 async fn main() -> Result<()> {
     let cli = Cli::parse();
     let client = reqwest::Client::new();
+    let chunk_size = parse_size_bytes(&cli.chunk_size)?;
+    let max_concurrent = if cli.single { 1 } else { cli.max_concurrent };
 
-    // === Real file mode: --path (no chunk size needed) ===
+    // === Real file mode: --path (chunked like dummy) ===
     if let Some(path) = cli.path {
         let file_size = std::fs::metadata(&path)?.len();
-        let mut buf = Vec::with_capacity(file_size.min(64 * 1024 * 1024) as usize);
-        File::open(&path)?.read_to_end(&mut buf)?;
+        let total_chunks = file_size.div_ceil(chunk_size);
         let filename = path.file_name().unwrap().to_string_lossy().to_string();
-
-        // Determine content type from path (fallback to octet-stream)
         let content_type = mime_guess::from_path(&path)
             .first_or_octet_stream()
             .essence_str()
             .to_string();
 
-        let checksum = sha256_bytes(&buf);
-
         println!(
-            "[*] Uploading real file: {} ({}, {}, ct={})",
+            "[*] Uploading real file (chunked): {} ({}, {}, ct={}, chunk={}, chunks={}, concurr={})",
             filename,
             file_size,
             pretty_bytes(file_size),
-            &content_type
+            &content_type,
+            pretty_bytes(chunk_size),
+            total_chunks,
+            max_concurrent
         );
 
+        // Read first chunk to obtain uploadId
+        let mut f = File::open(&path)?;
+        let mut first_buf = vec![0u8; chunk_size as usize];
+        let mut read = f.read(&mut first_buf)?;
+        if read == 0 {
+            bail!("Empty file");
+        }
+        first_buf.truncate(read);
+        let first_checksum = sha256_bytes(&first_buf);
+
         let form = multipart::Form::new()
-            .text("fileName", filename)
+            .text("fileName", filename.clone())
             .text("chunkNumber", "1")
-            .text("totalChunks", "1")
-            .text("contentType", content_type)
-            .text("checksum", checksum)
-            .part("chunk", multipart::Part::bytes(buf));
+            .text("totalChunks", total_chunks.to_string())
+            .text("contentType", content_type.clone())
+            .text("checksum", first_checksum)
+            .part("chunk", multipart::Part::bytes(first_buf));
 
         let start = Instant::now();
-        client.post(&cli.server_url).multipart(form).send().await?.error_for_status()?;
+        let upload_id = client
+            .post(&cli.server_url)
+            .multipart(form)
+            .send()
+            .await?
+            .error_for_status()?
+            .text()
+            .await?;
+        let upload_id = upload_id.trim().to_string();
+        if upload_id.is_empty() {
+            bail!("Empty uploadId from server");
+        }
+        println!("[✓] uploadId: {}", upload_id);
+
+        // Spawn remaining chunks (2..=total_chunks) — each task re-opens the file and reads its range
+        let semaphore = Arc::new(Semaphore::new(max_concurrent));
+        let mut tasks = FuturesUnordered::new();
+
+        for chunk_num in 2..=total_chunks {
+            let client = client.clone();
+            let server_url = cli.server_url.clone();
+            let upload_id = upload_id.clone();
+            let filename = filename.clone();
+            let content_type = content_type.clone();
+            let semaphore = semaphore.clone();
+            let path = path.clone();
+            let chunk_size = chunk_size;
+            let file_size = file_size;
+
+            tasks.push(tokio::spawn(async move {
+                let _permit = semaphore.acquire().await.unwrap();
+
+                let offset = (chunk_num - 1) * chunk_size;
+                let this_size = std::cmp::min(chunk_size, file_size - offset);
+                let mut buf = vec![0u8; this_size as usize];
+
+                // read this chunk from disk
+                let mut rf = File::open(&path)?;
+                rf.seek(SeekFrom::Start(offset))?;
+                rf.read_exact(&mut buf)?;
+
+                let checksum = sha256_bytes(&buf);
+
+                let form = multipart::Form::new()
+                    .text("uploadId", upload_id)
+                    .text("fileName", filename)
+                    .text("chunkNumber", chunk_num.to_string())
+                    .text("totalChunks", total_chunks.to_string())
+                    .text("contentType", content_type)
+                    .text("checksum", checksum)
+                    .part("chunk", multipart::Part::bytes(buf));
+
+                client.post(&server_url).multipart(form).send().await?.error_for_status()?;
+                Ok::<(), anyhow::Error>(())
+            }));
+        }
+
+        while let Some(res) = tasks.next().await {
+            res??;
+        }
+
         let secs = start.elapsed().as_secs().max(1);
         let bps = file_size / secs;
         let mbps = (file_size * 8) / secs / 1_000_000;
-        println!("[✓] Done in {}s — {} B/s (~{} Mbps)", secs, bps, mbps);
+
+        println!("[✓] Real file upload complete in {}s — {} B/s (~{} Mbps)", secs, bps, mbps);
         return Ok(());
     }
 
-    // === Dummy mode: --size + --chunk-size (optionally concurrent) ===
+    // === Dummy mode: --size (chunked, optionally concurrent) ===
     let size = parse_size_bytes(cli.size.as_ref().unwrap())?;
-    let chunk_size = parse_size_bytes(&cli.chunk_size)?;
     let total_chunks = size.div_ceil(chunk_size);
-    let max_concurrent = if cli.single { 1 } else { cli.max_concurrent };
-
-    // For dummy data, content type is generic binary
     let content_type = "application/octet-stream".to_string();
 
     println!(
@@ -142,14 +209,12 @@ async fn main() -> Result<()> {
         &content_type
     );
 
-    // Generate first chunk in-memory
+    // first dummy chunk
     let first_size = std::cmp::min(chunk_size, size);
     let first_chunk = vec![0u8; first_size as usize];
     let first_hash = sha256_bytes(&first_chunk);
-
     let filename = "uploadfile.bin".to_string();
 
-    // Send first chunk to get uploadId
     let form = multipart::Form::new()
         .text("fileName", filename.clone())
         .text("chunkNumber", "1")
@@ -173,7 +238,6 @@ async fn main() -> Result<()> {
     }
     println!("[✓] uploadId: {}", upload_id);
 
-    // Remaining chunks are zero-filled; generate per-task to avoid huge RAM
     let semaphore = Arc::new(Semaphore::new(max_concurrent));
     let mut tasks = FuturesUnordered::new();
 
@@ -192,7 +256,9 @@ async fn main() -> Result<()> {
 
             let offset = (chunk_num - 1) * chunk_size;
             let this_size = std::cmp::min(chunk_size, size - offset);
-            let buffer = vec![0u8; this_size as usize]; // zeroed chunk
+            println!("[>] uploading chunk {}/{} (offset={}, size={})",
+                chunk_num, total_chunks, offset, pretty_bytes(this_size));
+            let buffer = vec![0u8; this_size as usize];
             let hash = sha256_bytes(&buffer);
 
             let form = multipart::Form::new()
@@ -217,10 +283,6 @@ async fn main() -> Result<()> {
     let bps = size / secs;
     let mbps = (size * 8) / secs / 1_000_000;
 
-    println!(
-        "[✓] Dummy upload complete in {}s — {} B/s (~{} Mbps)",
-        secs, bps, mbps
-    );
-
+    println!("[✓] Dummy upload complete in {}s — {} B/s (~{} Mbps)", secs, bps, mbps);
     Ok(())
 }
