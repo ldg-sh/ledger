@@ -8,6 +8,7 @@ use std::io::Error;
 pub struct GetMetadataResponse {
     content_size: i64,
     metadata: HashMap<String, String>,
+    mime: String
 }
 
 impl S3Service {
@@ -30,10 +31,16 @@ impl S3Service {
             Some(metadata) => metadata,
             None => return Err(Error::other("Failed to get response content metadata." )),
         }.to_owned();
-        
+
+        let mime = match response.content_type() {
+            Some(c) => c,
+            None => return Err(Error::other("Failed to get response content type." )),
+        };
+
         Ok(GetMetadataResponse {
             content_size: size,
             metadata,
+            mime: mime.to_string()
         })
     }
 

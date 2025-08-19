@@ -218,7 +218,7 @@ impl S3Service {
             .bucket(&self.bucket)
             .checksum_algorithm(ChecksumAlgorithm::Sha256)
             .checksum_type(ChecksumType::Composite)
-            .metadata("he", "hoe")
+            // helloooooo rustrover
             .key(&file_name)
             .send()
             .await;

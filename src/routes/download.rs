@@ -3,10 +3,9 @@ extern crate sanitize_filename;
 use crate::modules::s3::s3_service::S3Service;
 use actix_multipart::form::text::Text;
 use actix_multipart::form::MultipartForm;
-use actix_web::get;
 use actix_web::http::header::{ACCEPT_RANGES, CONTENT_TYPE};
 use actix_web::http::StatusCode;
-use actix_web::{web, HttpResponse, Responder};
+use actix_web::{web, get, head, HttpResponse, Responder};
 use std::sync::Arc;
 
 #[derive(MultipartForm)]

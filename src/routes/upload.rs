@@ -27,7 +27,7 @@ pub struct ChunkUploadForm {
 pub async fn upload(
     s3_service: web::Data<Arc<S3Service>>,
     MultipartForm(form): MultipartForm<ChunkUploadForm>,
-) -> impl Responder {
+) -> impl Responder { // Do you do content type on chunk or init?
     let file_name = sanitize_filename::sanitize(&form.file_name.0);
     let chunk_size: u64 = form.chunk_data.iter().map(|f| f.size as u64).sum();
     log::debug!("Chunk size: {} bytes", chunk_size);
