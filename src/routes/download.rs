@@ -1,6 +1,6 @@
 extern crate sanitize_filename;
 
-use std::io::Error;
+use crate::modules::s3::download::GetMetadataResponse;
 use crate::modules::s3::s3_service::S3Service;
 use actix_multipart::form::text::Text;
 use actix_multipart::form::MultipartForm;
@@ -9,6 +9,8 @@ use actix_web::http::StatusCode;
 use actix_web::{web, get, HttpResponse};
 use tokio_util::io::ReaderStream;
 use std::sync::Arc;
+use aws_sdk_s3::error::SdkError;
+use aws_sdk_s3::operation::head_object::HeadObjectError;
 
 #[derive(MultipartForm)]
 pub struct ChunkDownload {
@@ -33,15 +35,39 @@ pub async fn metadata(
     MultipartForm(metadata): MultipartForm<DownloadMetadata>,
 ) -> HttpResponse {
     let metadata = match s3_service.get_metadata(&metadata.file_name).await {
-        Ok(metadata) => {metadata}
-        Err(e) => {
-            return HttpResponse::InternalServerError().body(e.to_string())
+        Ok(m) => m,
+        Err(SdkError::ServiceError(se)) if matches!(se.err(), HeadObjectError::NotFound(_)) => {
+            return HttpResponse::NotFound().finish();
         }
+        Err(e) => {
+            log::error!("{e:?}");
+            return HttpResponse::InternalServerError().finish();
+        }
+    };
+
+    let content_size = match metadata.content_length {
+        Some(size) => size,
+        None => {
+            return HttpResponse::InternalServerError().body("Error whilst trying to obtain content size in metadata.")
+        },
+    };
+
+    let mime = match metadata.content_type {
+        Some(mime) => mime,
+        None => {
+            return HttpResponse::InternalServerError().body("Error whilst obtaining content type.")
+        },
+    };
+
+    let formatted_metadata = GetMetadataResponse {
+        content_size: content_size,
+        metadata: metadata.metadata,
+        mime: mime
     };
 
     HttpResponse::build(StatusCode::OK)
         .insert_header((ACCEPT_RANGES, "bytes"))
-        .json(web::Json(metadata))
+        .json(web::Json(formatted_metadata))
 }
 
 #[get("")]
