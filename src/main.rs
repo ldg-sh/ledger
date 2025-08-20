@@ -11,6 +11,8 @@ use crate::modules::redis::redis::RedisService;
 mod config;
 mod modules;
 mod routes;
+mod util;
+mod types;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -34,11 +36,11 @@ async fn main() -> std::io::Result<()> {
             .await
             .unwrap()
     );
-    
+
     let redis_service = Arc::new(
         RedisService::new(
             &config.redis.redis_uri,
-        )         
+        )
     );
 
     debug!("Starting server...");

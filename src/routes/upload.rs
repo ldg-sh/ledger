@@ -6,6 +6,8 @@ use actix_multipart::form::text::Text;
 use actix_web::{Responder, post, web};
 use std::io::Read;
 use std::sync::Arc;
+use crate::modules::postgres::postgres::PostgresService;
+use crate::modules::redis::redis::RedisService;
 
 #[derive(MultipartForm)]
 pub struct ChunkUploadForm {
@@ -114,4 +116,20 @@ pub async fn upload(
         "Uploaded chunk {} of {} for file {}",
         form.chunk_number.0, form.total_chunks.0, file_name
     )
+}
+
+pub struct CreateUploadForm {
+    name: String,
+    content_type: String,
+}
+
+#[post("/create")]
+pub async fn create_upload(
+    s3_service: web::Data<Arc<S3Service>>,
+    redis: web::Data<Arc<RedisService>>,
+    db: web::Data<Arc<PostgresService>>,
+    MultipartForm(form): MultipartForm<ChunkUploadForm>,
+) -> impl Responder {
+// TODO: Saniotize the file name and content type. We dont want to allow anything.
+""
 }

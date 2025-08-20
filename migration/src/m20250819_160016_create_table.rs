@@ -12,7 +12,12 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(File::Table)
                     .if_not_exists()
-                    .primary_key(Index::create().col(File::Id))
+                    .col(
+                        ColumnDef::new(File::Id)
+                            .string()
+                            .not_null()
+                            .primary_key(),
+                    )
                     .col(
                         ColumnDef::new(File::FileName)
                             .string()
