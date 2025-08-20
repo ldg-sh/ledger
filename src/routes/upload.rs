@@ -3,11 +3,12 @@ extern crate sanitize_filename;
 use crate::modules::s3::s3_service::S3Service;
 use actix_multipart::form::MultipartForm;
 use actix_multipart::form::text::Text;
-use actix_web::{Responder, post, web};
+use actix_web::{post, web, HttpResponse, HttpServer, Responder};
 use std::io::Read;
 use std::sync::Arc;
 use crate::modules::postgres::postgres::PostgresService;
 use crate::modules::redis::redis::RedisService;
+use crate::types::redis::RedisKeyTypes;
 
 #[derive(MultipartForm)]
 pub struct ChunkUploadForm {
@@ -118,9 +119,14 @@ pub async fn upload(
     )
 }
 
+#[derive(MultipartForm)]
 pub struct CreateUploadForm {
-    name: String,
-    content_type: String,
+    #[multipart(rename = "fileName")]
+    file_name: Text<String>,
+    #[multipart(rename = "contentType")]
+    content_type: Text<String>,
+    #[multipart(rename = "token")]
+    token: Text<String>
 }
 
 #[post("/create")]
@@ -128,8 +134,36 @@ pub async fn create_upload(
     s3_service: web::Data<Arc<S3Service>>,
     redis: web::Data<Arc<RedisService>>,
     db: web::Data<Arc<PostgresService>>,
-    MultipartForm(form): MultipartForm<ChunkUploadForm>,
+    MultipartForm(form): MultipartForm<CreateUploadForm>,
 ) -> impl Responder {
-// TODO: Saniotize the file name and content type. We dont want to allow anything.
-""
+    let file_name = form.file_name.0.clone();
+    let content_type = form.content_type.0.clone();
+    let token = form.token.0.clone();
+
+    let rediskey = RedisKeyTypes::FileCreate.make(&[&file_name, &token]);
+
+    let exists = match redis.get(&rediskey.clone()).await {
+        Ok(exists) => exists,
+        Err(_) => None,
+    };
+
+    if let Some(existing_id) = exists {
+        return HttpResponse::Ok().json(serde_json::json!({
+            "upload_id": existing_id
+        }));
+    }
+
+    // Create the upload ID.
+    let upload_id = match s3_service.initiate_upload(file_name.clone().as_str(), &content_type).await {
+        Ok(upload_id) => upload_id,
+        Err(error) => {
+            return HttpResponse::InternalServerError().body(error.to_string());
+        },
+    };
+
+    // 1 hour ttl
+    let ttl = 60 * 60;
+    redis.set_ex(&rediskey, &upload_id, ttl).await.ok();
+
+    HttpResponse::Ok().finish()
 }

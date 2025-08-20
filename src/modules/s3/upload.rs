@@ -4,6 +4,8 @@ use aws_sdk_s3::types::{ChecksumAlgorithm, ChecksumType};
 use aws_sdk_s3::{operation::upload_part::UploadPartOutput, primitives::ByteStream};
 use base64::{prelude::BASE64_STANDARD, Engine};
 use tokio::sync::Semaphore;
+use anyhow::{Result, Context};
+
 
 use crate::modules::s3::s3_service::S3Service;
 use std::{io::Error, sync::Arc};
@@ -211,7 +213,7 @@ impl S3Service {
         Ok(())
     }
 
-    pub async fn initiate_upload(&self, file_name: &str, content_type: &str) -> Result<String, String> {
+    pub async fn initiate_upload(&self, file_name: &str, content_type: &str) -> Result<String> {
         let initiation = self
             .client
             .create_multipart_upload()
@@ -221,11 +223,12 @@ impl S3Service {
             .content_type(content_type)
             .key(file_name)
             .send()
-            .await;
+            .await
+            .context("Failed to send multipart upload request")?;
 
-        match initiation {
-            Ok(initiation) => Ok(initiation.upload_id.unwrap_or_default()),
-            Err(e) => Err(e.to_string()),
-        }
+        let upload_id = initiation
+            .upload_id.context("Upload ID missing in S3 response")?;
+
+        Ok(upload_id)
     }
 }
