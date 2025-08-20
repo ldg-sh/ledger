@@ -1,5 +1,6 @@
 extern crate sanitize_filename;
 
+use std::io::Error;
 use crate::modules::s3::s3_service::S3Service;
 use actix_multipart::form::text::Text;
 use actix_multipart::form::MultipartForm;
@@ -31,7 +32,12 @@ pub async fn metadata(
     s3_service: web::Data<Arc<S3Service>>,
     MultipartForm(metadata): MultipartForm<DownloadMetadata>,
 ) -> HttpResponse {
-    let metadata = s3_service.get_metadata(&metadata.file_name).await.unwrap();
+    let metadata = match s3_service.get_metadata(&metadata.file_name).await {
+        Ok(metadata) => {metadata}
+        Err(e) => {
+            return HttpResponse::InternalServerError().body(e.to_string())
+        }
+    };
 
     HttpResponse::build(StatusCode::OK)
         .insert_header((ACCEPT_RANGES, "bytes"))

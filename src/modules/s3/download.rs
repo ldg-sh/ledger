@@ -3,6 +3,8 @@ use aws_sdk_s3::operation::get_object::GetObjectOutput;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::Error;
+use aws_sdk_s3::config::http::HttpResponse;
+use aws_sdk_s3::operation::head_object::{HeadObjectError, HeadObjectOutput};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct GetMetadataResponse {
@@ -13,14 +15,17 @@ pub struct GetMetadataResponse {
 
 impl S3Service {
     pub async fn get_metadata(&self, file_name: &str) -> Result<GetMetadataResponse, Error> {
-        let response = self.client.head_object()
+        let response = match self.client.head_object()
             .key(file_name)
             .bucket(&self.bucket)
             .send()
-            .await
-            .map_err(|e| {
-                Error::other(format!("Failed to get head uwu: {e}"))
-            })?;
+            .await {
+            Ok(res) => res,
+            Err(error) => {
+                println!("{:?}", error.raw_response().unwrap().body());
+                return Err(Error::new(std::io::ErrorKind::Other, error.to_string()));
+            }
+        };
 
         let size = match response.content_length() {
             Some(size) => size,

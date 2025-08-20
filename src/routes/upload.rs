@@ -142,18 +142,16 @@ pub async fn create_upload(
 
     let rediskey = RedisKeyTypes::FileCreate.make(&[&file_name, &token]);
 
-    let exists = match redis.get(&rediskey.clone()).await {
-        Ok(exists) => exists,
-        Err(_) => None,
-    };
+    let exists = redis.get(&rediskey.clone()).await.unwrap_or_else(|_| None);
 
+    // We need a better way to do this.
     if let Some(existing_id) = exists {
         return HttpResponse::Ok().json(serde_json::json!({
             "upload_id": existing_id
         }));
     }
 
-    // Create the upload ID.
+    // Create the upload ID. // stop fucking commenting
     let upload_id = match s3_service.initiate_upload(file_name.clone().as_str(), &content_type).await {
         Ok(upload_id) => upload_id,
         Err(error) => {
