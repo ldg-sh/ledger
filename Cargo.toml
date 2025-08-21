@@ -20,8 +20,8 @@ serde = { version = "1.0.219", features = ["derive"] }
 tokio-util = "0.7.16"
 migration = { path = "migration" }
 entity = { path = "entity" }
-redis = { version = "0.32.5", features = ["tokio-comp"] }
-deadpool-redis = { version = "0.18", features = ["rt_tokio_1"] }
+redis = { version = "0.32.5", features = ["tokio-comp", "json"] }
+deadpool-redis = { version = "0.22.0", features = ["rt_tokio_1"] }
 anyhow = "1.0.99"
 strum = "0.27.2"
 strum_macros = "0.27.2"
@@ -29,3 +29,9 @@ serde_json = "1.0.143"
 
 [workspace]
 members = ["tools/cargo-upload", "tools/cargo-download", "migration", "entity"]
+
+[dependencies.uuid]
+version = "1.18.0"
+features = [
+    "v4",
+]

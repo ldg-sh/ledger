@@ -6,6 +6,8 @@ use actix_multipart::form::text::Text;
 use actix_web::{post, web, HttpResponse, HttpServer, Responder};
 use std::io::Read;
 use std::sync::Arc;
+use sea_orm::sqlx::types::uuid;
+use serde::{Deserialize, Serialize};
 use crate::modules::postgres::postgres::PostgresService;
 use crate::modules::redis::redis::RedisService;
 use crate::types::redis::RedisKeyTypes;
@@ -129,6 +131,14 @@ pub struct CreateUploadForm {
     token: Text<String>
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct UploadCache {
+    pub upload_id: String,
+    pub file_id: String,
+    pub file_name: String,
+    pub token: String,
+}
+
 #[post("/create")]
 pub async fn create_upload(
     s3_service: web::Data<Arc<S3Service>>,
@@ -140,28 +150,39 @@ pub async fn create_upload(
     let content_type = form.content_type.0.clone();
     let token = form.token.0.clone();
 
-    let rediskey = RedisKeyTypes::FileCreate.make(&[&file_name, &token]);
+    let redis_key = RedisKeyTypes::FileCreate.make(&[&file_name, &token]);
+    let exists = redis.get_json::<UploadCache>(&redis_key.clone()).await.unwrap_or_else(|_| None);
 
-    let exists = redis.get(&rediskey.clone()).await.unwrap_or_else(|_| None);
-
-    // We need a better way to do this.
     if let Some(existing_id) = exists {
         return HttpResponse::Ok().json(serde_json::json!({
-            "upload_id": existing_id
+            "upload_id": existing_id.upload_id,
+            "file_id": existing_id.file_id,
+            "file_name": existing_id.file_name,
         }));
     }
 
-    // Create the upload ID. // stop fucking commenting
-    let upload_id = match s3_service.initiate_upload(file_name.clone().as_str(), &content_type).await {
+    let file_id = uuid::Uuid::new_v4().to_string();
+    let redis_key = RedisKeyTypes::FileCreate.make(&[&file_id, &token]);
+
+    let upload_id = match s3_service.initiate_upload(file_id.as_str(), &content_type).await {
         Ok(upload_id) => upload_id,
         Err(error) => {
             return HttpResponse::InternalServerError().body(error.to_string());
         },
     };
 
-    // 1 hour ttl
     let ttl = 60 * 60;
-    redis.set_ex(&rediskey, &upload_id, ttl).await.ok();
+    let upload_cache = UploadCache {
+        upload_id: upload_id.clone(),
+        file_id: file_id.clone(),
+        file_name: file_name.clone(),
+        token: token.clone(),
+    };
 
-    HttpResponse::Ok().finish()
+    redis.set_ex_json(&redis_key, &upload_cache, ttl).await.ok();
+
+    HttpResponse::Ok().json(serde_json::json!({
+        "upload_id": upload_id,
+        "file_id": file_id,
+    }))
 }
