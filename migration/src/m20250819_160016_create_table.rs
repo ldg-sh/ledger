@@ -1,4 +1,5 @@
 use sea_orm_migration::{prelude::*};
+use sea_orm_migration::sea_orm::sqlx::types::chrono::Utc;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -40,7 +41,7 @@ impl MigrationTrait for Migration {
                     .col(
                         ColumnDef::new(File::CreatedAt)
                             .timestamp_with_time_zone()
-                            .default(Expr::current_timestamp())
+                            .default(Utc::now())
                             .not_null(),
                     )
                     .col(

@@ -7,6 +7,7 @@ use actix_web::{post, web, HttpResponse, Responder};
 use std::io::Read;
 use std::sync::Arc;
 use sea_orm::{EntityTrait};
+use sea_orm::sqlx::types::chrono::Utc;
 use sea_orm::sqlx::types::uuid;
 use serde::{Deserialize, Serialize};
 use crate::modules::postgres::postgres::PostgresService;
@@ -130,7 +131,7 @@ pub async fn create_upload(
         file_owner_id: "".to_string(),
         upload_id: upload_id.clone(),
         file_size: 0,
-        created_at: Default::default(),
+        created_at: Utc::now(),
         upload_completed: false,
     };
 
