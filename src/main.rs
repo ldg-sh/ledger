@@ -6,7 +6,6 @@ use env_logger::Env;
 use log::debug;
 use std::sync::Arc;
 use crate::modules::postgres::postgres::PostgresService;
-use crate::modules::redis::redis::RedisService;
 
 mod config;
 mod modules;
@@ -37,19 +36,12 @@ async fn main() -> std::io::Result<()> {
             .unwrap()
     );
 
-    let redis_service = Arc::new(
-        RedisService::new(
-            &config.redis.redis_uri,
-        )
-    );
-
     debug!("Starting server...");
 
     HttpServer::new(move || {
         App::new()
             .app_data(Data::new(Arc::clone(&s3_service)))
             .app_data(Data::new(Arc::clone(&postgres_service)))
-            .app_data(Data::new(Arc::clone(&redis_service)))
             .app_data(MultipartFormConfig::default().total_limit(1000 * 1024 * 1024))
             .configure(|cfg| {
                 routes::configure_routes(cfg);

@@ -5,8 +5,7 @@ use std::sync::OnceLock;
 #[derive(Clone, Debug)]
 pub struct EnvConfig {
     pub bucket: BucketDetails,
-    pub postgres: PostgresDetails,
-    pub redis: RedisDetails
+    pub postgres: PostgresDetails
 }
 
 #[allow(dead_code)]
@@ -25,12 +24,6 @@ pub struct PostgresDetails {
     pub postgres_uri: String,
 }
 
-#[allow(dead_code)]
-#[derive(Clone, Debug)]
-pub struct RedisDetails {
-    pub redis_uri: String,
-    }
-
 impl EnvConfig {
     pub fn from_env() -> Self {
         dotenv::dotenv().ok();
@@ -45,10 +38,7 @@ impl EnvConfig {
             },
             postgres: PostgresDetails {
                 postgres_uri: Self::get_env("POSTGRES_URI"),
-            },
-            redis: RedisDetails {
-                redis_uri: Self::get_env("REDIS_URI"),
-            },
+            }
         }
     }
 

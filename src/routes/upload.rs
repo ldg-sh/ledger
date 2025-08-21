@@ -8,9 +8,6 @@ use std::io::Read;
 use std::sync::Arc;
 use sea_orm::sqlx::types::uuid;
 use serde::{Deserialize, Serialize};
-use crate::modules::postgres::postgres::PostgresService;
-use crate::modules::redis::redis::RedisService;
-use crate::types::redis::RedisKeyTypes;
 
 #[derive(MultipartForm)]
 pub struct ChunkUploadForm {
@@ -135,34 +132,17 @@ pub struct CreateUploadForm {
 pub struct UploadCache {
     pub upload_id: String,
     pub file_id: String,
-    pub file_name: String,
-    pub token: String,
+    pub file_name: String
 }
 
 #[post("/create")]
 pub async fn create_upload(
     s3_service: web::Data<Arc<S3Service>>,
-    redis: web::Data<Arc<RedisService>>,
-    db: web::Data<Arc<PostgresService>>,
     MultipartForm(form): MultipartForm<CreateUploadForm>,
 ) -> impl Responder {
-    let file_name = form.file_name.0.clone();
     let content_type = form.content_type.0.clone();
-    let token = form.token.0.clone();
-
-    let redis_key = RedisKeyTypes::FileCreate.make(&[&file_name, &token]);
-    let exists = redis.get_json::<UploadCache>(&redis_key.clone()).await.unwrap_or_else(|_| None);
-
-    if let Some(existing_id) = exists {
-        return HttpResponse::Ok().json(serde_json::json!({
-            "upload_id": existing_id.upload_id,
-            "file_id": existing_id.file_id,
-            "file_name": existing_id.file_name,
-        }));
-    }
 
     let file_id = uuid::Uuid::new_v4().to_string();
-    let redis_key = RedisKeyTypes::FileCreate.make(&[&file_id, &token]);
 
     let upload_id = match s3_service.initiate_upload(file_id.as_str(), &content_type).await {
         Ok(upload_id) => upload_id,
@@ -170,16 +150,7 @@ pub async fn create_upload(
             return HttpResponse::InternalServerError().body(error.to_string());
         },
     };
-
-    let ttl = 60 * 60;
-    let upload_cache = UploadCache {
-        upload_id: upload_id.clone(),
-        file_id: file_id.clone(),
-        file_name: file_name.clone(),
-        token: token.clone(),
-    };
-
-    redis.set_ex_json(&redis_key, &upload_cache, ttl).await.ok();
+    // TODO: Store in database the file ID -> file name
 
     HttpResponse::Ok().json(serde_json::json!({
         "upload_id": upload_id,
