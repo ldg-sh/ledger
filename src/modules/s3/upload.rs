@@ -5,10 +5,9 @@ use aws_sdk_s3::{operation::upload_part::UploadPartOutput, primitives::ByteStrea
 use base64::{prelude::BASE64_STANDARD, Engine};
 use tokio::sync::Semaphore;
 use anyhow::{Result, Context};
-
-
 use crate::modules::s3::s3_service::S3Service;
 use std::{io::Error, sync::Arc};
+use sea_orm::{DatabaseConnection, EntityTrait, IntoActiveModel};
 
 struct CompletedPart {
     pub(super) part_number: u32,
@@ -17,8 +16,10 @@ struct CompletedPart {
 
 pub struct ActiveUpload {
     pub(super) upload_id: String,
+    pub(super) file_id: String,
     parts: Vec<CompletedPart>,
     pub(super) semaphore: Arc<Semaphore>,
+    current_file_size: u64,
 }
 
 impl S3Service {
@@ -30,7 +31,31 @@ impl S3Service {
         total_chunks: u32,
         chunk_data: Vec<u8>,
         checksum: String,
+        database_connection: &DatabaseConnection
     ) -> Result<(), Error> {
+        if chunk_data.is_empty() {
+            return Err(Error::other(
+                "Chunk data is empty",
+            ));
+        }
+
+        {
+            let uploads = self.active_uploads.read().await;
+            if let Some(upload) = uploads.iter().find(|u| u.upload_id == upload_id) {
+                if upload.file_id != file_name {
+                    return Err(Error::new(
+                        std::io::ErrorKind::InvalidInput,
+                        "File name does not match the upload ID",
+                    ));
+                }
+            } else {
+                return Err(Error::new(
+                    std::io::ErrorKind::NotFound,
+                    "Upload ID not found",
+                ));
+            }
+        }
+
         let semaphore = {
             let uploads = self.active_uploads.read().await;
             uploads
@@ -111,15 +136,12 @@ impl S3Service {
                     part_number: chunk_number,
                     upload_part_output: completed_part.clone(),
                 });
+                upload.current_file_size += chunk_data.len() as u64;
             } else {
-                uploads.push(ActiveUpload {
-                    upload_id: upload_id.to_string(),
-                    parts: vec![CompletedPart {
-                        part_number: chunk_number,
-                        upload_part_output: completed_part.clone(),
-                    }],
-                    semaphore: Arc::new(Semaphore::new(3)),
-                });
+                return Err(Error::new(
+                    std::io::ErrorKind::NotFound,
+                    "Upload ID not found when recording part",
+                ));
             }
         }
 
@@ -127,11 +149,12 @@ impl S3Service {
             upload.upload_id == upload_id && upload.parts.len() == total_chunks as usize
         }) {
             let cloned_uploads = self.active_uploads.read().await;
-            let parts = cloned_uploads
-                .iter()
-                .find(|upload| upload.upload_id == upload_id);
 
-            let parts = match parts {
+            let active_upload = cloned_uploads
+                .iter()
+                .find(|upload| upload.upload_id == upload_id).clone();
+
+            let parts = match active_upload {
                 Some(upload) => {
                     let mut parts: Vec<_> = upload
                         .parts
@@ -154,8 +177,6 @@ impl S3Service {
                     ));
                 }
             };
-
-            drop(cloned_uploads);
 
             match self
                 .client
@@ -183,6 +204,36 @@ impl S3Service {
                     ));
                 }
             };
+
+            use entity::file::Entity as FileEntity;
+            use sea_orm::ActiveModelTrait;
+            use sea_orm::Set;
+
+            let file = FileEntity::find_by_id(file_name)
+                .one(database_connection)
+                .await
+                .map_err(|e| {
+                    Error::other(
+                        format!("Database query error: {}", e),
+                    )
+                })?
+                .ok_or_else(|| Error::new(std::io::ErrorKind::NotFound, "File not found in database"))?;
+
+            let mut file_model: entity::file::ActiveModel = file.into_active_model();
+            file_model.upload_id = Set(upload_id.to_string());
+            file_model.file_size = Set(active_upload.unwrap().current_file_size as i64);
+            file_model.upload_completed = Set(true);
+
+            file_model
+                .update(database_connection)
+                .await
+                .map_err(|e| {
+                        Error::other(
+                            format!("Failed to update file in database: {}", e),
+                        )
+                    })?;
+
+            drop(cloned_uploads);
 
             let mut map = self.active_uploads.write().await;
             map.retain(|upload| upload.upload_id != upload_id);
@@ -228,6 +279,16 @@ impl S3Service {
 
         let upload_id = initiation
             .upload_id.context("Upload ID missing in S3 response")?;
+
+        self.active_uploads.write().await.push(
+            ActiveUpload {
+                upload_id: upload_id.clone(),
+                file_id: file_name.to_string(),
+                parts: Vec::new(),
+                semaphore: Arc::new(Semaphore::new(3)),
+                current_file_size: 0,
+            }
+        );
 
         Ok(upload_id)
     }

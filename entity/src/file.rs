@@ -8,8 +8,9 @@ pub struct Model {
     pub file_name: String,
     pub file_owner_id: String,
     pub upload_id: String,
-    pub file_size: u64,
+    pub file_size: i64,
     pub created_at: DateTimeUtc,
+    pub upload_completed: bool,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

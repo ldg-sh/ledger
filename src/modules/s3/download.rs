@@ -1,12 +1,11 @@
 use crate::modules::s3::s3_service::S3Service;
+use anyhow::Result;
 use aws_sdk_s3::error::SdkError;
 use aws_sdk_s3::operation::get_object::GetObjectOutput;
+use aws_sdk_s3::operation::head_object::{HeadObjectError, HeadObjectOutput};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::Error;
-use aws_sdk_s3::config::http::HttpResponse;
-use aws_sdk_s3::operation::head_object::{HeadObjectError, HeadObjectOutput};
-use anyhow::{Result, Context};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct GetMetadataResponse {

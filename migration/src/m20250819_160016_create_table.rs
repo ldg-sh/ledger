@@ -43,6 +43,12 @@ impl MigrationTrait for Migration {
                             .default(Expr::current_timestamp())
                             .not_null(),
                     )
+                    .col(
+                        ColumnDef::new(File::UploadCompleted)
+                            .boolean()
+                            .default(false)
+                            .not_null(),
+                    )
                     .to_owned(),
             )
             .await
@@ -66,4 +72,5 @@ enum File {
     UploadId,
     FileSize,
     CreatedAt,
+    UploadCompleted,
 }

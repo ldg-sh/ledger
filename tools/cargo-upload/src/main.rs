@@ -9,6 +9,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Instant;
 use tokio::sync::Semaphore;
+use serde::{Deserialize, Serialize};
 
 #[derive(Parser, Debug)]
 #[command(name = "rust-upload", about = "Upload a file (real or dummy)")]
@@ -43,6 +44,11 @@ struct Cli {
     server_url: String,
 }
 
+#[derive(Serialize, Deserialize)]
+struct UploadResponse {
+    upload_id: String,
+    file_id: String,
+}
 fn parse_size_bytes(s: &str) -> Result<u64> {
     let s = s.to_lowercase();
     let (digits, unit) = s.chars().partition::<String, _>(|c| c.is_ascii_digit());
@@ -106,34 +112,23 @@ async fn main() -> Result<()> {
             max_concurrent
         );
 
-        // Read first chunk to obtain uploadId
-        let mut f = File::open(&path)?;
-        let mut first_buf = vec![0u8; chunk_size as usize];
-        let mut read = f.read(&mut first_buf)?;
-        if read == 0 {
-            bail!("Empty file");
-        }
-        first_buf.truncate(read);
-        let first_checksum = sha256_bytes(&first_buf);
-
         let form = multipart::Form::new()
             .text("fileName", filename.clone())
-            .text("chunkNumber", "1")
-            .text("totalChunks", total_chunks.to_string())
             .text("contentType", content_type.clone())
-            .text("checksum", first_checksum)
-            .part("chunk", multipart::Part::bytes(first_buf));
+            .text("token", "todo");
 
         let start = Instant::now();
-        let upload_id = client
-            .post(&cli.server_url)
+        let upload_response: UploadResponse = client
+            .post(format!("{}/create", &cli.server_url))
             .multipart(form)
             .send()
             .await?
             .error_for_status()?
-            .text()
+            .json()
             .await?;
-        let upload_id = upload_id.trim().to_string();
+
+        let upload_id = upload_response.upload_id.trim().to_string();
+        let file_id = upload_response.file_id.trim().to_string();
         if upload_id.is_empty() {
             bail!("Empty uploadId from server");
         }
@@ -143,11 +138,11 @@ async fn main() -> Result<()> {
         let semaphore = Arc::new(Semaphore::new(max_concurrent));
         let mut tasks = FuturesUnordered::new();
 
-        for chunk_num in 2..=total_chunks {
+        for chunk_num in 1..=total_chunks {
             let client = client.clone();
             let server_url = cli.server_url.clone();
             let upload_id = upload_id.clone();
-            let filename = filename.clone();
+            let filename = file_id.clone();
             let content_type = content_type.clone();
             let semaphore = semaphore.clone();
             let path = path.clone();
@@ -177,7 +172,10 @@ async fn main() -> Result<()> {
                     .text("checksum", checksum)
                     .part("chunk", multipart::Part::bytes(buf));
 
-                client.post(&server_url).multipart(form).send().await?.error_for_status()?;
+                let response = client.post(&server_url).multipart(form).send().await?;
+                if !response.status().is_success() {
+                    bail!("Failed to upload chunk {}: {}", chunk_num, response.text().await?);
+                }
                 Ok::<(), anyhow::Error>(())
             }));
         }
@@ -210,29 +208,25 @@ async fn main() -> Result<()> {
     );
 
     // first dummy chunk
-    let first_size = std::cmp::min(chunk_size, size);
-    let first_chunk = vec![0u8; first_size as usize];
-    let first_hash = sha256_bytes(&first_chunk);
     let filename = "uploadfile.bin".to_string();
 
     let form = multipart::Form::new()
         .text("fileName", filename.clone())
-        .text("chunkNumber", "1")
-        .text("totalChunks", total_chunks.to_string())
         .text("contentType", content_type.clone())
-        .text("checksum", first_hash)
-        .part("chunk", multipart::Part::bytes(first_chunk));
+        .text("token", "todo");
 
     let start = Instant::now();
-    let upload_id = client
-        .post(&cli.server_url)
+    let upload_response: UploadResponse = client
+        .post(format!("{}/create", &cli.server_url))
         .multipart(form)
         .send()
         .await?
         .error_for_status()?
-        .text()
+        .json()
         .await?;
-    let upload_id = upload_id.trim().to_string();
+    let upload_id = upload_response.upload_id.trim().to_string();
+    let file_id = upload_response.file_id.trim().to_string();
+
     if upload_id.is_empty() {
         bail!("Empty uploadId from server");
     }
@@ -241,11 +235,11 @@ async fn main() -> Result<()> {
     let semaphore = Arc::new(Semaphore::new(max_concurrent));
     let mut tasks = FuturesUnordered::new();
 
-    for chunk_num in 2..=total_chunks {
+    for chunk_num in 1..=total_chunks {
         let client = client.clone();
         let server_url = cli.server_url.clone();
         let upload_id = upload_id.clone();
-        let filename = filename.clone();
+        let filename = file_id.clone();
         let chunk_size = chunk_size;
         let size = size;
         let content_type = content_type.clone();
@@ -270,7 +264,10 @@ async fn main() -> Result<()> {
                 .text("checksum", hash)
                 .part("chunk", multipart::Part::bytes(buffer));
 
-            client.post(&server_url).multipart(form).send().await?.error_for_status()?;
+            let error = client.post(&server_url).multipart(form).send().await?;
+            if !error.status().is_success() {
+                bail!("Failed to upload chunk {}: {}", chunk_num, error.text().await?);
+            }
             Ok::<(), anyhow::Error>(())
         }));
     }

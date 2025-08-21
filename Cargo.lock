@@ -1218,11 +1218,8 @@ dependencies = [
  "anyhow",
  "clap",
  "futures",
- "mime",
- "mime_guess",
  "reqwest",
  "serde_json",
- "sha2 0.11.0-rc.0",
  "tokio",
 ]
 
@@ -1233,9 +1230,9 @@ dependencies = [
  "anyhow",
  "clap",
  "futures",
- "mime",
  "mime_guess",
  "reqwest",
+ "serde",
  "sha2 0.11.0-rc.0",
  "tokio",
 ]
@@ -1724,7 +1721,6 @@ name = "entity"
 version = "0.1.0"
 dependencies = [
  "sea-orm",
- "serde",
 ]
 
 [[package]]
@@ -2690,8 +2686,6 @@ dependencies = [
  "sea-orm",
  "serde",
  "serde_json",
- "strum 0.27.2",
- "strum_macros",
  "tokio",
  "tokio-util",
  "uuid",
@@ -3836,7 +3830,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sqlx",
- "strum 0.26.3",
+ "strum",
  "thiserror",
  "time",
  "tracing",
@@ -3855,6 +3849,8 @@ dependencies = [
  "dotenvy",
  "glob",
  "regex",
+ "sea-schema",
+ "sqlx",
  "tracing",
  "tracing-subscriber",
  "url",
@@ -3945,7 +3941,9 @@ checksum = "2239ff574c04858ca77485f112afea1a15e53135d3097d0c86509cef1def1338"
 dependencies = [
  "futures",
  "sea-query",
+ "sea-query-binder",
  "sea-schema-derive",
+ "sqlx",
 ]
 
 [[package]]
@@ -4464,24 +4462,6 @@ name = "strum"
 version = "0.26.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8fec0f0aef304996cf250b31b5a10dee7980c85da9d759361292b8bca5a18f06"
-
-[[package]]
-name = "strum"
-version = "0.27.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af23d6f6c1a224baef9d3f61e287d2761385a5b88fdab4eb4c6f11aeb54c4bcf"
-
-[[package]]
-name = "strum_macros"
-version = "0.27.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7695ce3845ea4b33927c055a39dc438a45b059f7c1b3d91d38d10355fb8cbca7"
-dependencies = [
- "heck 0.5.0",
- "proc-macro2",
- "quote",
- "syn 2.0.105",
-]
 
 [[package]]
 name = "subtle"
