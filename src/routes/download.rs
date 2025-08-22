@@ -1,38 +1,38 @@
 extern crate sanitize_filename;
 
+use crate::modules::postgres::postgres::PostgresService;
 use crate::modules::s3::download::GetMetadataResponse;
 use crate::modules::s3::s3_service::S3Service;
-use actix_multipart::form::text::Text;
-use actix_multipart::form::MultipartForm;
 use actix_web::http::header::{ACCEPT_RANGES, CONTENT_DISPOSITION, CONTENT_TYPE};
 use actix_web::http::StatusCode;
-use actix_web::{web, get, HttpResponse};
+use actix_web::{get, web, HttpResponse, Responder};
+use serde::{Deserialize, Serialize};
 use tokio_util::io::ReaderStream;
 use std::sync::Arc;
 use aws_sdk_s3::error::SdkError;
 use aws_sdk_s3::operation::head_object::HeadObjectError;
 
-#[derive(MultipartForm)]
+#[derive(Serialize, Deserialize)]
 pub struct ChunkDownload {
-    #[multipart(rename = "fileName")]
-    file_name: Text<String>,
-    #[multipart(rename = "rangeStart")]
-    range_start: Text<u64>,
-    #[multipart(rename = "rangeEnd")]
-    range_end: Text<u64>,
+    #[serde(rename = "fileName")]
+    file_name: String,
+    #[serde(rename = "rangeStart")]
+    range_start: u64,
+    #[serde(rename = "rangeEnd")]
+    range_end: u64,
 }
 
 
-#[derive(MultipartForm)]
+#[derive(Serialize, Deserialize)]
 pub struct DownloadMetadata {
-    #[multipart(rename = "fileName")]
-    file_name: Text<String>,
+    #[serde(rename = "fileName")]
+    file_name: String,
 }
 
 #[get("/metadata")]
 pub async fn metadata(
     s3_service: web::Data<Arc<S3Service>>,
-    MultipartForm(metadata): MultipartForm<DownloadMetadata>,
+    metadata: web::Query<DownloadMetadata>,
 ) -> HttpResponse {
     let metadata = match s3_service.get_metadata(&metadata.file_name).await {
         Ok(m) => m,
@@ -66,16 +66,15 @@ pub async fn metadata(
     };
 
     HttpResponse::build(StatusCode::OK)
-        .insert_header((ACCEPT_RANGES, "bytes"))
         .json(web::Json(formatted_metadata))
 }
 
 #[get("")]
 pub async fn download(
     s3_service: web::Data<Arc<S3Service>>,
-    MultipartForm(download): MultipartForm<ChunkDownload>,
+    download: web::Query<ChunkDownload>,
 ) -> HttpResponse {
-    let object_output = match s3_service.download_part(&download.file_name, *download.range_start, *download.range_end).await {
+    let object_output = match s3_service.download_part(&download.file_name, download.range_start, download.range_end).await {
         Ok(object) => {object}
         Err(e) => {
             return HttpResponse::InternalServerError().json(e.to_string());
@@ -109,4 +108,31 @@ pub async fn download_full(
         .insert_header((CONTENT_TYPE, mime_type))
         .insert_header((CONTENT_DISPOSITION, "inline"))
         .streaming(ReaderStream::new(object_output.body.into_async_read()))
+}
+
+#[derive(serde::Serialize)]
+struct AllFilesSummary {
+    file_id: String,
+    file_name: String,
+    file_size: i64,
+}
+
+
+#[get("/list/all")]
+pub async fn list_all_downloads(
+    db: web::Data<Arc<PostgresService>>
+) -> impl Responder {
+    let files = db.list_files().await;
+    if let Ok(files) = files {
+        let cleaned: Vec<_> = files
+            .into_iter()
+            .map(|v| AllFilesSummary {
+                file_id: v.id,
+                file_name: v.file_name,
+                file_size: v.file_size
+            })
+            .collect();
+        return HttpResponse::Ok().json(cleaned)
+    }
+    HttpResponse::Ok().finish()
 }

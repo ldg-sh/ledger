@@ -24,8 +24,6 @@ pub struct ChunkUploadForm {
     chunk_number: Text<u32>,
     #[multipart(rename = "totalChunks")]
     total_chunks: Text<u32>,
-    #[multipart(rename = "contentType")]
-    content_type: Text<String>,
     #[multipart(rename = "chunk")]
     pub(crate) chunk_data: Vec<actix_multipart::form::tempfile::TempFile>,
 }
@@ -94,9 +92,7 @@ pub struct CreateUploadForm {
     #[multipart(rename = "fileName")]
     file_name: Text<String>,
     #[multipart(rename = "contentType")]
-    content_type: Text<String>,
-    #[multipart(rename = "token")]
-    token: Text<String>
+    content_type: Text<String>
 }
 
 #[derive(Serialize, Deserialize)]
