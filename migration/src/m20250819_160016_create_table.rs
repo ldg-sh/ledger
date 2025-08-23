@@ -1,5 +1,4 @@
 use sea_orm_migration::{prelude::*};
-use sea_orm_migration::sea_orm::sqlx::types::chrono::Utc;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -41,7 +40,6 @@ impl MigrationTrait for Migration {
                     .col(
                         ColumnDef::new(File::CreatedAt)
                             .timestamp_with_time_zone()
-                            .default(Utc::now())
                             .not_null(),
                     )
                     .col(
@@ -49,6 +47,11 @@ impl MigrationTrait for Migration {
                             .boolean()
                             .default(false)
                             .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(File::FileType)
+                            .string()
+                            .not_null()
                     )
                     .to_owned(),
             )
@@ -74,4 +77,5 @@ enum File {
     FileSize,
     CreatedAt,
     UploadCompleted,
+    FileType,
 }

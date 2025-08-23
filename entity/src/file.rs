@@ -12,6 +12,7 @@ pub struct Model {
     pub file_size: i64,
     pub created_at: DateTimeUtc,
     pub upload_completed: bool,
+    pub file_type: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
