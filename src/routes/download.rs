@@ -11,6 +11,7 @@ use tokio_util::io::ReaderStream;
 use std::sync::Arc;
 use aws_sdk_s3::error::SdkError;
 use aws_sdk_s3::operation::head_object::HeadObjectError;
+use sea_orm::sqlx::types::chrono;
 
 #[derive(Serialize, Deserialize)]
 pub struct ChunkDownload {
@@ -60,9 +61,9 @@ pub async fn metadata(
     };
 
     let formatted_metadata = GetMetadataResponse {
-        content_size: content_size,
+        content_size,
         metadata: metadata.metadata,
-        mime: mime
+        mime
     };
 
     HttpResponse::build(StatusCode::OK)
@@ -115,6 +116,8 @@ struct AllFilesSummary {
     file_id: String,
     file_name: String,
     file_size: i64,
+    file_type: String,
+    created_at: chrono::DateTime<chrono::Utc>,
 }
 
 
@@ -129,7 +132,9 @@ pub async fn list_all_downloads(
             .map(|v| AllFilesSummary {
                 file_id: v.id,
                 file_name: v.file_name,
-                file_size: v.file_size
+                file_size: v.file_size,
+                file_type: v.file_type,
+                created_at: v.created_at,
             })
             .collect();
         return HttpResponse::Ok().json(cleaned)

@@ -129,6 +129,7 @@ pub async fn create_upload(
         file_size: 0,
         created_at: Utc::now(),
         upload_completed: false,
+        file_type: content_type.clone(),
     };
 
     match entity::file::Entity::insert::<FileActiveModel>(file.into())
