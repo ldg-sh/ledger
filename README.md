@@ -1,4 +1,4 @@
-Ledger
+# Ledger
 
 Efficient, resumable, chunked file upload and download service in Rust. Ledger exposes an HTTP API for large-file uploads to any S3‑compatible storage (MinIO, Backblaze B2 S3 API, AWS S3, etc.) and persists file metadata in PostgreSQL using SeaORM.
 
