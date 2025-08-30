@@ -8,7 +8,7 @@ use actix_multipart::form::text::Text;
 use actix_web::{post, web, HttpResponse, Responder};
 use std::io::Read;
 use std::sync::Arc;
-use sea_orm::sqlx::types::uuid;
+use sea_orm::sqlx::types::{chrono::Utc, uuid};
 use serde::{Deserialize, Serialize};
 use crate::modules::postgres::postgres::PostgresService;
 use actix_web_httpauth::extractors::bearer::BearerAuth;

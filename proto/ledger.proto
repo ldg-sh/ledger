@@ -6,8 +6,7 @@ service Authentication {
 }
 
 message ValidationRequest {
-  string user_id = 1;
-  string token = 2;
+  string token = 1;
 }
 
 message ValidationResponse {

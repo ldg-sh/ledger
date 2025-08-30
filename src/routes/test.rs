@@ -13,7 +13,6 @@ pub async fn test(
 
     let mut client = AuthenticationClient::new(grpc.get_ref().clone());
     let req = Request::new(ValidationRequest {
-            user_id: "123".into(),
             token: key.to_string(),
     });
 
