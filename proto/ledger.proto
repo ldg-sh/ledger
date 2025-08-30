@@ -1,0 +1,16 @@
+syntax = "proto3";
+package ledger;
+
+service Authentication {
+  rpc ValidateAuthentication (ValidationRequest) returns (ValidationResponse);
+}
+
+message ValidationRequest {
+  string user_id = 1;
+  string token = 2;
+}
+
+message ValidationResponse {
+  bool is_valid = 1;
+  string message = 2;
+}

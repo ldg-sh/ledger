@@ -5,7 +5,8 @@ use std::sync::OnceLock;
 #[derive(Clone, Debug)]
 pub struct EnvConfig {
     pub bucket: BucketDetails,
-    pub postgres: PostgresDetails
+    pub postgres: PostgresDetails,
+    pub grpc_url: String
 }
 
 #[allow(dead_code)]
@@ -38,7 +39,8 @@ impl EnvConfig {
             },
             postgres: PostgresDetails {
                 postgres_uri: Self::get_env("POSTGRES_URI"),
-            }
+            },
+            grpc_url: Self::get_env("GRPC_URL"),
         }
     }
 
