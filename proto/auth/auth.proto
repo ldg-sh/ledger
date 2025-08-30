@@ -1,5 +1,5 @@
 syntax = "proto3";
-package ledger;
+package auth;
 
 service Authentication {
   rpc ValidateAuthentication (ValidationRequest) returns (ValidationResponse);
