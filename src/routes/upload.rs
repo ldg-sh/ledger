@@ -1,6 +1,8 @@
 extern crate sanitize_filename;
 
 use crate::modules::s3::s3_service::S3Service;
+use crate::types::error::AppError;
+use crate::types::file::TCreateFile;
 use actix_multipart::form::MultipartForm;
 use actix_multipart::form::text::Text;
 use actix_web::{post, web, HttpResponse, Responder};
@@ -92,7 +94,9 @@ pub struct CreateUploadForm {
     #[multipart(rename = "fileName")]
     file_name: Text<String>,
     #[multipart(rename = "contentType")]
-    content_type: Text<String>
+    content_type: Text<String>,
+    #[multipart(rename = "ownerIds")]
+    owner_ids: Vec<Text<String>>
 }
 
 #[derive(Serialize, Deserialize)]
@@ -109,8 +113,9 @@ pub async fn create_upload(
     MultipartForm(form): MultipartForm<CreateUploadForm>,
 ) -> impl Responder {
     let content_type = form.content_type.0.clone();
-
     let file_id = uuid::Uuid::new_v4().to_string();
+    let owners: Vec<String> = form.owner_ids.into_iter().map(|t| t.0).collect();
+
     let upload_id = match s3_service.initiate_upload(file_id.as_str(), &content_type).await {
         Ok(upload_id) => upload_id,
         Err(error) => {
@@ -118,33 +123,24 @@ pub async fn create_upload(
         },
     };
 
-    use entity::file::Model as File;
-    use entity::file::ActiveModel as FileActiveModel;
-
-    let file = File {
-        id: file_id.clone(),
-        file_name: form.file_name.0.clone(),
-        file_owner_id: "".to_string(),
-        upload_id: upload_id.clone(),
-        file_size: 0,
-        created_at: Utc::now(),
-        upload_completed: false,
-        file_type: content_type.clone(),
-    };
-
-    match entity::file::Entity::insert::<FileActiveModel>(file.into())
-        .exec(&postgres_service.database_connection)
-        .await
-        .map_err(|e| {
-            log::error!("Failed to insert file into database: {}", e);
-            HttpResponse::InternalServerError().body("Failed to insert file into database")
-        }) {
-        Ok(_) => {}
-        Err(error) => {
-            log::error!("Failed to insert file into database: {:?}", error);
-            return HttpResponse::InternalServerError().body("Failed to insert file into database");
-        }
-    };
+    match postgres_service.create_file(TCreateFile {
+            id: file_id.clone(),
+            file_name: form.file_name.0.clone(),
+            file_owner_id: owners,
+            upload_id: upload_id.clone(),
+            file_size: 0,
+            created_at: Utc::now(),
+            upload_completed: false,
+            file_type: content_type.clone(),
+        }).await {
+        Ok(_) => {},
+        Err(AppError::AlreadyExists) => {
+            return HttpResponse::Conflict().finish()
+        },
+        Err(e) => {
+            return HttpResponse::InternalServerError().body(e.to_string())
+        },
+    }
 
     HttpResponse::Ok().json(serde_json::json!({
         "upload_id": upload_id,

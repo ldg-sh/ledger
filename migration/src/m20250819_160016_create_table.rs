@@ -24,7 +24,7 @@ impl MigrationTrait for Migration {
                     )
                     .col(
                         ColumnDef::new(File::FileOwnerId)
-                            .string()
+                            .array(ColumnType::Text)
                             .not_null()
                     )
                     .col(

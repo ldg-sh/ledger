@@ -7,7 +7,7 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub id: String,
     pub file_name: String,
-    pub file_owner_id: String,
+    pub file_owner_id: Vec<String>,
     pub upload_id: String,
     pub file_size: i64,
     pub created_at: DateTimeUtc,
