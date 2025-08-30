@@ -8,11 +8,10 @@ use actix_multipart::form::text::Text;
 use actix_web::{post, web, HttpResponse, Responder};
 use std::io::Read;
 use std::sync::Arc;
-use sea_orm::{EntityTrait};
-use sea_orm::sqlx::types::chrono::Utc;
 use sea_orm::sqlx::types::uuid;
 use serde::{Deserialize, Serialize};
 use crate::modules::postgres::postgres::PostgresService;
+use actix_web_httpauth::extractors::bearer::BearerAuth;
 
 #[derive(MultipartForm)]
 pub struct ChunkUploadForm {
@@ -111,7 +110,10 @@ pub async fn create_upload(
     s3_service: web::Data<Arc<S3Service>>,
     postgres_service: web::Data<Arc<PostgresService>>,
     MultipartForm(form): MultipartForm<CreateUploadForm>,
+    token: BearerAuth
 ) -> impl Responder {
+    let key = token.token();
+    println!("{:?}", key);
     let content_type = form.content_type.0.clone();
     let file_id = uuid::Uuid::new_v4().to_string();
     let owners: Vec<String> = form.owner_ids.into_iter().map(|t| t.0).collect();
