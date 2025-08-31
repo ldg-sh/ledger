@@ -67,6 +67,7 @@ impl MigrationTrait for Migration {
     }
 }
 
+#[allow(clippy::enum_variant_names)]
 #[derive(DeriveIden)]
 enum File {
     Table,

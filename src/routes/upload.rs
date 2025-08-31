@@ -1,11 +1,16 @@
 extern crate sanitize_filename;
 
-use crate::modules::s3::s3_service::S3Service;
+use crate::config::config;
+use crate::ledger::ValidationRequest;
+use crate::{ledger::authentication_client::AuthenticationClient, modules::s3::s3_service::S3Service};
 use crate::types::error::AppError;
 use crate::types::file::TCreateFile;
 use actix_multipart::form::MultipartForm;
 use actix_multipart::form::text::Text;
 use actix_web::{post, web, HttpResponse, Responder};
+use tonic::metadata::{Ascii, MetadataValue};
+use tonic::transport::Channel;
+use tonic::Request;
 use std::io::Read;
 use std::sync::Arc;
 use sea_orm::sqlx::types::{chrono::Utc, uuid};
@@ -110,10 +115,38 @@ pub async fn create_upload(
     s3_service: web::Data<Arc<S3Service>>,
     postgres_service: web::Data<Arc<PostgresService>>,
     MultipartForm(form): MultipartForm<CreateUploadForm>,
-    token: BearerAuth
+    token: BearerAuth,
+    grpc: web::Data<Channel>
 ) -> impl Responder {
     let key = token.token();
-    println!("{:?}", key);
+
+    let mut client = AuthenticationClient::new(grpc.get_ref().clone());
+    let mut req = Request::new(ValidationRequest {
+            token: key.to_string(),
+    });
+
+    let v: MetadataValue<Ascii> = match config().grpc.auth_key.parse() {
+        Ok(v) => v,
+        Err(e) => {
+            return HttpResponse::InternalServerError().body(e.to_string());
+        },
+    };
+
+    req.metadata_mut().insert("authorization", v);
+
+    match client.validate_authentication(req).await {
+        Ok(o) => {
+            let r = o.into_inner();
+            if !r.is_valid {
+                return HttpResponse::Unauthorized().finish()
+            }
+        },
+        Err(e) => {
+            return HttpResponse::InternalServerError().body(e.to_string())
+        },
+    };
+
+
     let content_type = form.content_type.0.clone();
     let file_id = uuid::Uuid::new_v4().to_string();
     let owners: Vec<String> = form.owner_ids.into_iter().map(|t| t.0).collect();
@@ -121,6 +154,7 @@ pub async fn create_upload(
     let upload_id = match s3_service.initiate_upload(file_id.as_str(), &content_type).await {
         Ok(upload_id) => upload_id,
         Err(error) => {
+            println!("{}", error);
             return HttpResponse::InternalServerError().body(error.to_string());
         },
     };

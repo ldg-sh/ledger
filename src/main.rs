@@ -6,7 +6,6 @@ use env_logger::Env;
 use log::debug;
 use std::sync::Arc;
 use tonic::transport::Endpoint;
-use crate::ledger::ValidationRequest;
 use crate::modules::postgres::postgres::PostgresService;
 
 mod config;
@@ -42,7 +41,7 @@ async fn main() -> std::io::Result<()> {
             .unwrap()
     );
 
-    let grpc_endpoint = Endpoint::from_shared(config.grpc_url.clone())
+    let grpc_endpoint = Endpoint::from_shared(config.grpc.url.clone())
         .expect("bad gRPC URL")
         .connect()
         .await
