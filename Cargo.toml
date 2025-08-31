@@ -3,10 +3,6 @@ name = "ledger"
 version = "0.1.0"
 edition = "2024"
 
-[[bin]]
-name = "ledgerauth-client"
-path = "src/client.rs"
-
 [dependencies]
 actix-web = { version = "4.0.0-beta.21" }
 actix-multipart = "0.7.2"
