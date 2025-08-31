@@ -1,3 +1,3 @@
-.PHONY: pullall
-pullall:
+.PHONY: pa
+pa:
 	./scripts/pullall.sh
