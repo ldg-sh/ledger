@@ -1,4 +1,3 @@
 [submodule "proto"]
 	path = proto
-	url = git@github.com:ldg-sh/ledger-protos.git
-	branch = main
+	url = https://github.com/ldg-sh/ledger-protobuf
