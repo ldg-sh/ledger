@@ -7,6 +7,9 @@ COPY . .
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder
+RUN apt-get update && apt-get install -y protobuf-compiler
+ENV PROTOC=/usr/bin/protoc
+
 COPY --from=planner /ledger/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 
