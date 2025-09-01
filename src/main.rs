@@ -15,7 +15,7 @@ mod util;
 mod types;
 
 pub mod ledger {
-    tonic::include_proto!("ledger");
+    tonic::include_proto!("auth");
 }
 
 #[actix_web::main]

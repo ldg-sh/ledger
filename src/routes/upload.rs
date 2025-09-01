@@ -122,7 +122,7 @@ pub async fn create_upload(
 
     let mut client = AuthenticationClient::new(grpc.get_ref().clone());
     let mut req = Request::new(ValidationRequest {
-            token: key.to_string(),
+        token: key.to_string(),
     });
 
     let v: MetadataValue<Ascii> = match config().grpc.auth_key.parse() {
