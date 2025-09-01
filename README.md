@@ -8,14 +8,12 @@ Think of it as *Google Drive* but faster and more flexible.
 ⚠️ **Note:** This project is currently under construction. The roadmap and features are still being finalized.
 
 ## How to host
-Run the below in dev.
-```rust
-cargo run
+Download [`docker-compose.yml`](https://github.com/ldg-sh/ledger/blob/main/docker-compose.yml) and place it in an empty directory.
+```bash
+docker compose up -d
 ```
 
-Use the provided dockerfile to deploy.
-
-## Features for MVP.
+## Features for MVP
 - [x] Upload
 - [x] Download
 - [x] Files as CDN
