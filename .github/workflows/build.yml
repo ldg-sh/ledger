@@ -39,8 +39,7 @@ jobs:
       - name: Build and push Docker image to GHCR
         uses: docker/build-push-action@v3
         with:
-          context: ./ledger
-          file: ./ledger/Dockerfile
+          file: ./Dockerfile
           build-args: |
             COMMIT_HASH=${{ env.hash }}
           push: true
