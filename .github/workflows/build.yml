@@ -79,6 +79,6 @@ jobs:
       - name: Create and push multi-arch manifest
         run: |
           docker buildx imagetools create \
-            -t ghcr.io/ldg-sh/ledger-auth:latest \
+            -t ghcr.io/ldg-sh/ledger:latest \
             ghcr.io/ldg-sh/ledger:${{ needs.build.outputs.commit_hash }}-amd64 \
             ghcr.io/ldg-sh/ledger:${{ needs.build.outputs.commit_hash }}-arm64
