@@ -40,7 +40,7 @@ jobs:
           file: ./Dockerfile
           build-args: |
             COMMIT_HASH=${{ env.hash }}
-          push: false
+          push: true
           platforms: linux/${{ matrix.arch }}
           cache-from: type=local,src=/tmp/.buildx-cache-ledger-${{ matrix.arch }}
           cache-to: type=local,dest=/tmp/.buildx-cache-ledger-${{ matrix.arch }}-new,mode=max
