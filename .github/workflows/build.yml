@@ -48,8 +48,7 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache-ledger
           cache-to: type=local,dest=/tmp/.buildx-cache-ledger-new,mode=max
           tags: |
-            ghcr.io/ldg-sh/pastebook-ledger:${{ env.tag }}
-            ghcr.io/ldg-sh/pastebook-ledger:${{ env.hash }}
+            ghcr.io/ldg-sh/ledger:${{ env.hash }}
 
       - name: Move updated Docker cache
         run: |
