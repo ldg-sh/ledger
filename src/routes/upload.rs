@@ -18,8 +18,8 @@ pub struct ChunkUploadForm {
     upload_id: Option<Text<String>>,
     #[multipart(rename = "checksum")]
     checksum: Text<String>,
-    #[multipart(rename = "fileName")]
-    file_name: Text<String>,
+    #[multipart(rename = "fileId")]
+    file_id: Text<String>,
     #[multipart(rename = "chunkNumber")]
     chunk_number: Text<u32>,
     #[multipart(rename = "totalChunks")]
@@ -34,7 +34,7 @@ pub async fn upload(
     postgres_service: web::Data<Arc<PostgresService>>,
     MultipartForm(form): MultipartForm<ChunkUploadForm>,
 ) -> impl Responder {
-    let file_name = sanitize_filename::sanitize(&form.file_name.0);
+    let file_id = sanitize_filename::sanitize(&form.file_id.0);
     let chunk_size: u64 = form.chunk_data.iter().map(|f| f.size as u64).sum();
     log::debug!("Chunk size: {} bytes", chunk_size);
 
@@ -54,7 +54,7 @@ pub async fn upload(
     let result = s3_service
         .upload_part(
             &upload_id,
-            &file_name,
+            &file_id,
             form.chunk_number.0,
             form.total_chunks.0,
             chunk_data,
@@ -68,7 +68,7 @@ pub async fn upload(
             "Failed to upload chunk {} of {} for file {}: {}",
             form.chunk_number.0,
             form.total_chunks.0,
-            file_name,
+            file_id,
             e
         );
         return format!("Failed to upload chunk {}: {}", form.chunk_number.0, e);
@@ -77,13 +77,13 @@ pub async fn upload(
             "Successfully uploaded chunk {} of {} for file {}",
             form.chunk_number.0,
             form.total_chunks.0,
-            file_name
+            file_id
         );
     }
 
     format!(
         "Uploaded chunk {} of {} for file {}",
-        form.chunk_number.0, form.total_chunks.0, file_name
+        form.chunk_number.0, form.total_chunks.0, file_id
     )
 }
 
