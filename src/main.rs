@@ -5,7 +5,9 @@ use actix_web::{App, HttpServer};
 use env_logger::Env;
 use log::debug;
 use std::sync::Arc;
+use actix_web_httpauth::middleware::HttpAuthentication;
 use tonic::transport::Endpoint;
+use crate::middleware::authentication::validate_token;
 use crate::modules::postgres::postgres::PostgresService;
 
 mod config;
@@ -13,6 +15,7 @@ mod modules;
 mod routes;
 mod util;
 mod types;
+mod middleware;
 
 pub mod ledger {
     tonic::include_proto!("auth");
@@ -50,7 +53,10 @@ async fn main() -> std::io::Result<()> {
     debug!("Starting server...");
 
     HttpServer::new(move || {
+        let auth = HttpAuthentication::bearer(validate_token);
+
         App::new()
+            .wrap(auth)
             .app_data(Data::new(Arc::clone(&s3_service)))
             .app_data(Data::new(Arc::clone(&postgres_service)))
             .app_data(Data::new(grpc_endpoint.clone()))
