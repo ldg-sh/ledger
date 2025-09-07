@@ -17,8 +17,8 @@ docker compose up -d
 - [x] Upload
 - [x] Download
 - [x] Files as CDN
-- [ ] File delete
-- [ ] User create, update, and delete
+- [x] File delete
+- [x] User create, update, and delete
 - [ ] Lock files ops behind auth
 - [ ] Team based auth for file access (even if solo)
 - [ ] Team based admin controls, add/remove users (even if solo)
