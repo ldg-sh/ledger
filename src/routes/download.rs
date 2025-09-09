@@ -15,8 +15,8 @@ use sea_orm::sqlx::types::chrono;
 
 #[derive(Serialize, Deserialize)]
 pub struct ChunkDownload {
-    #[serde(rename = "fileName")]
-    file_name: String,
+    #[serde(rename = "fileId")]
+    file_id: String,
     #[serde(rename = "rangeStart")]
     range_start: u64,
     #[serde(rename = "rangeEnd")]
@@ -26,8 +26,8 @@ pub struct ChunkDownload {
 
 #[derive(Serialize, Deserialize)]
 pub struct DownloadMetadata {
-    #[serde(rename = "fileName")]
-    file_name: String,
+    #[serde(rename = "fileId")]
+    file_id: String,
 }
 
 #[get("/metadata")]
@@ -35,7 +35,7 @@ pub async fn metadata(
     s3_service: web::Data<Arc<S3Service>>,
     metadata: web::Query<DownloadMetadata>,
 ) -> HttpResponse {
-    let metadata = match s3_service.get_metadata(&metadata.file_name).await {
+    let metadata = match s3_service.get_metadata(&metadata.file_id).await {
         Ok(m) => m,
         Err(SdkError::ServiceError(se)) if matches!(se.err(), HeadObjectError::NotFound(_)) => {
             return HttpResponse::NotFound().finish();
@@ -75,7 +75,7 @@ pub async fn download(
     s3_service: web::Data<Arc<S3Service>>,
     download: web::Query<ChunkDownload>,
 ) -> HttpResponse {
-    let object_output = match s3_service.download_part(&download.file_name, download.range_start, download.range_end).await {
+    let object_output = match s3_service.download_part(&download.file_id, download.range_start, download.range_end).await {
         Ok(object) => {object}
         Err(e) => {
             return HttpResponse::InternalServerError().json(e.to_string());

@@ -142,7 +142,7 @@ async fn main() -> Result<()> {
             let client = client.clone();
             let server_url = cli.server_url.clone();
             let upload_id = upload_id.clone();
-            let filename = file_id.clone();
+            let file_id = file_id.clone();
             let content_type = content_type.clone();
             let semaphore = semaphore.clone();
             let path = path.clone();
@@ -165,7 +165,7 @@ async fn main() -> Result<()> {
 
                 let form = multipart::Form::new()
                     .text("uploadId", upload_id)
-                    .text("fileName", filename)
+                    .text("fileId", file_id)
                     .text("chunkNumber", chunk_num.to_string())
                     .text("totalChunks", total_chunks.to_string())
                     .text("contentType", content_type)
@@ -257,7 +257,7 @@ async fn main() -> Result<()> {
 
             let form = multipart::Form::new()
                 .text("uploadId", upload_id)
-                .text("fileName", filename)
+                .text("fileId", filename)
                 .text("chunkNumber", chunk_num.to_string())
                 .text("totalChunks", total_chunks.to_string())
                 .text("contentType", content_type)

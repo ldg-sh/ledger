@@ -1,22 +1,16 @@
 extern crate sanitize_filename;
 
-use crate::config::config;
-use crate::ledger::ValidationRequest;
-use crate::{ledger::authentication_client::AuthenticationClient, modules::s3::s3_service::S3Service};
+use crate::{modules::s3::s3_service::S3Service};
 use crate::types::error::AppError;
 use crate::types::file::TCreateFile;
 use actix_multipart::form::MultipartForm;
 use actix_multipart::form::text::Text;
 use actix_web::{post, web, HttpResponse, Responder};
-use tonic::metadata::{Ascii, MetadataValue};
-use tonic::transport::Channel;
-use tonic::Request;
 use std::io::Read;
 use std::sync::Arc;
 use sea_orm::sqlx::types::{chrono::Utc, uuid};
 use serde::{Deserialize, Serialize};
 use crate::modules::postgres::postgres::PostgresService;
-use actix_web_httpauth::extractors::bearer::BearerAuth;
 
 #[derive(MultipartForm)]
 pub struct ChunkUploadForm {
@@ -24,8 +18,8 @@ pub struct ChunkUploadForm {
     upload_id: Option<Text<String>>,
     #[multipart(rename = "checksum")]
     checksum: Text<String>,
-    #[multipart(rename = "fileName")]
-    file_name: Text<String>,
+    #[multipart(rename = "fileId")]
+    file_id: Text<String>,
     #[multipart(rename = "chunkNumber")]
     chunk_number: Text<u32>,
     #[multipart(rename = "totalChunks")]
@@ -40,7 +34,7 @@ pub async fn upload(
     postgres_service: web::Data<Arc<PostgresService>>,
     MultipartForm(form): MultipartForm<ChunkUploadForm>,
 ) -> impl Responder {
-    let file_name = sanitize_filename::sanitize(&form.file_name.0);
+    let file_id = sanitize_filename::sanitize(&form.file_id.0);
     let chunk_size: u64 = form.chunk_data.iter().map(|f| f.size as u64).sum();
     log::debug!("Chunk size: {} bytes", chunk_size);
 
@@ -60,7 +54,7 @@ pub async fn upload(
     let result = s3_service
         .upload_part(
             &upload_id,
-            &file_name,
+            &file_id,
             form.chunk_number.0,
             form.total_chunks.0,
             chunk_data,
@@ -74,7 +68,7 @@ pub async fn upload(
             "Failed to upload chunk {} of {} for file {}: {}",
             form.chunk_number.0,
             form.total_chunks.0,
-            file_name,
+            file_id,
             e
         );
         return format!("Failed to upload chunk {}: {}", form.chunk_number.0, e);
@@ -83,13 +77,13 @@ pub async fn upload(
             "Successfully uploaded chunk {} of {} for file {}",
             form.chunk_number.0,
             form.total_chunks.0,
-            file_name
+            file_id
         );
     }
 
     format!(
         "Uploaded chunk {} of {} for file {}",
-        form.chunk_number.0, form.total_chunks.0, file_name
+        form.chunk_number.0, form.total_chunks.0, file_id
     )
 }
 
@@ -110,43 +104,12 @@ pub struct UploadCache {
     pub file_name: String,
 }
 
-#[post("/create")]
+#[post("")]
 pub async fn create_upload(
     s3_service: web::Data<Arc<S3Service>>,
     postgres_service: web::Data<Arc<PostgresService>>,
     MultipartForm(form): MultipartForm<CreateUploadForm>,
-    token: BearerAuth,
-    grpc: web::Data<Channel>
 ) -> impl Responder {
-    let key = token.token();
-
-    let mut client = AuthenticationClient::new(grpc.get_ref().clone());
-    let mut req = Request::new(ValidationRequest {
-            token: key.to_string(),
-    });
-
-    let v: MetadataValue<Ascii> = match config().grpc.auth_key.parse() {
-        Ok(v) => v,
-        Err(e) => {
-            return HttpResponse::InternalServerError().body(e.to_string());
-        },
-    };
-
-    req.metadata_mut().insert("authorization", v);
-
-    match client.validate_authentication(req).await {
-        Ok(o) => {
-            let r = o.into_inner();
-            if !r.is_valid {
-                return HttpResponse::Unauthorized().finish()
-            }
-        },
-        Err(e) => {
-            return HttpResponse::InternalServerError().body(e.to_string())
-        },
-    };
-
-
     let content_type = form.content_type.0.clone();
     let file_id = uuid::Uuid::new_v4().to_string();
     let owners: Vec<String> = form.owner_ids.into_iter().map(|t| t.0).collect();

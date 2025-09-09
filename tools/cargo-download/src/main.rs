@@ -54,7 +54,7 @@ async fn main() -> Result<()> {
 
     // 1) HEAD-equivalent: fetch metadata via GET /metadata (multipart form with fileName)
     let meta_url = format!("{}/metadata", cli.server_url);
-    let meta_form = multipart::Form::new().text("fileName", cli.file_name.clone());
+    let meta_form = multipart::Form::new().text("fileId", cli.file_name.clone());
 
     let resp = client
         .get(&meta_url)
@@ -121,7 +121,7 @@ async fn main() -> Result<()> {
 
             // Call GET /download with multipart form: fileName, rangeStart, rangeEnd
             let form = multipart::Form::new()
-                .text("fileName", file_name)
+                .text("fileId", file_name)
                 .text("rangeStart", start.to_string())
                 .text("rangeEnd", end.to_string());
 

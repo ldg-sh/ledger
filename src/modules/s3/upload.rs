@@ -26,7 +26,7 @@ impl S3Service {
     pub async fn upload_part(
         &self,
         upload_id: &str,
-        file_name: &str,
+        file_id: &str,
         chunk_number: u32,
         total_chunks: u32,
         chunk_data: Vec<u8>,
@@ -42,7 +42,7 @@ impl S3Service {
         {
             let uploads = self.active_uploads.read().await;
             if let Some(upload) = uploads.iter().find(|u| u.upload_id == upload_id) {
-                if upload.file_id != file_name {
+                if upload.file_id != file_id {
                     return Err(Error::new(
                         std::io::ErrorKind::InvalidInput,
                         "File name does not match the upload ID",
@@ -87,7 +87,7 @@ impl S3Service {
                 .client
                 .upload_part()
                 .bucket(&self.bucket)
-                .key(file_name)
+                .key(file_id)
                 .upload_id(upload_id)
                 .part_number(chunk_number as i32)
                 .body(ByteStream::from(chunk_data.clone()))
@@ -182,7 +182,7 @@ impl S3Service {
                 .client
                 .complete_multipart_upload()
                 .bucket(&self.bucket)
-                .key(file_name)
+                .key(file_id)
                 .upload_id(upload_id)
                 .multipart_upload(
                     CompletedMultipartUploadBuilder::default()
@@ -196,7 +196,7 @@ impl S3Service {
                 Err(e) => {
                     log::error!(
                         "Failed to complete multipart upload for file {}: {:?}",
-                        file_name,
+                        file_id,
                         e
                     );
                     return Err(Error::other(
@@ -209,7 +209,7 @@ impl S3Service {
             use sea_orm::ActiveModelTrait;
             use sea_orm::Set;
 
-            let file = FileEntity::find_by_id(file_name)
+            let file = FileEntity::find_by_id(file_id)
                 .one(database_connection)
                 .await
                 .map_err(|e| {
@@ -238,7 +238,7 @@ impl S3Service {
             let mut map = self.active_uploads.write().await;
             map.retain(|upload| upload.upload_id != upload_id);
 
-            log::info!("Multipart upload completed for file: {}", file_name);
+            log::info!("Multipart upload completed for file: {}", file_id);
         } else {
             let amount_of_chunks_uploaded = self
                 .active_uploads
@@ -255,7 +255,7 @@ impl S3Service {
                 "Uploaded chunk {}/{} for file {} ({}% complete)",
                 amount_of_chunks_uploaded,
                 total_chunks,
-                file_name,
+                file_id,
                 upload_percent
             );
         }
@@ -264,7 +264,7 @@ impl S3Service {
         Ok(())
     }
 
-    pub async fn initiate_upload(&self, file_name: &str, content_type: &str) -> Result<String> {
+    pub async fn initiate_upload(&self, file_id: &str, content_type: &str) -> Result<String> {
         let initiation = self
             .client
             .create_multipart_upload()
@@ -272,7 +272,7 @@ impl S3Service {
             .checksum_algorithm(ChecksumAlgorithm::Sha256)
             .checksum_type(ChecksumType::Composite)
             .content_type(content_type)
-            .key(file_name)
+            .key(file_id)
             .send()
             .await
             .context("Failed to send multipart upload request")?;
@@ -283,7 +283,7 @@ impl S3Service {
         self.active_uploads.write().await.push(
             ActiveUpload {
                 upload_id: upload_id.clone(),
-                file_id: file_name.to_string(),
+                file_id: file_id.to_string(),
                 parts: Vec::new(),
                 semaphore: Arc::new(Semaphore::new(3)),
                 current_file_size: 0,
