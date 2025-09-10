@@ -1,4 +1,4 @@
-use crate::{modules::postgres::postgres::PostgresService, types::{error::AppError, file::TCreateFile}};
+use crate::{modules::postgres::postgres_service::PostgresService, types::{error::AppError, file::TCreateFile}};
 use anyhow::Result as AResult;
 use entity::file::{Entity as File, Model as FileModel};
 use sea_orm::{EntityTrait, Set};

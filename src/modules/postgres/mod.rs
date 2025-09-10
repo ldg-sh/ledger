@@ -1,2 +1,2 @@
-pub mod postgres;
+pub mod postgres_service;
 pub mod file;

@@ -10,7 +10,7 @@ use std::io::Read;
 use std::sync::Arc;
 use sea_orm::sqlx::types::{chrono::Utc, uuid};
 use serde::{Deserialize, Serialize};
-use crate::modules::postgres::postgres::PostgresService;
+use crate::modules::postgres::postgres_service::PostgresService;
 
 #[derive(MultipartForm)]
 pub struct ChunkUploadForm {
@@ -104,7 +104,7 @@ pub struct UploadCache {
     pub file_name: String,
 }
 
-#[post("")]
+#[post("/create")]
 pub async fn create_upload(
     s3_service: web::Data<Arc<S3Service>>,
     postgres_service: web::Data<Arc<PostgresService>>,

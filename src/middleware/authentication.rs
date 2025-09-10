@@ -10,6 +10,7 @@ pub async fn validate_token(
     req: ServiceRequest,
     credentials: BearerAuth
 ) -> Result<ServiceRequest, (actix_web::Error, ServiceRequest)> {
+    println!("Hitting auth middleware");
     let grpc_client = &req
         .app_data::<actix_web::web::Data<tonic::transport::Channel>>()
         .ok_or_else(|| {
@@ -41,7 +42,9 @@ pub async fn validate_token(
     match client.validate_authentication(request).await {
         Ok(o) => {
             let r = o.into_inner();
+            println!("Token validated res: {:?}", r);
             if !r.is_valid {
+                println!("Token is far from valid wtf");
                 return Err((actix_web::error::ErrorUnauthorized("Invalid token"), req))
             }
         },

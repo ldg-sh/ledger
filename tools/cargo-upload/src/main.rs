@@ -1,8 +1,9 @@
-use anyhow::{bail, Result};
+use anyhow::{bail, Result, Context};
 use clap::{ArgAction, ArgGroup, Parser};
 use futures::stream::{FuturesUnordered, StreamExt};
 use reqwest::multipart;
 use sha2::{Digest, Sha256};
+use std::env;
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
 use std::path::PathBuf;
@@ -87,6 +88,7 @@ fn sha256_bytes(data: &[u8]) -> String {
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
+    let auth_token = env::var("TOKEN").context("TOKEN env var must be set")?;
     let client = reqwest::Client::new();
     let chunk_size = parse_size_bytes(&cli.chunk_size)?;
     let max_concurrent = if cli.single { 1 } else { cli.max_concurrent };
@@ -114,12 +116,12 @@ async fn main() -> Result<()> {
 
         let form = multipart::Form::new()
             .text("fileName", filename.clone())
-            .text("contentType", content_type.clone())
-            .text("token", "todo");
+            .text("contentType", content_type.clone());
 
         let start = Instant::now();
         let upload_response: UploadResponse = client
             .post(format!("{}/create", &cli.server_url))
+            .bearer_auth(auth_token.clone())
             .multipart(form)
             .send()
             .await?
@@ -146,6 +148,7 @@ async fn main() -> Result<()> {
             let content_type = content_type.clone();
             let semaphore = semaphore.clone();
             let path = path.clone();
+            let auth_token = auth_token.clone();
             let chunk_size = chunk_size;
             let file_size = file_size;
 
@@ -172,7 +175,7 @@ async fn main() -> Result<()> {
                     .text("checksum", checksum)
                     .part("chunk", multipart::Part::bytes(buf));
 
-                let response = client.post(&server_url).multipart(form).send().await?;
+                let response = client.post(&server_url).bearer_auth(auth_token).multipart(form).send().await?;
                 if !response.status().is_success() {
                     bail!("Failed to upload chunk {}: {}", chunk_num, response.text().await?);
                 }
@@ -183,6 +186,8 @@ async fn main() -> Result<()> {
         while let Some(res) = tasks.next().await {
             res??;
         }
+
+        println!("[>] Completing upload...");
 
         let secs = start.elapsed().as_secs().max(1);
         let bps = file_size / secs;
@@ -212,12 +217,12 @@ async fn main() -> Result<()> {
 
     let form = multipart::Form::new()
         .text("fileName", filename.clone())
-        .text("contentType", content_type.clone())
-        .text("token", "todo");
+        .text("contentType", content_type.clone());
 
     let start = Instant::now();
     let upload_response: UploadResponse = client
         .post(format!("{}/create", &cli.server_url))
+        .bearer_auth(auth_token.clone())
         .multipart(form)
         .send()
         .await?
@@ -244,6 +249,7 @@ async fn main() -> Result<()> {
         let size = size;
         let content_type = content_type.clone();
         let semaphore = semaphore.clone();
+        let auth_token = auth_token.clone();
 
         tasks.push(tokio::spawn(async move {
             let _permit = semaphore.acquire().await.unwrap();
@@ -264,7 +270,7 @@ async fn main() -> Result<()> {
                 .text("checksum", hash)
                 .part("chunk", multipart::Part::bytes(buffer));
 
-            let error = client.post(&server_url).multipart(form).send().await?;
+            let error = client.post(&server_url).bearer_auth(auth_token).multipart(form).send().await?;
             if !error.status().is_success() {
                 bail!("Failed to upload chunk {}: {}", chunk_num, error.text().await?);
             }
@@ -275,6 +281,19 @@ async fn main() -> Result<()> {
     while let Some(res) = tasks.next().await {
         res??;
     }
+
+    println!("[>] Completing upload...");
+    let form = multipart::Form::new()
+        .text("uploadId", upload_id.clone())
+        .text("fileId", file_id.clone());
+
+    client
+        .post(format!("{}/complete", &cli.server_url))
+        .bearer_auth(auth_token)
+        .multipart(form)
+        .send()
+        .await?
+        .error_for_status()?;
 
     let secs = start.elapsed().as_secs().max(1);
     let bps = size / secs;

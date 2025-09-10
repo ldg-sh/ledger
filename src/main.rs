@@ -8,7 +8,7 @@ use std::sync::Arc;
 use actix_web_httpauth::middleware::HttpAuthentication;
 use tonic::transport::Endpoint;
 use crate::middleware::authentication::validate_token;
-use crate::modules::postgres::postgres::PostgresService;
+use crate::modules::postgres::postgres_service::PostgresService;
 
 mod config;
 mod modules;

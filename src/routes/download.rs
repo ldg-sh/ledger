@@ -1,6 +1,6 @@
 extern crate sanitize_filename;
 
-use crate::modules::postgres::postgres::PostgresService;
+use crate::modules::postgres::postgres_service::PostgresService;
 use crate::modules::s3::download::GetMetadataResponse;
 use crate::modules::s3::s3_service::S3Service;
 use actix_web::http::header::{ACCEPT_RANGES, CONTENT_DISPOSITION, CONTENT_TYPE};
