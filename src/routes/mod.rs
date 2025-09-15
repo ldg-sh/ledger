@@ -5,6 +5,7 @@ use crate::middleware::authentication::validate_token;
 mod download;
 mod upload;
 mod delete;
+mod setup;
 
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     let auth = HttpAuthentication::bearer(validate_token);
@@ -14,6 +15,7 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
         .service(upload::create_upload)
         .wrap(auth.clone())
     );
+
     cfg.service(web::scope("/download")
         .service(download::metadata)
         .service(download::download)
@@ -21,8 +23,14 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
         .service(download::list_all_downloads)
         .wrap(auth.clone())
     );
+
     cfg.service(web::scope("/delete")
         .service(delete::delete)
-        .wrap(auth)
+        .wrap(auth.clone())
+    );
+
+    cfg.service(web::scope("/setup")
+        .service(setup::setup)
+        .wrap(auth.clone())
     );
 }
