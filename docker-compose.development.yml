@@ -22,6 +22,8 @@ services:
       - postgres
       - minio
       - ledger-auth
+    ports:
+      - "8080:8080"
 
   ledger-auth:
     build: https://github.com/ldg-sh/ledger-auth.git
@@ -30,7 +32,7 @@ services:
     restart: always
     environment:
       - RESEND_KEY=${RESEND_KEY}
-      - DATABASE_URL=postgresql://postgres:postgres@postgres-auth:5432/ledger
+      - POSTGRES_URI=postgresql://postgres:postgres@postgres-auth:5432/ledger
       - PORT=8080
       - ADMIN_KEY=${ADMIN_KEY}
       - GRPC_PORT=50051
@@ -40,6 +42,8 @@ services:
     depends_on:
       - postgres
       - redis
+    ports:
+      - "8081:8080"
 
   postgres:
     image: postgres:latest
