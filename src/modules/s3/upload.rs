@@ -1,6 +1,6 @@
 use aws_sdk_s3::error::ProvideErrorMetadata;
 use aws_sdk_s3::types::builders::CompletedMultipartUploadBuilder;
-use aws_sdk_s3::types::{ChecksumAlgorithm, ChecksumType};
+use aws_sdk_s3::types::{ChecksumAlgorithm};
 use aws_sdk_s3::{operation::upload_part::UploadPartOutput, primitives::ByteStream};
 use base64::{prelude::BASE64_STANDARD, Engine};
 use tokio::sync::Semaphore;
@@ -152,7 +152,17 @@ impl S3Service {
 
             let active_upload = cloned_uploads
                 .iter()
-                .find(|upload| upload.upload_id == upload_id).clone();
+                .find(|upload| upload.upload_id == upload_id);
+
+            // Normalize ETag by stripping surrounding quotes if present.
+            fn normalize_etag(etag: &str) -> String {
+                let trimmed = etag.trim();
+                if trimmed.len() >= 2 && trimmed.starts_with('"') && trimmed.ends_with('"') {
+                    trimmed[1..trimmed.len()-1].to_string()
+                } else {
+                    trimmed.to_string()
+                }
+            }
 
             let parts = match active_upload {
                 Some(upload) => {
@@ -162,7 +172,14 @@ impl S3Service {
                         .map(|part| {
                             aws_sdk_s3::types::CompletedPart::builder()
                                 .part_number(part.part_number as i32)
-                                .e_tag(part.upload_part_output.e_tag().unwrap_or_default())
+                                .e_tag(
+                                    normalize_etag(
+                                        part
+                                            .upload_part_output
+                                            .e_tag()
+                                            .unwrap_or_default(),
+                                    ),
+                                )
                                 .build()
                         })
                         .collect();
@@ -269,8 +286,6 @@ impl S3Service {
             .client
             .create_multipart_upload()
             .bucket(&self.bucket)
-            .checksum_algorithm(ChecksumAlgorithm::Sha256)
-            .checksum_type(ChecksumType::Composite)
             .content_type(content_type)
             .key(file_id)
             .send()

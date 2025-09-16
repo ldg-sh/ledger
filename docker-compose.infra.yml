@@ -1,0 +1,79 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres-hotdev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data-hotdev:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=ledger
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - ledger-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-auth:
+    image: postgres:latest
+    container_name: postgres-auth-hotdev
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data-auth-hotdev:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=ledger
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - ledger-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio-hotdev
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=ledger
+      - MINIO_ROOT_PASSWORD=ledger-password
+    volumes:
+      - minio-data-hotdev:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - ledger-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  redis:
+    image: redis:latest
+    container_name: redis-hotdev
+    ports:
+      - "6379:6379"
+    restart: always
+    networks:
+      - ledger-network
+
+volumes:
+  postgres-data-hotdev:
+  postgres-data-auth-hotdev:
+  minio-data-hotdev:
+
+networks:
+  ledger-network:
+    driver: bridge

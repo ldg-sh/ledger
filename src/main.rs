@@ -7,6 +7,8 @@ use log::debug;
 use std::sync::Arc;
 use actix_web_httpauth::middleware::HttpAuthentication;
 use tonic::transport::Endpoint;
+use std::time::Duration;
+use log::warn;
 use crate::middleware::authentication::validate_token;
 use crate::modules::postgres::postgres_service::PostgresService;
 
@@ -36,6 +38,11 @@ async fn main() -> std::io::Result<()> {
         .expect("Failed to create S3 service"),
     );
 
+    // Ensure the bucket exists in dev (MinIO) environments
+    if let Err(e) = s3_service.ensure_bucket().await {
+        warn!("S3 bucket check/create failed: {}", e);
+    }
+
     let postgres_service = Arc::new(
         PostgresService::new(
             &config.postgres.postgres_uri,
@@ -44,11 +51,19 @@ async fn main() -> std::io::Result<()> {
             .unwrap()
     );
 
-    let grpc_endpoint = Endpoint::from_shared(config.grpc.url.clone())
-        .expect("bad gRPC URL")
-        .connect()
-        .await
-        .expect("gRPC connection failed");
+    let grpc_endpoint = loop {
+        match Endpoint::from_shared(config.grpc.url.clone())
+            .expect("bad gRPC URL")
+            .connect()
+            .await
+        {
+            Ok(ch) => break ch,
+            Err(e) => {
+                warn!("gRPC connection to {} failed: {}. Retrying in 2s...", config.grpc.url, e);
+                tokio::time::sleep(Duration::from_secs(2)).await;
+            }
+        }
+    };
 
     debug!("Starting server...");
 
