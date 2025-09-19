@@ -1,7 +1,7 @@
 extern crate sanitize_filename;
 
 use crate::modules::s3::s3_service::S3Service;
-use actix_web::{delete, web, HttpResponse};
+use actix_web::{HttpResponse, delete, web};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 

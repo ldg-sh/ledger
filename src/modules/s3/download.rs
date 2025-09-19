@@ -1,17 +1,18 @@
-  use crate::modules::s3::s3_service::S3Service;
+
+use crate::modules::s3::s3_service::S3Service;
 use anyhow::Result;
 use aws_sdk_s3::error::SdkError;
-  use aws_sdk_s3::operation::get_object::GetObjectOutput;
-  use aws_sdk_s3::operation::head_object::{HeadObjectError, HeadObjectOutput};
-  use serde::{Deserialize, Serialize};
-  use std::collections::HashMap;
-  use std::io::Error;
+use aws_sdk_s3::operation::get_object::GetObjectOutput;
+use aws_sdk_s3::operation::head_object::{HeadObjectError, HeadObjectOutput};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::io::Error;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct GetMetadataResponse {
     pub content_size: i64,
     pub metadata: Option<HashMap<String, String>>,
-    pub mime: String
+    pub mime: String,
 }
 
 impl S3Service {
@@ -27,7 +28,12 @@ impl S3Service {
             .await
     }
 
-    pub async fn download_part(&self, key: &str, start: u64, end: u64) -> Result<GetObjectOutput, Error> {
+    pub async fn download_part(
+        &self,
+        key: &str,
+        start: u64,
+        end: u64,
+    ) -> Result<GetObjectOutput, Error> {
         let range = format!("bytes={}-{}", start, end);
 
         self.client

@@ -1,4 +1,4 @@
-use sea_orm_migration::{prelude::*};
+use sea_orm_migration::prelude::*;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -11,32 +11,15 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(File::Table)
                     .if_not_exists()
-                    .col(
-                        ColumnDef::new(File::Id)
-                            .string()
-                            .not_null()
-                            .primary_key(),
-                    )
-                    .col(
-                        ColumnDef::new(File::FileName)
-                            .string()
-                            .not_null()
-                    )
+                    .col(ColumnDef::new(File::Id).string().not_null().primary_key())
+                    .col(ColumnDef::new(File::FileName).string().not_null())
                     .col(
                         ColumnDef::new(File::FileOwnerId)
                             .array(ColumnType::Text)
-                            .not_null()
+                            .not_null(),
                     )
-                    .col(
-                        ColumnDef::new(File::UploadId)
-                            .string()
-                            .not_null()
-                    )
-                    .col(
-                        ColumnDef::new(File::FileSize)
-                            .big_unsigned()
-                            .not_null()
-                    )
+                    .col(ColumnDef::new(File::UploadId).string().not_null())
+                    .col(ColumnDef::new(File::FileSize).big_unsigned().not_null())
                     .col(
                         ColumnDef::new(File::CreatedAt)
                             .timestamp_with_time_zone()
@@ -48,11 +31,7 @@ impl MigrationTrait for Migration {
                             .default(false)
                             .not_null(),
                     )
-                    .col(
-                        ColumnDef::new(File::FileType)
-                            .string()
-                            .not_null()
-                    )
+                    .col(ColumnDef::new(File::FileType).string().not_null())
                     .to_owned(),
             )
             .await

@@ -1,7 +1,7 @@
-use actix_web::{http::StatusCode, HttpResponse, ResponseError};
+use actix_web::{HttpResponse, ResponseError, http::StatusCode};
+use sea_orm::DbErr;
 use serde::Serialize;
 use thiserror::Error;
-use sea_orm::DbErr;
 
 #[allow(dead_code)]
 #[derive(Debug, Error)]
@@ -38,7 +38,7 @@ impl From<DbErr> for AppError {
 #[derive(Serialize)]
 struct ErrorBody<'a, 'b> {
     error: &'a str,
-    message: &'b str
+    message: &'b str,
 }
 
 impl AppError {
@@ -75,7 +75,9 @@ impl ResponseError for AppError {
         }
     }
     fn error_response(&self) -> HttpResponse {
-        HttpResponse::build(self.status_code())
-            .json(ErrorBody { error: self.kind(), message: self.kind() })
+        HttpResponse::build(self.status_code()).json(ErrorBody {
+            error: self.kind(),
+            message: self.kind(),
+        })
     }
 }

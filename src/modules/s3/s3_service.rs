@@ -15,7 +15,6 @@ pub struct S3Service {
 }
 
 impl S3Service {
-
     pub fn new(access_key: &str, secret_key: &str, bucket: &str) -> Result<S3Service, Error> {
         let config = aws_sdk_s3::config::Builder::new()
             .region(Region::from_static(&config().bucket.s3_region))
@@ -55,11 +54,13 @@ impl S3Service {
                     .send()
                     .await
                     .map(|_| ())
-                    .map_err(|err| Error::other(format!(
-                        "Failed to create bucket '{}': {}",
-                        self.bucket,
-                        err.message().unwrap_or("unknown error")
-                    )))
+                    .map_err(|err| {
+                        Error::other(format!(
+                            "Failed to create bucket '{}': {}",
+                            self.bucket,
+                            err.message().unwrap_or("unknown error")
+                        ))
+                    })
             }
         }
     }

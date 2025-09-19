@@ -1,7 +1,8 @@
-use anyhow::{bail, Result, Context};
+use anyhow::{bail, Context, Result};
 use clap::{ArgAction, ArgGroup, Parser};
 use futures::stream::{FuturesUnordered, StreamExt};
 use reqwest::multipart;
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::env;
 use std::fs::File;
@@ -10,7 +11,6 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Instant;
 use tokio::sync::Semaphore;
-use serde::{Deserialize, Serialize};
 
 #[derive(Parser, Debug)]
 #[command(name = "rust-upload", about = "Upload a file (real or dummy)")]
@@ -82,7 +82,11 @@ fn pretty_bytes(bytes: u64) -> String {
 fn sha256_bytes(data: &[u8]) -> String {
     let mut hasher = Sha256::new();
     hasher.update(data);
-    hasher.finalize().iter().map(|b| format!("{:02x}", b)).collect()
+    hasher
+        .finalize()
+        .iter()
+        .map(|b| format!("{:02x}", b))
+        .collect()
 }
 
 #[tokio::main]
@@ -175,9 +179,18 @@ async fn main() -> Result<()> {
                     .text("checksum", checksum)
                     .part("chunk", multipart::Part::bytes(buf));
 
-                let response = client.post(&server_url).bearer_auth(auth_token).multipart(form).send().await?;
+                let response = client
+                    .post(&server_url)
+                    .bearer_auth(auth_token)
+                    .multipart(form)
+                    .send()
+                    .await?;
                 if !response.status().is_success() {
-                    bail!("Failed to upload chunk {}: {}", chunk_num, response.text().await?);
+                    bail!(
+                        "Failed to upload chunk {}: {}",
+                        chunk_num,
+                        response.text().await?
+                    );
                 }
                 Ok::<(), anyhow::Error>(())
             }));
@@ -193,7 +206,10 @@ async fn main() -> Result<()> {
         let bps = file_size / secs;
         let mbps = (file_size * 8) / secs / 1_000_000;
 
-        println!("[✓] Real file upload complete in {}s — {} B/s (~{} Mbps)", secs, bps, mbps);
+        println!(
+            "[✓] Real file upload complete in {}s — {} B/s (~{} Mbps)",
+            secs, bps, mbps
+        );
         return Ok(());
     }
 
@@ -256,8 +272,13 @@ async fn main() -> Result<()> {
 
             let offset = (chunk_num - 1) * chunk_size;
             let this_size = std::cmp::min(chunk_size, size - offset);
-            println!("[>] uploading chunk {}/{} (offset={}, size={})",
-                chunk_num, total_chunks, offset, pretty_bytes(this_size));
+            println!(
+                "[>] uploading chunk {}/{} (offset={}, size={})",
+                chunk_num,
+                total_chunks,
+                offset,
+                pretty_bytes(this_size)
+            );
             let buffer = vec![0u8; this_size as usize];
             let hash = sha256_bytes(&buffer);
 
@@ -270,9 +291,18 @@ async fn main() -> Result<()> {
                 .text("checksum", hash)
                 .part("chunk", multipart::Part::bytes(buffer));
 
-            let error = client.post(&server_url).bearer_auth(auth_token).multipart(form).send().await?;
+            let error = client
+                .post(&server_url)
+                .bearer_auth(auth_token)
+                .multipart(form)
+                .send()
+                .await?;
             if !error.status().is_success() {
-                bail!("Failed to upload chunk {}: {}", chunk_num, error.text().await?);
+                bail!(
+                    "Failed to upload chunk {}: {}",
+                    chunk_num,
+                    error.text().await?
+                );
             }
             Ok::<(), anyhow::Error>(())
         }));
@@ -299,6 +329,9 @@ async fn main() -> Result<()> {
     let bps = size / secs;
     let mbps = (size * 8) / secs / 1_000_000;
 
-    println!("[✓] Dummy upload complete in {}s — {} B/s (~{} Mbps)", secs, bps, mbps);
+    println!(
+        "[✓] Dummy upload complete in {}s — {} B/s (~{} Mbps)",
+        secs, bps, mbps
+    );
     Ok(())
 }

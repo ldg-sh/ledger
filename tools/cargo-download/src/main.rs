@@ -3,15 +3,18 @@ use clap::Parser;
 use futures::stream::{FuturesUnordered, StreamExt};
 use reqwest::multipart;
 use serde_json::Value;
+use std::sync::Arc;
 use std::{cmp::min, path::PathBuf};
 use tokio::fs::{self, OpenOptions};
-use tokio::io::{AsyncSeekExt, AsyncWriteExt};
 use tokio::io::SeekFrom;
+use tokio::io::{AsyncSeekExt, AsyncWriteExt};
 use tokio::sync::Semaphore;
-use std::sync::Arc;
 
 #[derive(Parser, Debug)]
-#[command(name = "rust-download", about = "Download a file in ranged parts using your /download endpoints")]
+#[command(
+    name = "rust-download",
+    about = "Download a file in ranged parts using your /download endpoints"
+)]
 struct Cli {
     /// Remote file name (server-side object key)
     #[arg(long)]
@@ -68,7 +71,8 @@ async fn main() -> Result<()> {
 
     // Try common keys: content_length / ContentLength / size / length
     let size = meta
-        .get("content_size").and_then(|v| v.as_u64())         // your server
+        .get("content_size")
+        .and_then(|v| v.as_u64()) // your server
         .or_else(|| meta.get("content_length").and_then(|v| v.as_u64()))
         .or_else(|| meta.get("ContentLength").and_then(|v| v.as_u64()))
         .or_else(|| meta.get("size").and_then(|v| v.as_u64()))
@@ -76,16 +80,24 @@ async fn main() -> Result<()> {
         .ok_or_else(|| anyhow!("metadata missing file size; got: {}", meta))?;
 
     let ct = meta
-        .get("mime").and_then(|v| v.as_str())                 // your server
+        .get("mime")
+        .and_then(|v| v.as_str()) // your server
         .or_else(|| meta.get("content_type").and_then(|v| v.as_str()))
         .or_else(|| meta.get("ContentType").and_then(|v| v.as_str()))
         .unwrap_or("application/octet-stream");
 
     let out_path = cli.output.unwrap_or_else(|| PathBuf::from(&cli.file_name));
-    if let Some(parent) = out_path.parent() { fs::create_dir_all(parent).await.ok(); }
+    if let Some(parent) = out_path.parent() {
+        fs::create_dir_all(parent).await.ok();
+    }
 
     // 2) Pre-allocate output file
-    let f = OpenOptions::new().create(true).write(true).read(true).open(&out_path).await?;
+    let f = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .read(true)
+        .open(&out_path)
+        .await?;
     f.set_len(size).await?;
 
     // 3) Build ranges

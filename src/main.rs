@@ -1,23 +1,23 @@
+use crate::middleware::authentication::validate_token;
+use crate::modules::postgres::postgres_service::PostgresService;
 use crate::modules::s3::s3_service::S3Service;
 use actix_multipart::form::MultipartFormConfig;
 use actix_web::web::Data;
 use actix_web::{App, HttpServer};
+use actix_web_httpauth::middleware::HttpAuthentication;
 use env_logger::Env;
 use log::debug;
-use std::sync::Arc;
-use actix_web_httpauth::middleware::HttpAuthentication;
-use tonic::transport::Endpoint;
-use std::time::Duration;
 use log::warn;
-use crate::middleware::authentication::validate_token;
-use crate::modules::postgres::postgres_service::PostgresService;
+use std::sync::Arc;
+use std::time::Duration;
+use tonic::transport::Endpoint;
 
 mod config;
+mod middleware;
 mod modules;
 mod routes;
-mod util;
 mod types;
-mod middleware;
+mod util;
 
 pub mod ledger {
     tonic::include_proto!("auth");
@@ -44,11 +44,9 @@ async fn main() -> std::io::Result<()> {
     }
 
     let postgres_service = Arc::new(
-        PostgresService::new(
-            &config.postgres.postgres_uri,
-        )
+        PostgresService::new(&config.postgres.postgres_uri)
             .await
-            .unwrap()
+            .unwrap(),
     );
 
     let grpc_endpoint = loop {
@@ -59,7 +57,10 @@ async fn main() -> std::io::Result<()> {
         {
             Ok(ch) => break ch,
             Err(e) => {
-                warn!("gRPC connection to {} failed: {}. Retrying in 2s...", config.grpc.url, e);
+                warn!(
+                    "gRPC connection to {} failed: {}. Retrying in 2s...",
+                    config.grpc.url, e
+                );
                 tokio::time::sleep(Duration::from_secs(2)).await;
             }
         }

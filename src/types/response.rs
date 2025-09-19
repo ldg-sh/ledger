@@ -1,6 +1,6 @@
-use serde::Serialize;
 use crate::types::error::AppError;
 use actix_web::{HttpResponse, Responder};
+use serde::Serialize;
 
 #[allow(dead_code)]
 pub enum ApiResponse<T> {
@@ -16,8 +16,7 @@ impl<T: Serialize> Responder for ApiResponse<T> {
         match self {
             ApiResponse::Ok(v) => HttpResponse::Ok().json(v),
             ApiResponse::EmptyOk => HttpResponse::Ok().finish(),
-            ApiResponse::Created(v) => HttpResponse::Created()
-                .json(v),
+            ApiResponse::Created(v) => HttpResponse::Created().json(v),
             ApiResponse::NoContent => HttpResponse::NoContent().finish(),
         }
     }

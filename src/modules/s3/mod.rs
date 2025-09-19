@@ -1,5 +1,5 @@
-pub mod s3_service;
-pub mod upload;
-pub mod download;
-pub mod team;
 mod delete;
+pub mod download;
+pub mod s3_service;
+pub mod team;
+pub mod upload;
