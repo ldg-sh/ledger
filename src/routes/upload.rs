@@ -120,7 +120,6 @@ pub async fn create_upload(
     {
         Ok(upload_id) => upload_id,
         Err(error) => {
-            println!("{}", error);
             return HttpResponse::InternalServerError().body(error.to_string());
         }
     };

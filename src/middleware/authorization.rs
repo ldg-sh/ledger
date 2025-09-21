@@ -55,7 +55,6 @@ where
         let team_id = req.match_info().get("team").unwrap_or("").to_string();
 
         if team_id.is_empty() {
-            println!("Empty team_id");
             return Box::pin(async {
                 Err(actix_web::error::ErrorBadRequest("Missing team or key in path"))
             });
@@ -106,7 +105,7 @@ where
                 return Err(actix_web::error::ErrorForbidden("Team access denied"));
             }
 
-            if inner.user_team_id != team_id {
+            if inner.team_id != team_id {
                 return Err(actix_web::error::ErrorForbidden("Team access denied"));
             }
 
