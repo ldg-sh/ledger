@@ -1,40 +1,54 @@
-use crate::middleware::authentication::validate_token;
 use actix_web::web;
-use actix_web_httpauth::middleware::HttpAuthentication;
+use crate::middleware::authentication::Authentication;
+use crate::middleware::authorization::Authorization;
 
 mod delete;
 mod download;
 mod setup;
 mod upload;
 
-pub fn configure_routes(cfg: &mut web::ServiceConfig) {
-    let auth = HttpAuthentication::bearer(validate_token);
+static FILE_SELECTION_SCOPE: &str = "/{team}/{key}";
 
+pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/upload")
-            .service(upload::upload)
-            .service(upload::create_upload)
-            .wrap(auth.clone()),
-    );
+            .service(
+                web::scope("/{team}/create")
+                    .wrap(Authorization)
+                    .wrap(Authentication)
+                    .service(upload::create_upload)
+            )
+            .service(
+                web::scope(FILE_SELECTION_SCOPE)
+                    .wrap(Authorization)
+                    .wrap(Authentication)
+                    .service(upload::upload)
+            ));
+
 
     cfg.service(
         web::scope("/download")
-            .service(download::metadata)
-            .service(download::download)
-            .service(download::download_full)
-            .service(download::list_all_downloads)
-            .wrap(auth.clone()),
-    );
+            .wrap(Authorization)
+            .wrap(Authentication)
+            .service(web::scope(FILE_SELECTION_SCOPE)
+                .service(download::metadata)
+                .service(download::download)
+                .service(download::download_full)
+                .service(download::list_all_downloads)
+    ));
 
     cfg.service(
         web::scope("/delete")
-            .service(delete::delete)
-            .wrap(auth.clone()),
+            .service(web::scope(FILE_SELECTION_SCOPE)
+                .wrap(Authorization)
+                .wrap(Authentication)
+                .service(delete::delete)
+            )
     );
 
     cfg.service(
         web::scope("/setup")
+            .wrap(Authentication)
             .service(setup::setup)
-            .wrap(auth.clone()),
     );
 }

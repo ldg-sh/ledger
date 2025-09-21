@@ -2,7 +2,7 @@ use crate::{
     modules::s3::s3_service::S3Service,
     types::response::{ApiResponse, ApiResult},
 };
-use actix_web::{HttpResponse, post, web};
+use actix_web::{post, web};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use uuid::Uuid;

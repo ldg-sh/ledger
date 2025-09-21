@@ -1,25 +1,20 @@
 use crate::config::config;
 use crate::ledger::authentication_client::AuthenticationClient;
-use crate::ledger::ValidationRequest;
-use actix_web::{Error, FromRequest, HttpMessage};
-use actix_web_httpauth::extractors::bearer::BearerAuth;
+use crate::ledger::GetUserTeamRequest;
+use actix_web::{Error, HttpMessage};
 use futures_util::future::LocalBoxFuture;
 use tonic::metadata::errors::InvalidMetadataValue;
 use tonic::metadata::{Ascii, MetadataValue};
 use tonic::Request as GrpcRequest;
 
-#[derive(Debug, Clone)]
-pub struct AuthenticatedUser {
-    pub user_id: String,
-}
-
+use crate::middleware::authentication::AuthenticatedUser;
 use actix_web::dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform};
 use std::future::{ready, Ready};
 use std::rc::Rc;
 
-pub struct Authentication;
+pub struct Authorization;
 
-impl<S, B> Transform<S, ServiceRequest> for Authentication
+impl<S, B> Transform<S, ServiceRequest> for Authorization
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
@@ -27,22 +22,22 @@ where
 {
     type Response = ServiceResponse<B>;
     type Error = Error;
-    type Transform = AuthenticationMiddleware<S>;
+    type Transform = AuthorizationMiddleware<S>;
     type InitError = ();
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
-        ready(Ok(AuthenticationMiddleware {
+        ready(Ok(AuthorizationMiddleware {
             service: Rc::new(service),
         }))
     }
 }
 
-pub struct AuthenticationMiddleware<S> {
+pub struct AuthorizationMiddleware<S> {
     service: Rc<S>,
 }
 
-impl<S, B> Service<ServiceRequest> for AuthenticationMiddleware<S>
+impl<S, B> Service<ServiceRequest> for AuthorizationMiddleware<S>
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
@@ -55,8 +50,16 @@ where
     forward_ready!(service);
 
     fn call(&self, mut req: ServiceRequest) -> Self::Future {
-        let mut payload = req.take_payload();
-        let fut = BearerAuth::from_request(req.request(), &mut payload);
+        let payload = req.take_payload();
+
+        let team_id = req.match_info().get("team").unwrap_or("").to_string();
+
+        if team_id.is_empty() {
+            println!("Empty team_id");
+            return Box::pin(async {
+                Err(actix_web::error::ErrorBadRequest("Missing team or key in path"))
+            });
+        }
 
         req.set_payload(payload);
 
@@ -74,15 +77,15 @@ where
         let srv = self.service.clone();
 
         Box::pin(async move {
-            let auth = fut
-                .await
-                .map_err(|e| actix_web::error::ErrorUnauthorized(e.to_string()))?;
-
-            let token = auth.token().to_string();
+            let user = req
+                .extensions()
+                .get::<AuthenticatedUser>()
+                .ok_or_else(|| actix_web::error::ErrorUnauthorized("Not authenticated"))?
+                .clone();
 
             let mut client = AuthenticationClient::new(grpc_client);
-            let mut grpc_req = GrpcRequest::new(ValidationRequest {
-                token: token.clone(),
+            let mut grpc_req = GrpcRequest::new(GetUserTeamRequest {
+                user_id: user.user_id.to_string(),
             });
 
             let v: MetadataValue<Ascii> = config()
@@ -94,20 +97,20 @@ where
             grpc_req.metadata_mut().insert("authorization", v);
 
             let resp = client
-                .validate_authentication(grpc_req)
+                .get_user_team(grpc_req)
                 .await
                 .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
 
             let inner = resp.into_inner();
-            if !inner.is_valid {
-                return Err(actix_web::error::ErrorUnauthorized("Invalid token"));
+            if !inner.success {
+                return Err(actix_web::error::ErrorForbidden("Team access denied"));
             }
 
-            let authenticated_user = AuthenticatedUser {
-                user_id: inner.user_id,
-            };
+            if inner.user_team_id != team_id {
+                return Err(actix_web::error::ErrorForbidden("Team access denied"));
+            }
 
-            req.extensions_mut().insert(authenticated_user);
+            req.extensions_mut().insert(user);
 
             srv.call(req).await
         })

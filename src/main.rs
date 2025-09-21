@@ -1,10 +1,8 @@
-use crate::middleware::authentication::validate_token;
 use crate::modules::postgres::postgres_service::PostgresService;
 use crate::modules::s3::s3_service::S3Service;
 use actix_multipart::form::MultipartFormConfig;
 use actix_web::web::Data;
 use actix_web::{App, HttpServer};
-use actix_web_httpauth::middleware::HttpAuthentication;
 use env_logger::Env;
 use log::debug;
 use log::warn;
@@ -69,10 +67,7 @@ async fn main() -> std::io::Result<()> {
     debug!("Starting server...");
 
     HttpServer::new(move || {
-        let auth = HttpAuthentication::bearer(validate_token);
-
         App::new()
-            .wrap(auth)
             .app_data(Data::new(Arc::clone(&s3_service)))
             .app_data(Data::new(Arc::clone(&postgres_service)))
             .app_data(Data::new(grpc_endpoint.clone()))

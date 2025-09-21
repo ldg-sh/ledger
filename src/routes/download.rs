@@ -15,26 +15,21 @@ use tokio_util::io::ReaderStream;
 
 #[derive(Serialize, Deserialize)]
 pub struct ChunkDownload {
-    #[serde(rename = "fileId")]
-    file_id: String,
     #[serde(rename = "rangeStart")]
     range_start: u64,
     #[serde(rename = "rangeEnd")]
     range_end: u64,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct DownloadMetadata {
-    #[serde(rename = "fileId")]
-    file_id: String,
-}
-
 #[get("/metadata")]
 pub async fn metadata(
     s3_service: web::Data<Arc<S3Service>>,
-    metadata: web::Query<DownloadMetadata>,
+    params: web::Path<(String, String)>,
 ) -> HttpResponse {
-    let metadata = match s3_service.get_metadata(&metadata.file_id).await {
+    let metadata = match s3_service.get_metadata(
+        params.1.as_ref(),
+        params.0.as_ref(),
+    ).await {
         Ok(m) => m,
         Err(SdkError::ServiceError(se)) if matches!(se.err(), HeadObjectError::NotFound(_)) => {
             return HttpResponse::NotFound().finish();
@@ -72,10 +67,11 @@ pub async fn metadata(
 #[get("")]
 pub async fn download(
     s3_service: web::Data<Arc<S3Service>>,
+    params: web::Path<(String, String)>,
     download: web::Query<ChunkDownload>,
 ) -> HttpResponse {
     let object_output = match s3_service
-        .download_part(&download.file_id, download.range_start, download.range_end)
+        .download_part(&params.0, &params.1, download.range_start, download.range_end)
         .await
     {
         Ok(object) => object,
@@ -94,12 +90,15 @@ pub async fn download(
         .body(object_output.body.collect().await.unwrap().into_bytes())
 }
 
-#[get("/view/{key}")]
+#[get("/view")]
 pub async fn download_full(
     s3_service: web::Data<Arc<S3Service>>,
-    key: web::Path<String>,
+    params: web::Path<(String, String)>,
 ) -> HttpResponse {
-    let object_output = match s3_service.download_file(&key).await {
+    let object_output = match s3_service.download_file(
+        &params.0,
+        &params.1,
+    ).await {
         Ok(object) => object,
         Err(e) => {
             return HttpResponse::InternalServerError().json(e.to_string());

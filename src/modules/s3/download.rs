@@ -7,6 +7,7 @@ use aws_sdk_s3::operation::head_object::{HeadObjectError, HeadObjectOutput};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::Error;
+use crate::util::strings::compound_team_file;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct GetMetadataResponse {
@@ -19,11 +20,12 @@ impl S3Service {
     pub async fn get_metadata(
         &self,
         key: &str,
+        team_id: &str,
     ) -> Result<HeadObjectOutput, SdkError<HeadObjectError>> {
         self.client
             .head_object()
             .bucket(&self.bucket)
-            .key(key)
+            .key(compound_team_file(team_id, key))
             .send()
             .await
     }
@@ -31,6 +33,7 @@ impl S3Service {
     pub async fn download_part(
         &self,
         key: &str,
+        team_id: &str,
         start: u64,
         end: u64,
     ) -> Result<GetObjectOutput, Error> {
@@ -39,18 +42,18 @@ impl S3Service {
         self.client
             .get_object()
             .bucket(&self.bucket)
-            .key(key)
+            .key(compound_team_file(team_id, key))
             .range(&range)
             .send()
             .await
             .map_err(|e| Error::other(e.to_string()))
     }
 
-    pub async fn download_file(&self, key: &str) -> Result<GetObjectOutput, Error> {
+    pub async fn download_file(&self, key: &str, team_id: &str) -> Result<GetObjectOutput, Error> {
         self.client
             .get_object()
             .bucket(&self.bucket)
-            .key(key)
+            .key(compound_team_file(team_id, key))
             .send()
             .await
             .map_err(|e| Error::other(e.to_string()))

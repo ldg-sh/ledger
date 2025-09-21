@@ -7,6 +7,7 @@ use aws_sdk_s3::{operation::upload_part::UploadPartOutput, primitives::ByteStrea
 use base64::{Engine, prelude::BASE64_STANDARD};
 use std::{io::Error, sync::Arc};
 use tokio::sync::Semaphore;
+use crate::util::strings::compound_team_file;
 
 struct CompletedPart {
     pub(super) part_number: u32,
@@ -26,6 +27,7 @@ impl S3Service {
         &self,
         upload_id: &str,
         file_id: &str,
+        team_id: &str,
         chunk_number: u32,
         total_chunks: u32,
         chunk_data: Vec<u8>,
@@ -81,7 +83,7 @@ impl S3Service {
                 .client
                 .upload_part()
                 .bucket(&self.bucket)
-                .key(file_id)
+                .key(compound_team_file(team_id, file_id))
                 .upload_id(upload_id)
                 .part_number(chunk_number as i32)
                 .body(ByteStream::from(chunk_data.clone()))
@@ -189,7 +191,7 @@ impl S3Service {
                 .client
                 .complete_multipart_upload()
                 .bucket(&self.bucket)
-                .key(file_id)
+                .key(compound_team_file(team_id, file_id))
                 .upload_id(upload_id)
                 .multipart_upload(
                     CompletedMultipartUploadBuilder::default()
@@ -246,13 +248,13 @@ impl S3Service {
         Ok(())
     }
     // TODO: Add: `, owning_team: &str`
-    pub async fn initiate_upload(&self, file_id: &str, content_type: &str) -> Result<String> {
+    pub async fn initiate_upload(&self, file_id: &str, team_id: &str, content_type: &str) -> Result<String> {
         let initiation = self
             .client
             .create_multipart_upload()
             .bucket(&self.bucket)
             .content_type(content_type)
-            .key(file_id)
+            .key(compound_team_file(team_id, file_id))
             .send()
             .await
             .context("Failed to send multipart upload request")?;

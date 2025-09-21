@@ -43,6 +43,9 @@ struct Cli {
     /// Server URL
     #[arg(long, default_value = "http://localhost:8080/upload")]
     server_url: String,
+
+    #[arg(long)]
+    team_id: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -123,15 +126,18 @@ async fn main() -> Result<()> {
             .text("contentType", content_type.clone());
 
         let start = Instant::now();
-        let upload_response: UploadResponse = client
-            .post(format!("{}/create", &cli.server_url))
+        let resp = client
+            .post(format!("{}/{}/create", &cli.server_url, &cli.team_id))
             .bearer_auth(auth_token.clone())
             .multipart(form)
             .send()
-            .await?
-            .error_for_status()?
-            .json()
             .await?;
+
+        println!("[DEBUG] Status: {}", resp.status());
+        let body = resp.text().await?;
+        println!("[DEBUG] Body: {}", body);
+
+        let upload_response: UploadResponse = serde_json::from_str(&body)?;
 
         let upload_id = upload_response.upload_id.trim().to_string();
         let file_id = upload_response.file_id.trim().to_string();
@@ -147,6 +153,7 @@ async fn main() -> Result<()> {
         for chunk_num in 1..=total_chunks {
             let client = client.clone();
             let server_url = cli.server_url.clone();
+            let team_id = cli.team_id.clone();
             let upload_id = upload_id.clone();
             let file_id = file_id.clone();
             let content_type = content_type.clone();
@@ -172,22 +179,22 @@ async fn main() -> Result<()> {
 
                 let form = multipart::Form::new()
                     .text("uploadId", upload_id)
-                    .text("fileId", file_id)
                     .text("chunkNumber", chunk_num.to_string())
                     .text("totalChunks", total_chunks.to_string())
                     .text("contentType", content_type)
                     .text("checksum", checksum)
                     .part("chunk", multipart::Part::bytes(buf));
 
+                println!("{}/{}/{}", server_url, &team_id, &file_id);
                 let response = client
-                    .post(&server_url)
+                    .post(format!("{}/{}/{}", server_url, &team_id, &file_id))
                     .bearer_auth(auth_token)
                     .multipart(form)
                     .send()
                     .await?;
                 if !response.status().is_success() {
                     bail!(
-                        "Failed to upload chunk {}: {}",
+                        "Failed to upload chunk type 1 {}: {}",
                         chunk_num,
                         response.text().await?
                     );
@@ -237,7 +244,7 @@ async fn main() -> Result<()> {
 
     let start = Instant::now();
     let upload_response: UploadResponse = client
-        .post(format!("{}/create", &cli.server_url))
+        .post(format!("{}/{}/create", &cli.server_url, &cli.team_id))
         .bearer_auth(auth_token.clone())
         .multipart(form)
         .send()
@@ -259,8 +266,9 @@ async fn main() -> Result<()> {
     for chunk_num in 1..=total_chunks {
         let client = client.clone();
         let server_url = cli.server_url.clone();
+        let file_id = file_id.clone();
+        let team_id = cli.team_id.clone();
         let upload_id = upload_id.clone();
-        let filename = file_id.clone();
         let chunk_size = chunk_size;
         let size = size;
         let content_type = content_type.clone();
@@ -284,7 +292,6 @@ async fn main() -> Result<()> {
 
             let form = multipart::Form::new()
                 .text("uploadId", upload_id)
-                .text("fileId", filename)
                 .text("chunkNumber", chunk_num.to_string())
                 .text("totalChunks", total_chunks.to_string())
                 .text("contentType", content_type)
@@ -292,7 +299,7 @@ async fn main() -> Result<()> {
                 .part("chunk", multipart::Part::bytes(buffer));
 
             let error = client
-                .post(&server_url)
+                .post(format!("{}/{}/{}", server_url, &team_id, &file_id))
                 .bearer_auth(auth_token)
                 .multipart(form)
                 .send()
@@ -304,6 +311,7 @@ async fn main() -> Result<()> {
                     error.text().await?
                 );
             }
+
             Ok::<(), anyhow::Error>(())
         }));
     }

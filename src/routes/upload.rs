@@ -7,7 +7,6 @@ use crate::types::file::TCreateFile;
 use actix_multipart::form::MultipartForm;
 use actix_multipart::form::text::Text;
 use actix_web::{HttpResponse, Responder, post, web};
-use actix_web_httpauth::extractors::bearer::BearerAuth;
 use sea_orm::sqlx::types::{chrono::Utc, uuid};
 use serde::{Deserialize, Serialize};
 use std::io::Read;
@@ -19,8 +18,6 @@ pub struct ChunkUploadForm {
     upload_id: Option<Text<String>>,
     #[multipart(rename = "checksum")]
     checksum: Text<String>,
-    #[multipart(rename = "fileId")]
-    file_id: Text<String>,
     #[multipart(rename = "chunkNumber")]
     chunk_number: Text<u32>,
     #[multipart(rename = "totalChunks")]
@@ -34,8 +31,8 @@ pub async fn upload(
     s3_service: web::Data<Arc<S3Service>>,
     postgres_service: web::Data<Arc<PostgresService>>,
     MultipartForm(form): MultipartForm<ChunkUploadForm>,
+    param: web::Path<(String, String)>,
 ) -> impl Responder {
-    let file_id = sanitize_filename::sanitize(&form.file_id.0);
     let chunk_size: u64 = form.chunk_data.iter().map(|f| f.size as u64).sum();
     log::debug!("Chunk size: {} bytes", chunk_size);
 
@@ -55,7 +52,8 @@ pub async fn upload(
     let result = s3_service
         .upload_part(
             &upload_id,
-            &file_id,
+            &param.1,
+            &param.0,
             form.chunk_number.0,
             form.total_chunks.0,
             chunk_data,
@@ -69,7 +67,7 @@ pub async fn upload(
             "Failed to upload chunk {} of {} for file {}: {}",
             form.chunk_number.0,
             form.total_chunks.0,
-            file_id,
+            param.1,
             e
         );
         return format!("Failed to upload chunk {}: {}", form.chunk_number.0, e);
@@ -78,13 +76,13 @@ pub async fn upload(
             "Successfully uploaded chunk {} of {} for file {}",
             form.chunk_number.0,
             form.total_chunks.0,
-            file_id
+            param.1
         );
     }
 
     format!(
         "Uploaded chunk {} of {} for file {}",
-        form.chunk_number.0, form.total_chunks.0, file_id
+        form.chunk_number.0, form.total_chunks.0, param.1
     )
 }
 
@@ -105,19 +103,19 @@ pub struct UploadCache {
     pub file_name: String,
 }
 
-#[post("/create")]
+#[post("")]
 pub async fn create_upload(
     s3_service: web::Data<Arc<S3Service>>,
     postgres_service: web::Data<Arc<PostgresService>>,
     MultipartForm(form): MultipartForm<CreateUploadForm>,
-    bearer: BearerAuth
+    team: web::Path<String>,
 ) -> impl Responder {
     let content_type = form.content_type.0.clone();
     let file_id = uuid::Uuid::new_v4().to_string();
     let owners: Vec<String> = form.owner_ids.into_iter().map(|t| t.0).collect();
 
     let upload_id = match s3_service
-        .initiate_upload(file_id.as_str(), &content_type)
+        .initiate_upload(file_id.as_str(), team.as_ref(), &content_type)
         .await
     {
         Ok(upload_id) => upload_id,
