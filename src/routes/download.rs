@@ -26,10 +26,10 @@ pub async fn metadata(
     s3_service: web::Data<Arc<S3Service>>,
     params: web::Path<(String, String)>,
 ) -> HttpResponse {
-    let metadata = match s3_service.get_metadata(
-        params.1.as_ref(),
-        params.0.as_ref(),
-    ).await {
+    let metadata = match s3_service
+        .get_metadata(params.1.as_ref(), params.0.as_ref())
+        .await
+    {
         Ok(m) => m,
         Err(SdkError::ServiceError(se)) if matches!(se.err(), HeadObjectError::NotFound(_)) => {
             return HttpResponse::NotFound().finish();
@@ -51,7 +51,8 @@ pub async fn metadata(
     let mime = match metadata.content_type {
         Some(mime) => mime,
         None => {
-            return HttpResponse::InternalServerError().body("Error whilst obtaining content type.");
+            return HttpResponse::InternalServerError()
+                .body("Error whilst obtaining content type.");
         }
     };
 
@@ -71,7 +72,12 @@ pub async fn download(
     download: web::Query<ChunkDownload>,
 ) -> HttpResponse {
     let object_output = match s3_service
-        .download_part(&params.0, &params.1, download.range_start, download.range_end)
+        .download_part(
+            &params.0,
+            &params.1,
+            download.range_start,
+            download.range_end,
+        )
         .await
     {
         Ok(object) => object,
@@ -95,10 +101,7 @@ pub async fn download_full(
     s3_service: web::Data<Arc<S3Service>>,
     params: web::Path<(String, String)>,
 ) -> HttpResponse {
-    let object_output = match s3_service.download_file(
-        &params.0,
-        &params.1,
-    ).await {
+    let object_output = match s3_service.download_file(&params.0, &params.1).await {
         Ok(object) => object,
         Err(e) => {
             return HttpResponse::InternalServerError().json(e.to_string());

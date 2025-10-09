@@ -1,4 +1,5 @@
 use crate::modules::{postgres::postgres_service::PostgresService, s3::s3_service::S3Service};
+use crate::util::strings::compound_team_file;
 use anyhow::{Context, Result};
 use aws_sdk_s3::error::ProvideErrorMetadata;
 use aws_sdk_s3::types::ChecksumAlgorithm;
@@ -7,7 +8,6 @@ use aws_sdk_s3::{operation::upload_part::UploadPartOutput, primitives::ByteStrea
 use base64::{Engine, prelude::BASE64_STANDARD};
 use std::{io::Error, sync::Arc};
 use tokio::sync::Semaphore;
-use crate::util::strings::compound_team_file;
 
 struct CompletedPart {
     pub(super) part_number: u32,
@@ -64,9 +64,10 @@ impl S3Service {
                 .unwrap_or_else(|| Arc::new(Semaphore::new(3)))
         };
 
-        let permit = semaphore.acquire_owned().await.map_err(|_| {
-                std::io::Error::other("Failed to acquire semaphore permit")
-        })?;
+        let permit = semaphore
+            .acquire_owned()
+            .await
+            .map_err(|_| std::io::Error::other("Failed to acquire semaphore permit"))?;
 
         let encoded_checksum = BASE64_STANDARD.encode(hex::decode(&checksum).map_err(|e| {
             Error::new(
@@ -248,7 +249,12 @@ impl S3Service {
         Ok(())
     }
     // TODO: Add: `, owning_team: &str`
-    pub async fn initiate_upload(&self, file_id: &str, team_id: &str, content_type: &str) -> Result<String> {
+    pub async fn initiate_upload(
+        &self,
+        file_id: &str,
+        team_id: &str,
+        content_type: &str,
+    ) -> Result<String> {
         let initiation = self
             .client
             .create_multipart_upload()

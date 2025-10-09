@@ -7,8 +7,10 @@ use crate::types::file::TCreateFile;
 use actix_multipart::form::MultipartForm;
 use actix_multipart::form::text::Text;
 use actix_web::{HttpResponse, Responder, post, web};
+use actix_web_httpauth::extractors::bearer::BearerAuth;
 use sea_orm::sqlx::types::{chrono::Utc, uuid};
 use serde::{Deserialize, Serialize};
+use tonic::transport::Channel;
 use std::io::Read;
 use std::sync::Arc;
 
@@ -92,8 +94,8 @@ pub struct CreateUploadForm {
     file_name: Text<String>,
     #[multipart(rename = "contentType")]
     content_type: Text<String>,
-    #[multipart(rename = "ownerIds")]
-    owner_ids: Vec<Text<String>>,
+    #[multipart(rename = "teamOwner")]
+    team_owner: Text<String>
 }
 
 #[derive(Serialize, Deserialize)]
@@ -106,16 +108,18 @@ pub struct UploadCache {
 #[post("")]
 pub async fn create_upload(
     s3_service: web::Data<Arc<S3Service>>,
+    grpc: web::Data<Arc<Channel>>,
     postgres_service: web::Data<Arc<PostgresService>>,
     MultipartForm(form): MultipartForm<CreateUploadForm>,
-    team: web::Path<String>,
+    bearer: BearerAuth
 ) -> impl Responder {
     let content_type = form.content_type.0.clone();
     let file_id = uuid::Uuid::new_v4().to_string();
-    let owners: Vec<String> = form.owner_ids.into_iter().map(|t| t.0).collect();
+    let owning_team = form.team_owner.into_inner(); // TODO: GRPC request that asks auth "what's their primary team?"
+
 
     let upload_id = match s3_service
-        .initiate_upload(file_id.as_str(), team.as_ref(), &content_type)
+        .initiate_upload(file_id.as_str(), &owning_team, &content_type)
         .await
     {
         Ok(upload_id) => upload_id,
@@ -128,7 +132,8 @@ pub async fn create_upload(
         .create_file(TCreateFile {
             id: file_id.clone(),
             file_name: form.file_name.0.clone(),
-            file_owner_id: owners,
+            owning_team: owning_team.clone(),
+            access_ids: vec![owning_team],
             upload_id: upload_id.clone(),
             file_size: 0,
             created_at: Utc::now(),

@@ -1,20 +1,20 @@
 use crate::config::config;
-use crate::ledger::authentication_client::AuthenticationClient;
 use crate::ledger::ValidationRequest;
+use crate::ledger::authentication_client::AuthenticationClient;
 use actix_web::{Error, FromRequest, HttpMessage};
 use actix_web_httpauth::extractors::bearer::BearerAuth;
 use futures_util::future::LocalBoxFuture;
+use tonic::Request as GrpcRequest;
 use tonic::metadata::errors::InvalidMetadataValue;
 use tonic::metadata::{Ascii, MetadataValue};
-use tonic::Request as GrpcRequest;
 
 #[derive(Debug, Clone)]
 pub struct AuthenticatedUser {
     pub user_id: String,
 }
 
-use actix_web::dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform};
-use std::future::{ready, Ready};
+use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform, forward_ready};
+use std::future::{Ready, ready};
 use std::rc::Rc;
 
 pub struct Authentication;
@@ -85,11 +85,14 @@ where
                 token: token.clone(),
             });
 
-            let v: MetadataValue<Ascii> = config()
-                .grpc
-                .auth_key
-                .parse()
-                .map_err(|e: InvalidMetadataValue| actix_web::error::ErrorUnauthorized(e.to_string()))?;
+            let v: MetadataValue<Ascii> =
+                config()
+                    .grpc
+                    .auth_key
+                    .parse()
+                    .map_err(|e: InvalidMetadataValue| {
+                        actix_web::error::ErrorUnauthorized(e.to_string())
+                    })?;
 
             grpc_req.metadata_mut().insert("authorization", v);
 

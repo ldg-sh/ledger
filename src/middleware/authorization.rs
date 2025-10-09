@@ -1,15 +1,15 @@
 use crate::config::config;
-use crate::ledger::authentication_client::AuthenticationClient;
 use crate::ledger::GetUserTeamRequest;
+use crate::ledger::authentication_client::AuthenticationClient;
 use actix_web::{Error, HttpMessage};
 use futures_util::future::LocalBoxFuture;
+use tonic::Request as GrpcRequest;
 use tonic::metadata::errors::InvalidMetadataValue;
 use tonic::metadata::{Ascii, MetadataValue};
-use tonic::Request as GrpcRequest;
 
 use crate::middleware::authentication::AuthenticatedUser;
-use actix_web::dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform};
-use std::future::{ready, Ready};
+use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform, forward_ready};
+use std::future::{Ready, ready};
 use std::rc::Rc;
 
 pub struct Authorization;
@@ -56,7 +56,9 @@ where
 
         if team_id.is_empty() {
             return Box::pin(async {
-                Err(actix_web::error::ErrorBadRequest("Missing team or key in path"))
+                Err(actix_web::error::ErrorBadRequest(
+                    "Missing team or key in path",
+                ))
             });
         }
 
@@ -87,11 +89,14 @@ where
                 user_id: user.user_id.to_string(),
             });
 
-            let v: MetadataValue<Ascii> = config()
-                .grpc
-                .auth_key
-                .parse()
-                .map_err(|e: InvalidMetadataValue| actix_web::error::ErrorUnauthorized(e.to_string()))?;
+            let v: MetadataValue<Ascii> =
+                config()
+                    .grpc
+                    .auth_key
+                    .parse()
+                    .map_err(|e: InvalidMetadataValue| {
+                        actix_web::error::ErrorUnauthorized(e.to_string())
+                    })?;
 
             grpc_req.metadata_mut().insert("authorization", v);
 
