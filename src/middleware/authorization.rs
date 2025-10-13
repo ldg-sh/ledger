@@ -89,7 +89,10 @@ where
                 return Err(actix_web::error::ErrorForbidden("Team access denied"));
             }
 
-            if resp.team_id != team_id {
+            let team_ids = resp.team_id;
+            let has_access = team_ids.iter().any(|id| id == &team_id);
+
+            if !has_access {
                 return Err(actix_web::error::ErrorForbidden("Team access denied"));
             }
 

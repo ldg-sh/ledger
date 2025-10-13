@@ -1,5 +1,7 @@
 extern crate sanitize_filename;
 
+use crate::middleware::authentication::AuthenticatedUser;
+use crate::modules::grpc::grpc_service::GrpcService;
 use crate::modules::postgres::postgres_service::PostgresService;
 use crate::modules::s3::s3_service::S3Service;
 use crate::types::error::AppError;
@@ -7,12 +9,10 @@ use crate::types::file::TCreateFile;
 use actix_multipart::form::MultipartForm;
 use actix_multipart::form::text::Text;
 use actix_web::{HttpResponse, Responder, post, web};
-use actix_web_httpauth::extractors::bearer::BearerAuth;
 use sea_orm::sqlx::types::{chrono::Utc, uuid};
 use serde::{Deserialize, Serialize};
 use std::io::Read;
 use std::sync::Arc;
-use tonic::transport::Channel;
 
 #[derive(MultipartForm)]
 pub struct ChunkUploadForm {
@@ -105,17 +105,41 @@ pub struct UploadCache {
     pub file_name: String,
 }
 
+// TODO: Use APIResult and standard response format.
+
 #[post("")]
 pub async fn create_upload(
     s3_service: web::Data<Arc<S3Service>>,
-    grpc: web::Data<Arc<Channel>>,
+    grpc_service: web::Data<Arc<GrpcService>>,
     postgres_service: web::Data<Arc<PostgresService>>,
     MultipartForm(form): MultipartForm<CreateUploadForm>,
-    bearer: BearerAuth,
+    user: web::ReqData<AuthenticatedUser>,
 ) -> impl Responder {
     let content_type = form.content_type.0.clone();
     let file_id = uuid::Uuid::new_v4().to_string();
     let owning_team = form.file_team.into_inner();
+
+    let grpc_service = grpc_service.get_ref();
+
+    let team_response = match grpc_service.get_user_team(&user.user_id).await {
+        Ok(resp) => resp,
+        Err(e) => {
+            log::error!(
+                "Failed to fetch team access for user {}: {}",
+                user.user_id,
+                e
+            );
+            return HttpResponse::InternalServerError().finish();
+        }
+    };
+
+    if !team_response.success {
+        return HttpResponse::Forbidden().body("Team access denied");
+    }
+
+    if !team_response.team_id.contains(&owning_team) {
+        return HttpResponse::Forbidden().body("Team access denied");
+    }
 
     let upload_id = match s3_service
         .initiate_upload(file_id.as_str(), &owning_team, &content_type)
