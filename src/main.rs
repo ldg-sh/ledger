@@ -1,3 +1,4 @@
+use crate::modules::grpc::grpc_service::GrpcService;
 use crate::modules::postgres::postgres_service::PostgresService;
 use crate::modules::s3::s3_service::S3Service;
 use actix_multipart::form::MultipartFormConfig;
@@ -47,7 +48,7 @@ async fn main() -> std::io::Result<()> {
             .unwrap(),
     );
 
-    let grpc_endpoint = loop {
+    let grpc_channel = loop {
         match Endpoint::from_shared(config.grpc.url.clone())
             .expect("bad gRPC URL")
             .connect()
@@ -64,13 +65,18 @@ async fn main() -> std::io::Result<()> {
         }
     };
 
+    let grpc_service = Arc::new(
+        GrpcService::new(grpc_channel, &config.grpc.auth_key)
+            .expect("Failed to create gRPC service"),
+    );
+
     debug!("Starting server...");
 
     HttpServer::new(move || {
         App::new()
             .app_data(Data::new(Arc::clone(&s3_service)))
             .app_data(Data::new(Arc::clone(&postgres_service)))
-            .app_data(Data::new(grpc_endpoint.clone()))
+            .app_data(Data::new(Arc::clone(&grpc_service)))
             .app_data(MultipartFormConfig::default().total_limit(1000 * 1024 * 1024))
             .configure(|cfg| {
                 routes::configure_routes(cfg);

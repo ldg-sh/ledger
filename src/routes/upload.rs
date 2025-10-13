@@ -10,9 +10,9 @@ use actix_web::{HttpResponse, Responder, post, web};
 use actix_web_httpauth::extractors::bearer::BearerAuth;
 use sea_orm::sqlx::types::{chrono::Utc, uuid};
 use serde::{Deserialize, Serialize};
-use tonic::transport::Channel;
 use std::io::Read;
 use std::sync::Arc;
+use tonic::transport::Channel;
 
 #[derive(MultipartForm)]
 pub struct ChunkUploadForm {
@@ -94,8 +94,8 @@ pub struct CreateUploadForm {
     file_name: Text<String>,
     #[multipart(rename = "contentType")]
     content_type: Text<String>,
-    #[multipart(rename = "teamOwner")]
-    team_owner: Text<String>
+    #[multipart(rename = "fileTeam")]
+    file_team: Text<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -111,12 +111,11 @@ pub async fn create_upload(
     grpc: web::Data<Arc<Channel>>,
     postgres_service: web::Data<Arc<PostgresService>>,
     MultipartForm(form): MultipartForm<CreateUploadForm>,
-    bearer: BearerAuth
+    bearer: BearerAuth,
 ) -> impl Responder {
     let content_type = form.content_type.0.clone();
     let file_id = uuid::Uuid::new_v4().to_string();
-    let owning_team = form.team_owner.into_inner(); // TODO: GRPC request that asks auth "what's their primary team?"
-
+    let owning_team = form.file_team.into_inner();
 
     let upload_id = match s3_service
         .initiate_upload(file_id.as_str(), &owning_team, &content_type)

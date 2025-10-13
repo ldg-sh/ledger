@@ -1,11 +1,7 @@
-use crate::config::config;
-use crate::ledger::GetUserTeamRequest;
-use crate::ledger::authentication_client::AuthenticationClient;
+use crate::modules::grpc::grpc_service::GrpcService;
 use actix_web::{Error, HttpMessage};
 use futures_util::future::LocalBoxFuture;
-use tonic::Request as GrpcRequest;
-use tonic::metadata::errors::InvalidMetadataValue;
-use tonic::metadata::{Ascii, MetadataValue};
+use std::sync::Arc;
 
 use crate::middleware::authentication::AuthenticatedUser;
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform, forward_ready};
@@ -64,8 +60,8 @@ where
 
         req.set_payload(payload);
 
-        let grpc_client = match req.app_data::<actix_web::web::Data<tonic::transport::Channel>>() {
-            Some(c) => c.get_ref().clone(),
+        let grpc_service = match req.app_data::<actix_web::web::Data<Arc<GrpcService>>>() {
+            Some(c) => Arc::clone(c.get_ref()),
             None => {
                 return Box::pin(async {
                     Err(actix_web::error::ErrorInternalServerError(
@@ -84,33 +80,16 @@ where
                 .ok_or_else(|| actix_web::error::ErrorUnauthorized("Not authenticated"))?
                 .clone();
 
-            let mut client = AuthenticationClient::new(grpc_client);
-            let mut grpc_req = GrpcRequest::new(GetUserTeamRequest {
-                user_id: user.user_id.to_string(),
-            });
-
-            let v: MetadataValue<Ascii> =
-                config()
-                    .grpc
-                    .auth_key
-                    .parse()
-                    .map_err(|e: InvalidMetadataValue| {
-                        actix_web::error::ErrorUnauthorized(e.to_string())
-                    })?;
-
-            grpc_req.metadata_mut().insert("authorization", v);
-
-            let resp = client
-                .get_user_team(grpc_req)
+            let resp = grpc_service
+                .get_user_team(&user.user_id)
                 .await
                 .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
 
-            let inner = resp.into_inner();
-            if !inner.success {
+            if !resp.success {
                 return Err(actix_web::error::ErrorForbidden("Team access denied"));
             }
 
-            if inner.team_id != team_id {
+            if resp.team_id != team_id {
                 return Err(actix_web::error::ErrorForbidden("Team access denied"));
             }
 
