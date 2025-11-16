@@ -13,11 +13,6 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(ColumnDef::new(File::Id).string().not_null().primary_key())
                     .col(ColumnDef::new(File::FileName).string().not_null())
-                    .col(
-                        ColumnDef::new(File::FileOwnerId)
-                            .array(ColumnType::Text)
-                            .not_null(),
-                    )
                     .col(ColumnDef::new(File::UploadId).string().not_null())
                     .col(ColumnDef::new(File::FileSize).big_unsigned().not_null())
                     .col(
@@ -52,7 +47,6 @@ enum File {
     Table,
     Id,
     FileName,
-    FileOwnerId,
     UploadId,
     FileSize,
     CreatedAt,

@@ -1,5 +1,4 @@
 use crate::modules::{postgres::postgres_service::PostgresService, s3::s3_service::S3Service};
-use crate::util::strings::compound_team_file;
 use anyhow::{Context, Result};
 use aws_sdk_s3::error::ProvideErrorMetadata;
 use aws_sdk_s3::types::ChecksumAlgorithm;
@@ -27,7 +26,6 @@ impl S3Service {
         &self,
         upload_id: &str,
         file_id: &str,
-        team_id: &str,
         chunk_number: u32,
         total_chunks: u32,
         chunk_data: Vec<u8>,
@@ -84,7 +82,7 @@ impl S3Service {
                 .client
                 .upload_part()
                 .bucket(&self.bucket)
-                .key(compound_team_file(team_id, file_id))
+                .key(file_id)
                 .upload_id(upload_id)
                 .part_number(chunk_number as i32)
                 .body(ByteStream::from(chunk_data.clone()))
@@ -192,7 +190,7 @@ impl S3Service {
                 .client
                 .complete_multipart_upload()
                 .bucket(&self.bucket)
-                .key(compound_team_file(team_id, file_id))
+                .key(file_id)
                 .upload_id(upload_id)
                 .multipart_upload(
                     CompletedMultipartUploadBuilder::default()
@@ -248,19 +246,13 @@ impl S3Service {
         drop(permit);
         Ok(())
     }
-    // TODO: Add: `, owning_team: &str`
-    pub async fn initiate_upload(
-        &self,
-        file_id: &str,
-        team_id: &str,
-        content_type: &str,
-    ) -> Result<String> {
+    pub async fn initiate_upload(&self, file_id: &str, content_type: &str) -> Result<String> {
         let initiation = self
             .client
             .create_multipart_upload()
             .bucket(&self.bucket)
             .content_type(content_type)
-            .key(compound_team_file(team_id, file_id))
+            .key(file_id)
             .send()
             .await
             .context("Failed to send multipart upload request")?;

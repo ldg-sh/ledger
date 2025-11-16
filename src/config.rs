@@ -7,6 +7,7 @@ pub struct EnvConfig {
     pub bucket: BucketDetails,
     pub postgres: PostgresDetails,
     pub grpc: Grpc,
+    pub redis: RedisDetails,
 }
 
 #[allow(dead_code)]
@@ -32,6 +33,12 @@ pub struct PostgresDetails {
     pub postgres_uri: String,
 }
 
+#[allow(dead_code)]
+#[derive(Clone, Debug)]
+pub struct RedisDetails {
+    pub redis_url: String,
+}
+
 impl EnvConfig {
     pub fn from_env() -> Self {
         dotenv::dotenv().ok();
@@ -50,6 +57,9 @@ impl EnvConfig {
             grpc: Grpc {
                 url: Self::get_env("GRPC_URL"),
                 auth_key: Self::get_env("GRPC_AUTH_KEY"),
+            },
+            redis: RedisDetails {
+                redis_url: Self::get_env("REDIS_URL"),
             },
         }
     }

@@ -1,5 +1,7 @@
+use crate::context::AppContext;
 use crate::modules::grpc::grpc_service::GrpcService;
 use crate::modules::postgres::postgres_service::PostgresService;
+use crate::modules::redis::redis_service::RedisService;
 use crate::modules::s3::s3_service::S3Service;
 use actix_multipart::form::MultipartFormConfig;
 use actix_web::web::Data;
@@ -12,11 +14,13 @@ use std::time::Duration;
 use tonic::transport::Endpoint;
 
 mod config;
+mod context;
 mod middleware;
 mod modules;
 mod routes;
 mod types;
 mod util;
+mod scheduler;
 
 pub mod ledger {
     tonic::include_proto!("auth");
@@ -70,13 +74,32 @@ async fn main() -> std::io::Result<()> {
             .expect("Failed to create gRPC service"),
     );
 
+    let redis_service = Arc::new(
+        RedisService::new(&config.redis.redis_url)
+            .await
+            .expect("Failed to connect to Redis"),
+    );
+
+    let context = Arc::new(AppContext::new(
+        Arc::clone(&s3_service),
+        Arc::clone(&postgres_service),
+        Arc::clone(&grpc_service),
+        Arc::clone(&redis_service),
+    ));
+
+    let scheduler_context = Arc::clone(&context);
+    tokio::spawn(async move {
+        scheduler::configure_scheduler()
+            .start(scheduler_context)
+            .await;
+    });
+
     debug!("Starting server...");
 
+    let app_data = Data::new(Arc::clone(&context));
     HttpServer::new(move || {
         App::new()
-            .app_data(Data::new(Arc::clone(&s3_service)))
-            .app_data(Data::new(Arc::clone(&postgres_service)))
-            .app_data(Data::new(Arc::clone(&grpc_service)))
+            .app_data(app_data.clone())
             .app_data(MultipartFormConfig::default().total_limit(1000 * 1024 * 1024))
             .configure(|cfg| {
                 routes::configure_routes(cfg);

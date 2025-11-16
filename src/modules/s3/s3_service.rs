@@ -38,6 +38,22 @@ impl S3Service {
         })
     }
 
+    pub async fn ping(&self) -> Result<(), Error> {
+        self.client
+            .head_bucket()
+            .bucket(&self.bucket)
+            .send()
+            .await
+            .map(|_| ())
+            .map_err(|err| {
+                Error::other(format!(
+                    "Failed to reach bucket '{}': {}",
+                    self.bucket,
+                    err.message().unwrap_or("unknown error")
+                ))
+            })
+    }
+
     pub async fn ensure_bucket(&self) -> Result<(), Error> {
         match self.client.head_bucket().bucket(&self.bucket).send().await {
             Ok(_) => Ok(()),

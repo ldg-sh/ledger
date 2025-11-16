@@ -14,13 +14,10 @@ impl PostgresService {
         Ok(files)
     }
 
-    // fn to create a file
     pub async fn create_file(&self, file: TCreateFile) -> Result<String, AppError> {
         let file_am = FileActiveModel {
             id: Set(file.id.clone()),
             file_name: Set(file.file_name),
-            owning_team: Set(file.owning_team),
-            access_ids: Set(file.access_ids),
             upload_id: Set(file.upload_id),
             file_size: Set(file.file_size),
             created_at: Set(file.created_at),

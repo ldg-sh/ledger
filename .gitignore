@@ -1,6 +1,7 @@
 /target
 /.idea
 .env
+/data
 
 CRUSH.md
 .crush/

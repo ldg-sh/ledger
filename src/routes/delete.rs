@@ -1,19 +1,17 @@
 extern crate sanitize_filename;
 
-use crate::modules::s3::s3_service::S3Service;
-use crate::util::strings::compound_team_file;
-use actix_web::{HttpResponse, delete, web};
+use crate::context::AppContext;
+use actix_web::{delete, web, HttpResponse};
 use std::sync::Arc;
 
-#[delete("/delete")]
+#[delete("")]
 pub async fn delete(
-    s3_service: web::Data<Arc<S3Service>>,
-    team: web::Path<String>,
-    key: web::Path<String>,
+    context: web::Data<Arc<AppContext>>,
+    file_id: web::Path<String>,
 ) -> HttpResponse {
-    let compounded_name = compound_team_file(team.as_ref(), key.as_ref());
+    let s3_service = Arc::clone(&context.into_inner().s3_service);
 
-    match s3_service.delete(&compounded_name).await {
+    match s3_service.delete(file_id.as_ref()).await {
         Ok(m) => m,
         Err(e) => {
             log::error!("{e:?}");

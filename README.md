@@ -18,10 +18,14 @@ docker compose up -d
 - [x] Download
 - [x] Files as CDN
 - [x] File delete
-- [x] User create, update, and delete
-- [ ] Lock files ops behind auth
-- [ ] Team based auth for file access (even if solo)
-- [ ] Team based admin controls, add/remove users (even if solo)
-- [ ] Ability to safely share files (team member, password, or public)
-- [ ] Bucket folder structure per team; team names must be unique
+- [x] Authenticated access via gRPC
+- [ ] Ability to safely share files (password or public links)
 - [ ] File encryption at rest (SSE-C AES-256? probably SSE-C and "workspace" specific decryption)
+
+## Configuration
+Set the following environment variables (see `.env.example` for a template, if present):
+
+- `S3_BUCKET_NAME`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_URL`, `S3_BUCKET_REGION`
+- `POSTGRES_URI`
+- `GRPC_URL`, `GRPC_AUTH_KEY`
+- `REDIS_URL`

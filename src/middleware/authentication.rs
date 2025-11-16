@@ -1,13 +1,8 @@
-use crate::modules::grpc::grpc_service::GrpcService;
+use crate::context::AppContext;
 use actix_web::{Error, FromRequest, HttpMessage};
 use actix_web_httpauth::extractors::bearer::BearerAuth;
 use futures_util::future::LocalBoxFuture;
 use std::sync::Arc;
-
-#[derive(Debug, Clone)]
-pub struct AuthenticatedUser {
-    pub user_id: String,
-}
 
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform, forward_ready};
 use std::future::{Ready, ready};
@@ -56,8 +51,11 @@ where
 
         req.set_payload(payload);
 
-        let grpc_service = match req.app_data::<actix_web::web::Data<Arc<GrpcService>>>() {
-            Some(c) => Arc::clone(c.get_ref()),
+        let grpc_service = match req.app_data::<actix_web::web::Data<Arc<AppContext>>>() {
+            Some(c) => {
+                let ctx = Arc::clone(c.get_ref());
+                Arc::clone(&ctx.grpc_service)
+            }
             None => {
                 return Box::pin(async {
                     Err(actix_web::error::ErrorInternalServerError(
@@ -84,13 +82,6 @@ where
             if !resp.is_valid {
                 return Err(actix_web::error::ErrorUnauthorized("Invalid token"));
             }
-
-            let authenticated_user = AuthenticatedUser {
-                user_id: resp.user_id,
-            };
-
-            req.extensions_mut().insert(authenticated_user);
-
             srv.call(req).await
         })
     }

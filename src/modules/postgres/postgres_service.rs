@@ -19,4 +19,8 @@ impl PostgresService {
             database_connection: db,
         })
     }
+
+    pub async fn ping(&self) -> Result<(), DbErr> {
+        self.database_connection.ping().await
+    }
 }

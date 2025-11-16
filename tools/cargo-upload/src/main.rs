@@ -1,58 +1,43 @@
 use anyhow::{bail, Context, Result};
-use clap::{ArgAction, ArgGroup, Parser};
-use futures::stream::{FuturesUnordered, StreamExt};
+use clap::Parser;
 use reqwest::multipart;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::env;
 use std::fs::File;
-use std::io::{Read, Seek, SeekFrom};
+use std::io::Read;
 use std::path::PathBuf;
-use std::sync::Arc;
 use std::time::Instant;
-use tokio::sync::Semaphore;
 
 #[derive(Parser, Debug)]
-#[command(name = "rust-upload", about = "Upload a file (real or dummy)")]
-#[command(group(
-    ArgGroup::new("input")
-        .required(true)
-        .args(&["size", "path"])
-))]
+#[command(
+    name = "cargo-upload",
+    about = "Dev helper mirroring the /upload route"
+)]
 struct Cli {
-    /// Upload in single-threaded mode (dummy only)
-    #[arg(long, short = 's', action = ArgAction::SetTrue)]
-    single: bool,
-
-    /// Dummy file size, e.g. 100mb, 1g
+    /// Path to the file that should be uploaded
     #[arg(long)]
-    size: Option<String>,
+    path: PathBuf,
 
-    /// Path to an existing file (uploaded as chunked parts)
+    /// Override the detected content type
     #[arg(long)]
-    path: Option<PathBuf>,
+    content_type: Option<String>,
 
-    /// Chunk size for uploads (dummy and real), e.g. 8mb
+    /// Chunk size to use when splitting the file, e.g. 8mb, 32mb
     #[arg(long, default_value = "8mb")]
     chunk_size: String,
 
-    /// Max concurrent uploads (applies to dummy and real)
-    #[arg(long, default_value_t = 4)]
-    max_concurrent: usize,
-
-    /// Server URL
-    #[arg(long, default_value = "http://localhost:8080/upload")]
-    server_url: String,
-
-    #[arg(long)]
-    team_id: String,
+    /// Server origin (without the /upload suffix)
+    #[arg(long, default_value = "http://localhost:8080")]
+    server: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct UploadResponse {
     upload_id: String,
     file_id: String,
 }
+
 fn parse_size_bytes(s: &str) -> Result<u64> {
     let s = s.to_lowercase();
     let (digits, unit) = s.chars().partition::<String, _>(|c| c.is_ascii_digit());
@@ -63,7 +48,7 @@ fn parse_size_bytes(s: &str) -> Result<u64> {
         "m" | "mb" => num * 1024 * 1024,
         "g" | "gb" => num * 1024 * 1024 * 1024,
         "t" | "tb" => num * 1024 * 1024 * 1024 * 1024,
-        _ => bail!("Unknown unit '{}'", unit),
+        _ => bail!("unknown unit '{unit}'"),
     })
 }
 
@@ -78,7 +63,7 @@ fn pretty_bytes(bytes: u64) -> String {
     } else if bytes >= KB {
         format!("{:.2} KB", bytes as f64 / KB as f64)
     } else {
-        format!("{} B", bytes)
+        format!("{bytes} B")
     }
 }
 
@@ -95,251 +80,141 @@ fn sha256_bytes(data: &[u8]) -> String {
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
-    let auth_token = env::var("TOKEN").context("TOKEN env var must be set")?;
-    let client = reqwest::Client::new();
+    let auth_token =
+        env::var("TOKEN").context("TOKEN env var must be set for Authorization bearer token")?;
     let chunk_size = parse_size_bytes(&cli.chunk_size)?;
-    let max_concurrent = if cli.single { 1 } else { cli.max_concurrent };
+    if chunk_size == 0 {
+        bail!("chunk size must be greater than zero");
+    }
 
-    // === Real file mode: --path (chunked like dummy) ===
-    if let Some(path) = cli.path {
-        let file_size = std::fs::metadata(&path)?.len();
-        let total_chunks = file_size.div_ceil(chunk_size);
-        let filename = path.file_name().unwrap().to_string_lossy().to_string();
-        let content_type = mime_guess::from_path(&path)
+    let file_path = cli.path.clone();
+    let file_metadata = std::fs::metadata(&file_path)
+        .with_context(|| format!("failed to read metadata for '{}'", file_path.display()))?;
+    let file_size = file_metadata.len();
+    if file_size == 0 {
+        bail!("file '{}' is empty", file_path.display());
+    }
+
+    let file_name = file_path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .map(|name| name.to_string())
+        .context("could not determine file name")?;
+
+    let content_type = cli.content_type.clone().unwrap_or_else(|| {
+        mime_guess::from_path(&file_path)
             .first_or_octet_stream()
             .essence_str()
-            .to_string();
-
-        println!(
-            "[*] Uploading real file (chunked): {} ({}, {}, ct={}, chunk={}, chunks={}, concurr={})",
-            filename,
-            file_size,
-            pretty_bytes(file_size),
-            &content_type,
-            pretty_bytes(chunk_size),
-            total_chunks,
-            max_concurrent
-        );
-
-        let form = multipart::Form::new()
-            .text("fileName", filename.clone())
-            .text("contentType", content_type.clone());
-
-        let start = Instant::now();
-        let resp = client
-            .post(format!("{}/{}/create", &cli.server_url, &cli.team_id))
-            .bearer_auth(auth_token.clone())
-            .multipart(form)
-            .send()
-            .await?;
-
-        println!("[DEBUG] Status: {}", resp.status());
-        let body = resp.text().await?;
-        println!("[DEBUG] Body: {}", body);
-
-        let upload_response: UploadResponse = serde_json::from_str(&body)?;
-
-        let upload_id = upload_response.upload_id.trim().to_string();
-        let file_id = upload_response.file_id.trim().to_string();
-        if upload_id.is_empty() {
-            bail!("Empty uploadId from server");
-        }
-        println!("[✓] uploadId: {}", upload_id);
-
-        // Spawn remaining chunks (2..=total_chunks) — each task re-opens the file and reads its range
-        let semaphore = Arc::new(Semaphore::new(max_concurrent));
-        let mut tasks = FuturesUnordered::new();
-
-        for chunk_num in 1..=total_chunks {
-            let client = client.clone();
-            let server_url = cli.server_url.clone();
-            let team_id = cli.team_id.clone();
-            let upload_id = upload_id.clone();
-            let file_id = file_id.clone();
-            let content_type = content_type.clone();
-            let semaphore = semaphore.clone();
-            let path = path.clone();
-            let auth_token = auth_token.clone();
-            let chunk_size = chunk_size;
-            let file_size = file_size;
-
-            tasks.push(tokio::spawn(async move {
-                let _permit = semaphore.acquire().await.unwrap();
-
-                let offset = (chunk_num - 1) * chunk_size;
-                let this_size = std::cmp::min(chunk_size, file_size - offset);
-                let mut buf = vec![0u8; this_size as usize];
-
-                // read this chunk from disk
-                let mut rf = File::open(&path)?;
-                rf.seek(SeekFrom::Start(offset))?;
-                rf.read_exact(&mut buf)?;
-
-                let checksum = sha256_bytes(&buf);
-
-                let form = multipart::Form::new()
-                    .text("uploadId", upload_id)
-                    .text("chunkNumber", chunk_num.to_string())
-                    .text("totalChunks", total_chunks.to_string())
-                    .text("contentType", content_type)
-                    .text("checksum", checksum)
-                    .part("chunk", multipart::Part::bytes(buf));
-
-                println!("{}/{}/{}", server_url, &team_id, &file_id);
-                let response = client
-                    .post(format!("{}/{}/{}", server_url, &team_id, &file_id))
-                    .bearer_auth(auth_token)
-                    .multipart(form)
-                    .send()
-                    .await?;
-                if !response.status().is_success() {
-                    bail!(
-                        "Failed to upload chunk type 1 {}: {}",
-                        chunk_num,
-                        response.text().await?
-                    );
-                }
-                Ok::<(), anyhow::Error>(())
-            }));
-        }
-
-        while let Some(res) = tasks.next().await {
-            res??;
-        }
-
-        println!("[>] Completing upload...");
-
-        let secs = start.elapsed().as_secs().max(1);
-        let bps = file_size / secs;
-        let mbps = (file_size * 8) / secs / 1_000_000;
-
-        println!(
-            "[✓] Real file upload complete in {}s — {} B/s (~{} Mbps)",
-            secs, bps, mbps
-        );
-        return Ok(());
+            .to_string()
+    });
+    let total_chunks = file_size.div_ceil(chunk_size);
+    if total_chunks == 0 {
+        bail!("calculated zero chunks for the upload");
+    }
+    if total_chunks > u32::MAX as u64 {
+        bail!("chunk count {total_chunks} exceeds the u32 limit expected by the API");
     }
 
-    // === Dummy mode: --size (chunked, optionally concurrent) ===
-    let size = parse_size_bytes(cli.size.as_ref().unwrap())?;
-    let total_chunks = size.div_ceil(chunk_size);
-    let content_type = "application/octet-stream".to_string();
+    let server = cli.server.trim_end_matches('/');
+    let client = reqwest::Client::new();
+    let mut file = File::open(&file_path)
+        .with_context(|| format!("failed to open '{}'", file_path.display()))?;
 
+    println!("[*] Preparing upload");
     println!(
-        "[*] Dummy upload: {} ({}), chunk={}, chunks={}, concurr={}, ct={}",
-        size,
-        pretty_bytes(size),
-        pretty_bytes(chunk_size),
-        total_chunks,
-        max_concurrent,
-        &content_type
+        "    file: {} ({} bytes, {})",
+        file_name,
+        file_size,
+        pretty_bytes(file_size)
     );
+    println!(
+        "    chunk size: {} ({} chunks)",
+        pretty_bytes(chunk_size),
+        total_chunks
+    );
+    println!("    content-type: {}", content_type);
+    println!("    route: {}/upload/<file_id>", server);
 
-    // first dummy chunk
-    let filename = "uploadfile.bin".to_string();
+    let create_url = format!("{}/upload/create", server);
+    let start = Instant::now();
 
-    let form = multipart::Form::new()
-        .text("fileName", filename.clone())
+    let create_form = multipart::Form::new()
+        .text("fileName", file_name.clone())
         .text("contentType", content_type.clone());
 
-    let start = Instant::now();
-    let upload_response: UploadResponse = client
-        .post(format!("{}/{}/create", &cli.server_url, &cli.team_id))
-        .bearer_auth(auth_token.clone())
-        .multipart(form)
+    let UploadResponse { upload_id, file_id } = client
+        .post(&create_url)
+        .bearer_auth(&auth_token)
+        .multipart(create_form)
         .send()
         .await?
-        .error_for_status()?
+        .error_for_status()
+        .context("create upload request failed")?
         .json()
-        .await?;
-    let upload_id = upload_response.upload_id.trim().to_string();
-    let file_id = upload_response.file_id.trim().to_string();
+        .await
+        .context("failed to decode create upload response")?;
 
-    if upload_id.is_empty() {
-        bail!("Empty uploadId from server");
-    }
-    println!("[✓] uploadId: {}", upload_id);
+    println!("    upload id: {}", upload_id);
+    println!("    file id: {}", file_id);
 
-    let semaphore = Arc::new(Semaphore::new(max_concurrent));
-    let mut tasks = FuturesUnordered::new();
+    let chunk_url = format!("{}/upload/{}", server, file_id);
+    let mut uploaded_bytes = 0u64;
 
-    for chunk_num in 1..=total_chunks {
-        let client = client.clone();
-        let server_url = cli.server_url.clone();
-        let file_id = file_id.clone();
-        let team_id = cli.team_id.clone();
-        let upload_id = upload_id.clone();
-        let chunk_size = chunk_size;
-        let size = size;
-        let content_type = content_type.clone();
-        let semaphore = semaphore.clone();
-        let auth_token = auth_token.clone();
-
-        tasks.push(tokio::spawn(async move {
-            let _permit = semaphore.acquire().await.unwrap();
-
-            let offset = (chunk_num - 1) * chunk_size;
-            let this_size = std::cmp::min(chunk_size, size - offset);
-            println!(
-                "[>] uploading chunk {}/{} (offset={}, size={})",
-                chunk_num,
-                total_chunks,
-                offset,
-                pretty_bytes(this_size)
-            );
-            let buffer = vec![0u8; this_size as usize];
-            let hash = sha256_bytes(&buffer);
-
-            let form = multipart::Form::new()
-                .text("uploadId", upload_id)
-                .text("chunkNumber", chunk_num.to_string())
-                .text("totalChunks", total_chunks.to_string())
-                .text("contentType", content_type)
-                .text("checksum", hash)
-                .part("chunk", multipart::Part::bytes(buffer));
-
-            let error = client
-                .post(format!("{}/{}/{}", server_url, &team_id, &file_id))
-                .bearer_auth(auth_token)
-                .multipart(form)
-                .send()
-                .await?;
-            if !error.status().is_success() {
-                bail!(
-                    "Failed to upload chunk {}: {}",
-                    chunk_num,
-                    error.text().await?
-                );
+    for chunk_number in 1..=total_chunks {
+        let mut buffer = vec![
+            0u8;
+            if chunk_number == total_chunks {
+                (file_size - uploaded_bytes) as usize
+            } else {
+                chunk_size as usize
             }
+        ];
+        file.read_exact(&mut buffer).with_context(|| {
+            format!(
+                "failed to read chunk {} for '{}'",
+                chunk_number,
+                file_path.display()
+            )
+        })?;
 
-            Ok::<(), anyhow::Error>(())
-        }));
+        uploaded_bytes += buffer.len() as u64;
+        let checksum = sha256_bytes(&buffer);
+
+        let form = multipart::Form::new()
+            .text("uploadId", upload_id.clone())
+            .text("checksum", checksum)
+            .text("chunkNumber", (chunk_number as u32).to_string())
+            .text("totalChunks", (total_chunks as u32).to_string())
+            .part("chunk", multipart::Part::bytes(buffer));
+
+        client
+            .post(&chunk_url)
+            .bearer_auth(&auth_token)
+            .multipart(form)
+            .send()
+            .await?
+            .error_for_status()
+            .with_context(|| format!("chunk {chunk_number} failed"))?;
+
+        let percent = (uploaded_bytes as f64 / file_size as f64) * 100.0;
+        println!(
+            "[>] chunk {}/{} uploaded ({:.1}% / {})",
+            chunk_number,
+            total_chunks,
+            percent,
+            pretty_bytes(uploaded_bytes)
+        );
     }
 
-    while let Some(res) = tasks.next().await {
-        res??;
-    }
-
-    println!("[>] Completing upload...");
-    let form = multipart::Form::new()
-        .text("uploadId", upload_id.clone())
-        .text("fileId", file_id.clone());
-
-    client
-        .post(format!("{}/complete", &cli.server_url))
-        .bearer_auth(auth_token)
-        .multipart(form)
-        .send()
-        .await?
-        .error_for_status()?;
-
-    let secs = start.elapsed().as_secs().max(1);
-    let bps = size / secs;
-    let mbps = (size * 8) / secs / 1_000_000;
+    let elapsed = start.elapsed();
+    let secs = elapsed.as_secs_f64();
+    let bytes_per_second = file_size as f64 / secs.max(0.001);
+    let mbps = (file_size as f64 * 8.0) / secs.max(0.001) / 1_000_000.0;
 
     println!(
-        "[✓] Dummy upload complete in {}s — {} B/s (~{} Mbps)",
-        secs, bps, mbps
+        "[✓] upload complete in {:.2}s — {:.0} B/s (~{:.1} Mbps)",
+        secs, bytes_per_second, mbps
     );
+
     Ok(())
 }

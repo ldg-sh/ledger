@@ -1,11 +1,10 @@
 extern crate sanitize_filename;
 
-use crate::modules::postgres::postgres_service::PostgresService;
+use crate::context::AppContext;
 use crate::modules::s3::download::GetMetadataResponse;
-use crate::modules::s3::s3_service::S3Service;
-use actix_web::http::StatusCode;
 use actix_web::http::header::{ACCEPT_RANGES, CONTENT_DISPOSITION, CONTENT_TYPE};
-use actix_web::{HttpResponse, Responder, get, web};
+use actix_web::http::StatusCode;
+use actix_web::{get, web, HttpResponse, Responder};
 use aws_sdk_s3::error::SdkError;
 use aws_sdk_s3::operation::head_object::HeadObjectError;
 use sea_orm::sqlx::types::chrono;
@@ -23,13 +22,12 @@ pub struct ChunkDownload {
 
 #[get("/metadata")]
 pub async fn metadata(
-    s3_service: web::Data<Arc<S3Service>>,
-    params: web::Path<(String, String)>,
+    context: web::Data<Arc<AppContext>>,
+    file_id: web::Path<String>,
 ) -> HttpResponse {
-    let metadata = match s3_service
-        .get_metadata(params.1.as_ref(), params.0.as_ref())
-        .await
-    {
+    let s3_service = Arc::clone(&context.into_inner().s3_service);
+    let file_id = file_id.into_inner();
+    let metadata = match s3_service.get_metadata(&file_id).await {
         Ok(m) => m,
         Err(SdkError::ServiceError(se)) if matches!(se.err(), HeadObjectError::NotFound(_)) => {
             return HttpResponse::NotFound().finish();
@@ -67,17 +65,14 @@ pub async fn metadata(
 
 #[get("")]
 pub async fn download(
-    s3_service: web::Data<Arc<S3Service>>,
-    params: web::Path<(String, String)>,
+    context: web::Data<Arc<AppContext>>,
+    file_id: web::Path<String>,
     download: web::Query<ChunkDownload>,
 ) -> HttpResponse {
+    let s3_service = Arc::clone(&context.into_inner().s3_service);
+    let file_id = file_id.into_inner();
     let object_output = match s3_service
-        .download_part(
-            &params.0,
-            &params.1,
-            download.range_start,
-            download.range_end,
-        )
+        .download_part(&file_id, download.range_start, download.range_end)
         .await
     {
         Ok(object) => object,
@@ -98,10 +93,12 @@ pub async fn download(
 
 #[get("/view")]
 pub async fn download_full(
-    s3_service: web::Data<Arc<S3Service>>,
-    params: web::Path<(String, String)>,
+    context: web::Data<Arc<AppContext>>,
+    file_id: web::Path<String>,
 ) -> HttpResponse {
-    let object_output = match s3_service.download_file(&params.0, &params.1).await {
+    let s3_service = Arc::clone(&context.into_inner().s3_service);
+    let file_id = file_id.into_inner();
+    let object_output = match s3_service.download_file(&file_id).await {
         Ok(object) => object,
         Err(e) => {
             return HttpResponse::InternalServerError().json(e.to_string());
@@ -129,8 +126,9 @@ struct AllFilesSummary {
 }
 
 #[get("/list/all")]
-pub async fn list_all_downloads(db: web::Data<Arc<PostgresService>>) -> impl Responder {
-    let files = db.list_files().await;
+pub async fn list_all_downloads(context: web::Data<Arc<AppContext>>) -> impl Responder {
+    let postgres = Arc::clone(&context.into_inner().postgres_service);
+    let files = postgres.list_files().await;
     if let Ok(files) = files {
         let cleaned: Vec<_> = files
             .into_iter()

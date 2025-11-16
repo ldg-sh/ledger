@@ -1,9 +1,6 @@
 extern crate sanitize_filename;
 
-use crate::middleware::authentication::AuthenticatedUser;
-use crate::modules::grpc::grpc_service::GrpcService;
-use crate::modules::postgres::postgres_service::PostgresService;
-use crate::modules::s3::s3_service::S3Service;
+use crate::context::AppContext;
 use crate::types::error::AppError;
 use crate::types::file::TCreateFile;
 use actix_multipart::form::MultipartForm;
@@ -11,6 +8,7 @@ use actix_multipart::form::text::Text;
 use actix_web::{HttpResponse, Responder, post, web};
 use sea_orm::sqlx::types::{chrono::Utc, uuid};
 use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 use std::io::Read;
 use std::sync::Arc;
 
@@ -30,11 +28,14 @@ pub struct ChunkUploadForm {
 
 #[post("")]
 pub async fn upload(
-    s3_service: web::Data<Arc<S3Service>>,
-    postgres_service: web::Data<Arc<PostgresService>>,
+    context: web::Data<Arc<AppContext>>,
     MultipartForm(form): MultipartForm<ChunkUploadForm>,
-    param: web::Path<(String, String)>,
+    file_id: web::Path<String>,
 ) -> impl Responder {
+    let context = context.into_inner();
+    let s3_service = Arc::clone(&context.s3_service);
+    let postgres_service = Arc::clone(&context.postgres_service);
+
     let chunk_size: u64 = form.chunk_data.iter().map(|f| f.size as u64).sum();
     log::debug!("Chunk size: {} bytes", chunk_size);
 
@@ -50,17 +51,17 @@ pub async fn upload(
     }
 
     let upload_id = form.upload_id.as_ref().unwrap().0.clone();
+    let file_id = file_id.into_inner();
 
     let result = s3_service
         .upload_part(
             &upload_id,
-            &param.1,
-            &param.0,
+            &file_id,
             form.chunk_number.0,
             form.total_chunks.0,
             chunk_data,
             form.checksum.0.clone(),
-            postgres_service.get_ref().as_ref(),
+            postgres_service.as_ref(),
         )
         .await;
 
@@ -69,7 +70,7 @@ pub async fn upload(
             "Failed to upload chunk {} of {} for file {}: {}",
             form.chunk_number.0,
             form.total_chunks.0,
-            param.1,
+            file_id,
             e
         );
         return format!("Failed to upload chunk {}: {}", form.chunk_number.0, e);
@@ -78,13 +79,13 @@ pub async fn upload(
             "Successfully uploaded chunk {} of {} for file {}",
             form.chunk_number.0,
             form.total_chunks.0,
-            param.1
+            file_id
         );
     }
 
     format!(
         "Uploaded chunk {} of {} for file {}",
-        form.chunk_number.0, form.total_chunks.0, param.1
+        form.chunk_number.0, form.total_chunks.0, file_id
     )
 }
 
@@ -94,8 +95,6 @@ pub struct CreateUploadForm {
     file_name: Text<String>,
     #[multipart(rename = "contentType")]
     content_type: Text<String>,
-    #[multipart(rename = "fileTeam")]
-    file_team: Text<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -109,40 +108,18 @@ pub struct UploadCache {
 
 #[post("")]
 pub async fn create_upload(
-    s3_service: web::Data<Arc<S3Service>>,
-    grpc_service: web::Data<Arc<GrpcService>>,
-    postgres_service: web::Data<Arc<PostgresService>>,
+    context: web::Data<Arc<AppContext>>,
     MultipartForm(form): MultipartForm<CreateUploadForm>,
-    user: web::ReqData<AuthenticatedUser>,
 ) -> impl Responder {
+    let context = context.into_inner();
+    let s3_service = Arc::clone(&context.s3_service);
+    let postgres_service = Arc::clone(&context.postgres_service);
+
     let content_type = form.content_type.0.clone();
     let file_id = uuid::Uuid::new_v4().to_string();
-    let owning_team = form.file_team.into_inner();
-
-    let grpc_service = grpc_service.get_ref();
-
-    let team_response = match grpc_service.get_user_team(&user.user_id).await {
-        Ok(resp) => resp,
-        Err(e) => {
-            log::error!(
-                "Failed to fetch team access for user {}: {}",
-                user.user_id,
-                e
-            );
-            return HttpResponse::InternalServerError().finish();
-        }
-    };
-
-    if !team_response.success {
-        return HttpResponse::Forbidden().body("Team access denied");
-    }
-
-    if !team_response.team_id.contains(&owning_team) {
-        return HttpResponse::Forbidden().body("Team access denied");
-    }
 
     let upload_id = match s3_service
-        .initiate_upload(file_id.as_str(), &owning_team, &content_type)
+        .initiate_upload(file_id.as_str(), &content_type)
         .await
     {
         Ok(upload_id) => upload_id,
@@ -155,8 +132,6 @@ pub async fn create_upload(
         .create_file(TCreateFile {
             id: file_id.clone(),
             file_name: form.file_name.0.clone(),
-            owning_team: owning_team.clone(),
-            access_ids: vec![owning_team],
             upload_id: upload_id.clone(),
             file_size: 0,
             created_at: Utc::now(),
