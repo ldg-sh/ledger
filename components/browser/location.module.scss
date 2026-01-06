@@ -1,0 +1,16 @@
+.locationBar {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: var(--color-background-secondary);
+    border-top: var(--border-style);
+    border-bottom: var(--border-style);
+    font-size: 0.9rem;
+}
+
+.pathSegment {
+    margin-left: 8px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+}

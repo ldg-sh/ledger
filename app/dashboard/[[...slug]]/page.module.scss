@@ -1,0 +1,18 @@
+.pageContainer {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.centerpiece {
+  border-left: var(--border-style);
+  border-right: var(--border-style);
+  width: 80%;
+  height: 100vh;
+}
+
+.rows {
+  border-top: var(--border-style)
+}

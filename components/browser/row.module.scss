@@ -1,0 +1,28 @@
+.row {
+    border-bottom: var(--border-style);
+    display: flex;
+    align-items: center;
+    padding: 15px 0;
+    color: var(--color-text-secondary);
+    font-weight: 350;
+    font-size: .9rem;
+}
+
+.rowElement {
+    padding-left: 15px;
+}
+
+.fileName {
+    width: 30%;
+    line-height: 1;
+}
+
+.fileSize {
+    width: 15%;
+    line-height: 1;
+}
+
+.fileType {
+    width: 15%;
+    line-height: 1;
+}

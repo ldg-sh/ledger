@@ -1,0 +1,26 @@
+.spacer {
+    width: 62px;
+    display: inline-block;
+}
+
+.headerElement {
+    padding-left: 15px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    line-height: 1;
+    display: inline-block;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.fileName {
+    width: 30%;
+}
+
+.fileSize {
+    width: 15%;
+}
+
+.fileType {
+    width: 15%;
+}

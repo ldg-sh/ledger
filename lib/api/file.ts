@@ -1,44 +1,93 @@
+"use server";
 import { authenticatedFetch, authenticatedMultipartFetch } from "./api-client";
 
-export const FileService = {
-  list: async () => {
-    const res = await authenticatedFetch("/list/");
-    return res.json();
-  },
+export async function listFiles(directoryPath: string) {
+  const res = await authenticatedFetch(`/list/${directoryPath}`);
 
-  downloadPart: async (rangeStart: number, rangeEnd: number, fileId: string) => {
-    let formData = new FormData();
-    formData.append("rangeStart", rangeStart.toString());
-    formData.append("rangeEnd", rangeEnd.toString());
+  if (!res.ok) throw new Error("Failed to fetch file list");
+  let json = await res.json();
 
-    const res = await authenticatedMultipartFetch(`/download/${fileId}`, formData);
+  let files = json.files;
+  let folders = json.folders;
 
-    if (!res.ok) throw new Error("Failed to download file part");
-    const data = await res.arrayBuffer();
+  let fileList: File[] = files.map((file: any) => ({
+    fileId: file.file_id,
+    fileName: file.file_name,
+    fileSize: file.file_size,
+    fileType: file.file_type,
+    createdAt: file.created_at,
+    path: file.path,
+  }));
 
-    return new Uint8Array(data);
-  },
+  let folderList: Folder[] = folders.map((folder: any) => ({
+    folderName: folder.folder_name,
+    fileCount: folder.file_count,
+    size: folder.size,
+  }));
 
-  createUpload: async (fileName: string, contentType: string, path: string) => {
-    let formData = new FormData();
-    formData.append("fileName", fileName);
-    formData.append("contentType", contentType);
+  return { files: fileList, folders: folderList };
+}
 
-    const res = await authenticatedMultipartFetch(`/upload/create/${path}`, formData);
+export async function downloadPart(
+  rangeStart: number,
+  rangeEnd: number,
+  fileId: string
+) {
+  let formData = new FormData();
+  formData.append("rangeStart", rangeStart.toString());
+  formData.append("rangeEnd", rangeEnd.toString());
 
-    return res.json();
-  },
+  const res = await authenticatedMultipartFetch(
+    `/download/${fileId}`,
+    formData
+  );
 
-  uploadPart: async (uploadId: string, path: string, fileId: string, checksum: string, chunkNumber: number, totalChunks: number, chunkData: Uint8Array) => {
-    let formData = new FormData();
-    formData.append("uploadId", uploadId);
-    formData.append("checksum", checksum);
-    formData.append("chunkNumber", chunkNumber.toString());
-    formData.append("totalChunks", totalChunks.toString());
-    formData.append("chunkData", new Blob([chunkData] as BlobPart[], { type: "application/octet-stream" }));
+  if (!res.ok) throw new Error("Failed to download file part");
+  const data = await res.arrayBuffer();
 
-    const res = await authenticatedMultipartFetch(`/upload/${path}/${fileId}`, formData);
+  return new Uint8Array(data);
+}
 
-    return res.ok;
-  }
-};
+export async function createUpload(
+  fileName: string,
+  contentType: string,
+  path: string
+) {
+  let formData = new FormData();
+  formData.append("fileName", fileName);
+  formData.append("contentType", contentType);
+
+  const res = await authenticatedMultipartFetch(
+    `/upload/create/${path}`,
+    formData
+  );
+
+  return res.json();
+}
+
+export async function uploadPart(
+  uploadId: string,
+  path: string,
+  fileId: string,
+  checksum: string,
+  chunkNumber: number,
+  totalChunks: number,
+  chunkData: Uint8Array
+) {
+  let formData = new FormData();
+  formData.append("uploadId", uploadId);
+  formData.append("checksum", checksum);
+  formData.append("chunkNumber", chunkNumber.toString());
+  formData.append("totalChunks", totalChunks.toString());
+  formData.append(
+    "chunkData",
+    new Blob([chunkData] as BlobPart[], { type: "application/octet-stream" })
+  );
+
+  const res = await authenticatedMultipartFetch(
+    `/upload/${path}/${fileId}`,
+    formData
+  );
+
+  return res.ok;
+}

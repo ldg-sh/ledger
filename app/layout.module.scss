@@ -1,0 +1,17 @@
+:root {
+    --color-framework: #E0E0E0;
+    --border-style: 1px solid var(--color-framework);
+    --color-text-secondary: #858585;
+    --color-text-primary: #4A4A4A;
+}
+
+html {
+    scroll-behavior: smooth;
+    margin: 0;
+}
+
+body {
+    margin: 0;
+    background-color: #f9f9f9;
+    color: #333;
+}
