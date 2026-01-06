@@ -79,6 +79,8 @@ where
                 .await
                 .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
 
+            log::info!("Authentication response: is_valid={:?}", resp);
+
             if !resp.is_valid {
                 return Err(actix_web::error::ErrorUnauthorized("Invalid token"));
             }

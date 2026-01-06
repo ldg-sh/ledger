@@ -118,29 +118,93 @@ pub async fn download_full(
 
 #[derive(serde::Serialize)]
 struct AllFilesSummary {
+    files: Vec<FileSummary>,
+    folders: Vec<FolderSummary>,
+}
+
+#[derive(serde::Serialize)]
+struct FileSummary {
     file_id: String,
     file_name: String,
     file_size: i64,
     file_type: String,
     created_at: chrono::DateTime<chrono::Utc>,
+    path: String,
 }
 
-#[get("/list/all")]
-pub async fn list_all_downloads(context: web::Data<Arc<AppContext>>) -> impl Responder {
-    let postgres = Arc::clone(&context.into_inner().postgres_service);
-    let files = postgres.list_files().await;
+#[derive(serde::Serialize)]
+struct FolderSummary {
+    name: String,
+    file_count: i64,
+    size: i64,
+}
+
+#[get("/{path:.*}")]
+pub async fn list_files(
+    context: web::Data<Arc<AppContext>>,
+    path: Option<web::Path<String>>,
+) -> impl Responder {
+    let postgres = Arc::clone(&context.clone().into_inner().postgres_service);
+    let s3_service = Arc::clone(&context.into_inner().s3_service);
+
+    let path = if path.is_none() {
+        String::new()
+    } else {
+        path.unwrap().into_inner()
+    };
+
+    let files = postgres.list_files(
+        &sanitize_filename::sanitize(path.clone())
+    ).await;
+
+    let folders = s3_service.list_directories(
+        &sanitize_filename::sanitize(path.clone())
+    ).await;
+
     if let Ok(files) = files {
-        let cleaned: Vec<_> = files
+        let files: Vec<_> = files
             .into_iter()
-            .map(|v| AllFilesSummary {
+            .map(|v| FileSummary {
                 file_id: v.id,
                 file_name: v.file_name,
                 file_size: v.file_size,
                 file_type: v.file_type,
                 created_at: v.created_at,
+                path: v.path
             })
             .collect();
+
+        let mut folder_summaries = vec![];
+
+        if let Ok(folders) = folders {
+            for folder in folders {
+                let sanitized_folder = sanitize_filename::sanitize(format!("{}/{}", path, folder));
+
+                let files_in_folder = postgres.list_files(
+                    &sanitized_folder
+                );
+
+                if let Ok(files_in_folder) = files_in_folder.await {
+                    let file_count = files_in_folder.len() as i64;
+                    let size: i64 = files_in_folder.iter().map(|f| f.file_size).sum();
+
+                    folder_summaries.push(FolderSummary {
+                        name: folder,
+                        file_count,
+                        size,
+                    });
+                }
+            }
+        }
+
+
+        let cleaned = AllFilesSummary {
+            files,
+            folders: folder_summaries,
+        };
+
         return HttpResponse::Ok().json(cleaned);
     }
+
     HttpResponse::Ok().finish()
 }

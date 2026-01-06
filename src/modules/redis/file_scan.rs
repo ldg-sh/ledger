@@ -59,8 +59,7 @@ impl RedisService {
         let mut pipeline = redis::pipe();
         for member in &members {
             pipeline
-                .cmd("DEL")
-                .arg(RedisKeyBuilder::file_log_key(member));
+                .del(RedisKeyBuilder::file_log_key(member));
         }
         pipeline.cmd("DEL").arg(&set_key);
         let _: () = pipeline.query_async(&mut conn).await?;

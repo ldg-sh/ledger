@@ -17,6 +17,10 @@ use std::time::Instant;
 struct Cli {
     /// Path to the file that should be uploaded
     #[arg(long)]
+    file: PathBuf,
+
+    /// Remote file path (server-side object key)
+    #[arg(long, default_value = "/")]
     path: PathBuf,
 
     /// Override the detected content type
@@ -87,7 +91,7 @@ async fn main() -> Result<()> {
         bail!("chunk size must be greater than zero");
     }
 
-    let file_path = cli.path.clone();
+    let file_path = cli.file.clone();
     let file_metadata = std::fs::metadata(&file_path)
         .with_context(|| format!("failed to read metadata for '{}'", file_path.display()))?;
     let file_size = file_metadata.len();
@@ -140,7 +144,8 @@ async fn main() -> Result<()> {
 
     let create_form = multipart::Form::new()
         .text("fileName", file_name.clone())
-        .text("contentType", content_type.clone());
+        .text("contentType", content_type.clone())
+        .text("path", cli.path.to_string_lossy().to_string());
 
     let UploadResponse { upload_id, file_id } = client
         .post(&create_url)
@@ -185,6 +190,7 @@ async fn main() -> Result<()> {
             .text("checksum", checksum)
             .text("chunkNumber", (chunk_number as u32).to_string())
             .text("totalChunks", (total_chunks as u32).to_string())
+            .text("path", cli.path.to_string_lossy().to_string())
             .part("chunk", multipart::Part::bytes(buffer));
 
         client

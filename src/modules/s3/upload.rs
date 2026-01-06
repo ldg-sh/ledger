@@ -26,6 +26,7 @@ impl S3Service {
         &self,
         upload_id: &str,
         file_id: &str,
+        key: &str,
         chunk_number: u32,
         total_chunks: u32,
         chunk_data: Vec<u8>,
@@ -65,7 +66,7 @@ impl S3Service {
         let permit = semaphore
             .acquire_owned()
             .await
-            .map_err(|_| std::io::Error::other("Failed to acquire semaphore permit"))?;
+            .map_err(|_| Error::other("Failed to acquire semaphore permit"))?;
 
         let encoded_checksum = BASE64_STANDARD.encode(hex::decode(&checksum).map_err(|e| {
             Error::new(
@@ -82,7 +83,7 @@ impl S3Service {
                 .client
                 .upload_part()
                 .bucket(&self.bucket)
-                .key(file_id)
+                .key(key)
                 .upload_id(upload_id)
                 .part_number(chunk_number as i32)
                 .body(ByteStream::from(chunk_data.clone()))
@@ -190,7 +191,7 @@ impl S3Service {
                 .client
                 .complete_multipart_upload()
                 .bucket(&self.bucket)
-                .key(file_id)
+                .key(key)
                 .upload_id(upload_id)
                 .multipart_upload(
                     CompletedMultipartUploadBuilder::default()
@@ -246,13 +247,13 @@ impl S3Service {
         drop(permit);
         Ok(())
     }
-    pub async fn initiate_upload(&self, file_id: &str, content_type: &str) -> Result<String> {
+    pub async fn initiate_upload(&self, file_id: &str, key: &str, content_type: &str) -> Result<String> {
         let initiation = self
             .client
             .create_multipart_upload()
             .bucket(&self.bucket)
             .content_type(content_type)
-            .key(file_id)
+            .key(key)
             .send()
             .await
             .context("Failed to send multipart upload request")?;

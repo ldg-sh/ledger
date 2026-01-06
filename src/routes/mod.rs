@@ -17,6 +17,12 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     );
 
     cfg.service(
+        web::scope("/list")
+            .wrap(Authentication)
+            .service(download::list_files),
+    );
+
+    cfg.service(
         web::scope("/download")
             .wrap(Authentication)
             .service(
@@ -25,7 +31,6 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
                     .service(download::download)
                     .service(download::download_full),
             )
-            .service(download::list_all_downloads),
     );
 
     cfg.service(

@@ -1,4 +1,3 @@
-use aws_sdk_s3::primitives::DateTime;
 use sea_orm::entity::prelude::DateTimeUtc;
 use serde::{Deserialize, Serialize};
 use chrono::{DateTime as ChronoDateTime, Utc};
@@ -11,6 +10,7 @@ pub struct TCreateFile {
     pub created_at: DateTimeUtc,
     pub upload_completed: bool,
     pub file_type: String,
+    pub path: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

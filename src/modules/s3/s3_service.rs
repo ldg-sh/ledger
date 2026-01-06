@@ -80,4 +80,44 @@ impl S3Service {
             }
         }
     }
+
+    pub async fn list_directories(&self, prefix: &str) -> Result<Vec<String>, Error> {
+        let normalized_prefix = if prefix.is_empty() {
+            String::new()
+        } else if prefix.ends_with('/') {
+            prefix.to_string()
+        } else {
+            format!("{}/", prefix)
+        };
+
+        let response = self
+            .client
+            .list_objects_v2()
+            .bucket(&self.bucket)
+            .prefix(&normalized_prefix)
+            .delimiter("/")
+            .send()
+            .await
+            .map_err(|err| {
+                Error::other(format!(
+                    "Failed to list directories in '{}': {}",
+                    normalized_prefix,
+                    err.message().unwrap_or("unknown error")
+                ))
+            })?;
+
+        let directories = response
+            .common_prefixes()
+            .iter()
+            .filter_map(|cp| cp.prefix())
+            .map(|s| {
+                s.strip_prefix(&normalized_prefix)
+                    .unwrap_or(s)
+                    .trim_end_matches('/')
+                    .to_string()
+            })
+            .collect();
+
+        Ok(directories)
+    }
 }

@@ -50,7 +50,7 @@ impl ScheduledJob for TrackFiles {
         match next_cursor {
             Some(cursor) => {
                 data.redis_service.store_file_scan_cursor(&cursor).await.ok();
-                tracing::info!(
+                tracing::debug!(
                     target: "scheduler",
                     job = %self.name(),
                     count = files.len(),
@@ -60,15 +60,15 @@ impl ScheduledJob for TrackFiles {
             None => {
                 data.redis_service.clear_file_scan_cursor().await.ok();
 
-                tracing::info!("Grabbing current generation...");
+                tracing::debug!("Grabbing current generation...");
 
                 let prune_generation =
                     (current_gen + MAX_GENERATIONS - 1) % MAX_GENERATIONS;
-                tracing::info!("About to prune generation {}", prune_generation);
+                tracing::debug!("About to prune generation {}", prune_generation);
                 data.redis_service.prune_generation(prune_generation).await?;
-                tracing::info!("Pruned!!!");
+                tracing::debug!("Pruned!!!");
 
-                tracing::info!(
+                tracing::debug!(
                     target: "scheduler",
                     job = %self.name(),
                     count = files.len(),
@@ -79,7 +79,7 @@ impl ScheduledJob for TrackFiles {
                 data.redis_service.set_current_generation(&next_gen).await?;
 
 
-                tracing::info!(
+                tracing::debug!(
                     target: "scheduler",
                     job = %self.name(),
                     count = files.len(),

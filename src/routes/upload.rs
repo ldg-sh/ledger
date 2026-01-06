@@ -22,6 +22,8 @@ pub struct ChunkUploadForm {
     chunk_number: Text<u32>,
     #[multipart(rename = "totalChunks")]
     total_chunks: Text<u32>,
+    #[multipart(rename = "path")]
+    path: Option<Text<String>>,
     #[multipart(rename = "chunk")]
     pub(crate) chunk_data: Vec<actix_multipart::form::tempfile::TempFile>,
 }
@@ -52,11 +54,21 @@ pub async fn upload(
 
     let upload_id = form.upload_id.as_ref().unwrap().0.clone();
     let file_id = file_id.into_inner();
+    let key = if let Some(path) = &form.path {
+        format!(
+            "{}/{}",
+            sanitize_filename::sanitize(path.0.clone()),
+            sanitize_filename::sanitize(file_id.clone())
+        )
+    } else {
+        sanitize_filename::sanitize(file_id.clone())
+    };
 
     let result = s3_service
         .upload_part(
             &upload_id,
             &file_id,
+            &key,
             form.chunk_number.0,
             form.total_chunks.0,
             chunk_data,
@@ -95,6 +107,8 @@ pub struct CreateUploadForm {
     file_name: Text<String>,
     #[multipart(rename = "contentType")]
     content_type: Text<String>,
+    #[multipart(rename = "path")]
+    path: Option<Text<String>>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -118,8 +132,18 @@ pub async fn create_upload(
     let content_type = form.content_type.0.clone();
     let file_id = uuid::Uuid::new_v4().to_string();
 
+    let key = if let Some(path) = &form.path {
+        format!(
+            "{}/{}",
+            sanitize_filename::sanitize(path.0.clone()),
+            sanitize_filename::sanitize(file_id.clone())
+        )
+    } else {
+        sanitize_filename::sanitize(file_id.clone())
+    };
+
     let upload_id = match s3_service
-        .initiate_upload(file_id.as_str(), &content_type)
+        .initiate_upload(&file_id, &key, &content_type)
         .await
     {
         Ok(upload_id) => upload_id,
@@ -131,6 +155,11 @@ pub async fn create_upload(
     match postgres_service
         .create_file(TCreateFile {
             id: file_id.clone(),
+            path: if let Some(path) = &form.path {
+                sanitize_filename::sanitize(path.0.clone())
+            } else {
+                String::new()
+            },
             file_name: form.file_name.0.clone(),
             upload_id: upload_id.clone(),
             file_size: 0,

@@ -1,3 +1,5 @@
+use sea_orm::QueryFilter;
+use sea_orm::ColumnTrait;
 use crate::{
     modules::postgres::postgres_service::PostgresService,
     types::{error::AppError, file::TCreateFile},
@@ -8,8 +10,11 @@ use entity::file::{Entity as File, Model as FileModel};
 use sea_orm::{EntityTrait, Set};
 
 impl PostgresService {
-    pub async fn list_files(&self) -> AResult<Vec<FileModel>> {
-        let files = File::find().all(&self.database_connection).await?;
+    pub async fn list_files(&self, path: &str) -> AResult<Vec<FileModel>> {
+        let files = File::find()
+            .filter(entity::file::Column::Path.eq(path.to_string()))
+            .all(&self.database_connection)
+            .await?;
 
         Ok(files)
     }
@@ -23,6 +28,8 @@ impl PostgresService {
             created_at: Set(file.created_at),
             upload_completed: Set(file.upload_completed),
             file_type: Set(file.file_type),
+            path: Set(file.path),
+
         };
 
         File::insert(file_am)
