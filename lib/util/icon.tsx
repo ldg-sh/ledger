@@ -10,7 +10,7 @@ export function getFileIcon(fileType: string): string {
         case 'application/pdf':
             return "pdf";
         case 'text/plain':
-            return "text";
+            return "file-text";
         default:
             return "file";
     }

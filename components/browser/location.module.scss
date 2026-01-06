@@ -3,14 +3,21 @@
     align-items: center;
     padding: 10px;
     background-color: var(--color-background-secondary);
-    border-top: var(--border-style);
     border-bottom: var(--border-style);
     font-size: 0.9rem;
+    font-weight: 300;
 }
 
 .pathSegment {
+    display: inline-block;
     margin-left: 8px;
-    line-height: 1;
+    height: 20px;
     cursor: pointer;
+    color: var(--color-text-secondary);
+}
+
+.seperator {
+    margin-left: 8px;
+    height: 20px;
     color: var(--color-text-secondary);
 }

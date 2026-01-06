@@ -9,7 +9,7 @@
 .centerpiece {
   border-left: var(--border-style);
   border-right: var(--border-style);
-  width: 80%;
+  width: var(--content-width);
   height: 100vh;
 }
 

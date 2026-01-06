@@ -15,33 +15,50 @@ export default function Location() {
 
   return (
     <div className={styles.locationBar}>
-      {array.length === 0 && (
-        <span
-          className={styles.pathSegment}
-          onClick={(element) => {
-            const fullPath = "/dashboard";
+      <span
+        className={styles.pathSegment}
+        onClick={(_) => {
+          const fullPath = "/dashboard";
 
-            router.push(fullPath);
-          }}
-        >
-          {"/"}
-        </span>
-      )}
+          router.push(fullPath);
+        }}
+      >
+        {"home"}
+      </span>
+      <span className={styles.seperator}>{" / "}</span>
       {array.map((_, index) => (
-        <span
-          key={index}
-          className={styles.pathSegment}
-          onClick={(element) => {
-            const clickedPath = array.slice(0, index + 1).join("/") || "/";
-            const fullPath =
-              clickedPath === "/" ? "/dashboard" : "/dashboard/" + clickedPath;
+        <div key={index + "-container"}>
+          <span
+            key={index}
+            className={styles.pathSegment}
+            onClick={(_) => {
+              const clickedPath = array.slice(0, index + 1).join("/") || "/";
+              const fullPath =
+                clickedPath === "/"
+                  ? "/dashboard"
+                  : "/dashboard/" + clickedPath;
 
-            router.push(fullPath);
-          }}
-        >
-          {"  /  "}
-          {array[index]}
-        </span>
+              router.push(fullPath);
+            }}
+          >
+            {array[index]}
+          </span>
+          <span
+            key={index + "-sep"}
+            className={styles.seperator}
+            onClick={(_) => {
+              const clickedPath = array.slice(0, index + 1).join("/") || "/";
+              const fullPath =
+                clickedPath === "/"
+                  ? "/dashboard"
+                  : "/dashboard/" + clickedPath;
+
+              router.push(fullPath);
+            }}
+          >
+            {"/"}
+          </span>
+        </div>
       ))}
     </div>
   );
