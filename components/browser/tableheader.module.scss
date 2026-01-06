@@ -3,6 +3,12 @@
     display: inline-block;
 }
 
+.tableHeader {
+    min-width: 1000px;
+    white-space: nowrap;
+    border-bottom: var(--border-style);
+}
+
 .headerElement {
     padding-left: 20px;
     padding-top: 10px;

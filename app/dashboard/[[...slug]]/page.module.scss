@@ -13,6 +13,7 @@
   height: 100vh;
 }
 
-.rows {
-  border-top: var(--border-style)
+.content {
+    overflow: scroll;
+
 }

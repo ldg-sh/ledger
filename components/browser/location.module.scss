@@ -6,6 +6,8 @@
     border-bottom: var(--border-style);
     font-size: 0.9rem;
     font-weight: 300;
+    flex-wrap: nowrap;
+    overflow-x: auto;
 }
 
 .pathSegment {
@@ -24,4 +26,9 @@
     margin-left: 8px;
     height: 20px;
     color: var(--color-text-secondary);
+    display: inline-block;
+}
+
+.pathGrouping {
+    display: flex;
 }
