@@ -11,6 +11,8 @@ use sea_orm::sqlx::types::chrono;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio_util::io::ReaderStream;
+use crate::middleware::authentication::AuthenticatedUser;
+use crate::util::file::{build_key_from_path};
 
 #[derive(Serialize, Deserialize)]
 pub struct ChunkDownload {
@@ -20,14 +22,15 @@ pub struct ChunkDownload {
     range_end: u64,
 }
 
-#[get("/metadata")]
+#[get("/metadata/{path:.*}")]
 pub async fn metadata(
     context: web::Data<Arc<AppContext>>,
-    file_id: web::Path<String>,
+    path: web::Path<String>,
+    authenticated_user: AuthenticatedUser
 ) -> HttpResponse {
     let s3_service = Arc::clone(&context.into_inner().s3_service);
-    let file_id = file_id.into_inner();
-    let metadata = match s3_service.get_metadata(&file_id).await {
+    let path = build_key_from_path(&authenticated_user, &path.into_inner());
+    let metadata = match s3_service.get_metadata(&path).await {
         Ok(m) => m,
         Err(SdkError::ServiceError(se)) if matches!(se.err(), HeadObjectError::NotFound(_)) => {
             return HttpResponse::NotFound().finish();
@@ -63,16 +66,18 @@ pub async fn metadata(
     HttpResponse::build(StatusCode::OK).json(web::Json(formatted_metadata))
 }
 
-#[get("")]
+#[get("/{path:.*}")]
 pub async fn download(
     context: web::Data<Arc<AppContext>>,
-    file_id: web::Path<String>,
+    path: web::Path<String>,
     download: web::Query<ChunkDownload>,
+    authenticated_user: AuthenticatedUser
 ) -> HttpResponse {
     let s3_service = Arc::clone(&context.into_inner().s3_service);
-    let file_id = file_id.into_inner();
+    let path = path.into_inner();
+    let key = build_key_from_path(&authenticated_user, &path);
     let object_output = match s3_service
-        .download_part(&file_id, download.range_start, download.range_end)
+        .download_part(&key, download.range_start, download.range_end)
         .await
     {
         Ok(object) => object,
@@ -91,14 +96,16 @@ pub async fn download(
         .body(object_output.body.collect().await.unwrap().into_bytes())
 }
 
-#[get("/view")]
+#[get("/view/{path:.*}")]
 pub async fn download_full(
     context: web::Data<Arc<AppContext>>,
-    file_id: web::Path<String>,
+    path: web::Path<String>,
+    authenticated_user: AuthenticatedUser
 ) -> HttpResponse {
     let s3_service = Arc::clone(&context.into_inner().s3_service);
-    let file_id = file_id.into_inner();
-    let object_output = match s3_service.download_file(&file_id).await {
+    let path = build_key_from_path(&authenticated_user, &path.into_inner());
+
+    let object_output = match s3_service.download_file(&path).await {
         Ok(object) => object,
         Err(e) => {
             return HttpResponse::InternalServerError().json(e.to_string());
@@ -143,22 +150,37 @@ struct FolderSummary {
 pub async fn list_files(
     context: web::Data<Arc<AppContext>>,
     path: Option<web::Path<String>>,
+    authenticated_user: AuthenticatedUser
 ) -> impl Responder {
     let postgres = Arc::clone(&context.clone().into_inner().postgres_service);
     let s3_service = Arc::clone(&context.into_inner().s3_service);
 
-    let path = if path.is_none() {
-        String::new()
+    let full_path = if path.is_none() {
+        build_key_from_path(&authenticated_user, "")
     } else {
-        path.unwrap().into_inner()
+        let path_value = path.as_ref().unwrap();
+        build_key_from_path(&authenticated_user, &path_value)
+    };
+
+    let path_str = if path.is_none() {
+        "".to_string()
+    } else {
+        let path_value = path.as_ref().unwrap();
+        let mut p = path_value.to_string();
+
+        if p.ends_with('/') {
+            p.pop();
+        }
+        p
     };
 
     let files = postgres.list_files(
-        &sanitize_filename::sanitize(path.clone())
+        path_str.clone().as_str(),
+        &authenticated_user.id
     ).await;
 
     let folders = s3_service.list_directories(
-        &sanitize_filename::sanitize(path.clone())
+        &full_path
     ).await;
 
     if let Ok(files) = files {
@@ -178,10 +200,11 @@ pub async fn list_files(
 
         if let Ok(folders) = folders {
             for folder in folders {
-                let sanitized_folder = sanitize_filename::sanitize(format!("{}/{}", path, folder));
+                let folder = format!("{}/{}", path_str, folder);
 
                 let files_in_folder = postgres.list_files(
-                    &sanitized_folder
+                    &folder,
+                    &authenticated_user.id
                 );
 
                 if let Ok(files_in_folder) = files_in_folder.await {
@@ -189,7 +212,7 @@ pub async fn list_files(
                     let size: i64 = files_in_folder.iter().map(|f| f.file_size).sum();
 
                     folder_summaries.push(FolderSummary {
-                        name: folder,
+                        name: folder.replace(&format!("{}/", path_str), ""),
                         file_count,
                         size,
                     });

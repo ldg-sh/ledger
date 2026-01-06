@@ -6,6 +6,7 @@ pub struct TCreateFile {
     pub id: String,
     pub file_name: String,
     pub upload_id: String,
+    pub owner_id: String,
     pub file_size: i64,
     pub created_at: DateTimeUtc,
     pub upload_completed: bool,

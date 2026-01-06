@@ -22,4 +22,5 @@ impl<T: Serialize> Responder for ApiResponse<T> {
     }
 }
 
+#[allow(dead_code)]
 pub type ApiResult<T> = Result<ApiResponse<T>, AppError>;

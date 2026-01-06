@@ -10,12 +10,13 @@ use entity::file::{Entity as File, Model as FileModel};
 use sea_orm::{EntityTrait, Set};
 
 impl PostgresService {
-    pub async fn list_files(&self, path: &str) -> AResult<Vec<FileModel>> {
+    pub async fn list_files(&self, path: &str, user_id: &str) -> AResult<Vec<FileModel>> {
         let files = File::find()
-            .filter(entity::file::Column::Path.eq(path.to_string()))
+            .filter(entity::file::Column::Path.eq(path))
+            .filter(entity::file::Column::OwnerId.eq(user_id))
             .all(&self.database_connection)
             .await?;
-
+        
         Ok(files)
     }
 
@@ -24,12 +25,12 @@ impl PostgresService {
             id: Set(file.id.clone()),
             file_name: Set(file.file_name),
             upload_id: Set(file.upload_id),
+            owner_id: Set(file.owner_id),
             file_size: Set(file.file_size),
             created_at: Set(file.created_at),
             upload_completed: Set(file.upload_completed),
             file_type: Set(file.file_type),
             path: Set(file.path),
-
         };
 
         File::insert(file_am)

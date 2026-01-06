@@ -7,10 +7,10 @@ use actix_multipart::form::MultipartForm;
 use actix_multipart::form::text::Text;
 use actix_web::{HttpResponse, Responder, post, web};
 use sea_orm::sqlx::types::{chrono::Utc, uuid};
-use serde::{Deserialize, Serialize};
-use std::fmt::Debug;
 use std::io::Read;
 use std::sync::Arc;
+use crate::middleware::authentication::AuthenticatedUser;
+use crate::util::file::{build_key, build_key_from_path, extract_file_id_from_key};
 
 #[derive(MultipartForm)]
 pub struct ChunkUploadForm {
@@ -22,17 +22,16 @@ pub struct ChunkUploadForm {
     chunk_number: Text<u32>,
     #[multipart(rename = "totalChunks")]
     total_chunks: Text<u32>,
-    #[multipart(rename = "path")]
-    path: Option<Text<String>>,
     #[multipart(rename = "chunk")]
     pub(crate) chunk_data: Vec<actix_multipart::form::tempfile::TempFile>,
 }
 
-#[post("")]
+#[post("/{path:.*}")]
 pub async fn upload(
     context: web::Data<Arc<AppContext>>,
     MultipartForm(form): MultipartForm<ChunkUploadForm>,
-    file_id: web::Path<String>,
+    path: web::Path<String>,
+    authenticated_user: AuthenticatedUser
 ) -> impl Responder {
     let context = context.into_inner();
     let s3_service = Arc::clone(&context.s3_service);
@@ -53,16 +52,22 @@ pub async fn upload(
     }
 
     let upload_id = form.upload_id.as_ref().unwrap().0.clone();
-    let file_id = file_id.into_inner();
-    let key = if let Some(path) = &form.path {
-        format!(
-            "{}/{}",
-            sanitize_filename::sanitize(path.0.clone()),
-            sanitize_filename::sanitize(file_id.clone())
-        )
-    } else {
-        sanitize_filename::sanitize(file_id.clone())
-    };
+    let key = build_key_from_path(
+        &authenticated_user,
+        &path.into_inner(),
+    );
+
+    let file_id = extract_file_id_from_key(
+        &authenticated_user,
+        &key,
+    );
+
+    if file_id.is_none() {
+        log::error!("Failed to extract file ID from key: {}", key);
+        return "Invalid file ID extracted from key".to_string();
+    }
+
+    let file_id = file_id.unwrap();
 
     let result = s3_service
         .upload_part(
@@ -107,23 +112,16 @@ pub struct CreateUploadForm {
     file_name: Text<String>,
     #[multipart(rename = "contentType")]
     content_type: Text<String>,
-    #[multipart(rename = "path")]
-    path: Option<Text<String>>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct UploadCache {
-    pub upload_id: String,
-    pub file_id: String,
-    pub file_name: String,
 }
 
 // TODO: Use APIResult and standard response format.
 
-#[post("")]
+#[post("/{path:.*}")]
 pub async fn create_upload(
     context: web::Data<Arc<AppContext>>,
     MultipartForm(form): MultipartForm<CreateUploadForm>,
+    path: web::Path<String>,
+    authenticated_user: AuthenticatedUser
 ) -> impl Responder {
     let context = context.into_inner();
     let s3_service = Arc::clone(&context.s3_service);
@@ -131,16 +129,12 @@ pub async fn create_upload(
 
     let content_type = form.content_type.0.clone();
     let file_id = uuid::Uuid::new_v4().to_string();
-
-    let key = if let Some(path) = &form.path {
-        format!(
-            "{}/{}",
-            sanitize_filename::sanitize(path.0.clone()),
-            sanitize_filename::sanitize(file_id.clone())
-        )
-    } else {
-        sanitize_filename::sanitize(file_id.clone())
-    };
+    let path = path.into_inner();
+    let key = build_key(
+        &authenticated_user,
+        if path.is_empty() { None } else { Some(&path) },
+        &file_id,
+    );
 
     let upload_id = match s3_service
         .initiate_upload(&file_id, &key, &content_type)
@@ -155,17 +149,14 @@ pub async fn create_upload(
     match postgres_service
         .create_file(TCreateFile {
             id: file_id.clone(),
-            path: if let Some(path) = &form.path {
-                sanitize_filename::sanitize(path.0.clone())
-            } else {
-                String::new()
-            },
             file_name: form.file_name.0.clone(),
             upload_id: upload_id.clone(),
+            owner_id: authenticated_user.id.clone(),
             file_size: 0,
             created_at: Utc::now(),
             upload_completed: false,
             file_type: content_type.clone(),
+            path: path.clone(),
         })
         .await
     {

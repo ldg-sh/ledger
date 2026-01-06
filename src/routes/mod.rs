@@ -6,14 +6,14 @@ mod download;
 mod upload;
 mod test;
 
-static FILE_SCOPE: &str = "/{file_id}";
+static FILE_SCOPE: &str = "/{path:.*}";
 
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/upload")
             .wrap(Authentication)
             .service(web::scope("/create").service(upload::create_upload))
-            .service(web::scope(FILE_SCOPE).service(upload::upload)),
+            .service(upload::upload),
     );
 
     cfg.service(
@@ -25,12 +25,9 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/download")
             .wrap(Authentication)
-            .service(
-                web::scope(FILE_SCOPE)
-                    .service(download::metadata)
-                    .service(download::download)
-                    .service(download::download_full),
-            )
+            .service(download::metadata)
+            .service(download::download)
+            .service(download::download_full),
     );
 
     cfg.service(

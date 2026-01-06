@@ -1,14 +1,19 @@
 use crate::context::AppContext;
-use actix_web::{Error, FromRequest, HttpMessage};
+use actix_web::{Error, FromRequest, HttpMessage, HttpRequest};
 use actix_web_httpauth::extractors::bearer::BearerAuth;
 use futures_util::future::LocalBoxFuture;
 use std::sync::Arc;
 
-use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform, forward_ready};
+use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform, forward_ready, Payload};
 use std::future::{Ready, ready};
 use std::rc::Rc;
 
 pub struct Authentication;
+
+#[derive(Debug, Clone)]
+pub struct AuthenticatedUser {
+    pub id: String,
+}
 
 impl<S, B> Transform<S, ServiceRequest> for Authentication
 where
@@ -84,7 +89,26 @@ where
             if !resp.is_valid {
                 return Err(actix_web::error::ErrorUnauthorized("Invalid token"));
             }
+
+            req.extensions_mut().insert(AuthenticatedUser {
+                id: resp.user_id.clone(),
+            });
+
             srv.call(req).await
         })
+    }
+}
+
+impl FromRequest for AuthenticatedUser {
+    type Error = Error;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
+        match req.extensions().get::<AuthenticatedUser>() {
+            Some(user) => ready(Ok(user.clone())),
+            None => ready(Err(actix_web::error::ErrorInternalServerError(
+                "AuthenticatedUser missing from request extensions",
+            ))),
+        }
     }
 }

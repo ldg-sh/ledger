@@ -14,6 +14,7 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(File::Id).string().not_null().primary_key())
                     .col(ColumnDef::new(File::FileName).string().not_null())
                     .col(ColumnDef::new(File::UploadId).string().not_null())
+                    .col(ColumnDef::new(File::OwnerId).string().not_null())
                     .col(ColumnDef::new(File::FileSize).big_unsigned().not_null())
                     .col(
                         ColumnDef::new(File::CreatedAt)
@@ -49,6 +50,7 @@ enum File {
     Id,
     FileName,
     UploadId,
+    OwnerId,
     FileSize,
     CreatedAt,
     UploadCompleted,

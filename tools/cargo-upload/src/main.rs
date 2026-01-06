@@ -122,7 +122,7 @@ async fn main() -> Result<()> {
     let server = cli.server.trim_end_matches('/');
     let client = reqwest::Client::new();
     let mut file = File::open(&file_path)
-        .with_context(|| format!("failed to open '{}'", file_path.display()))?;
+        .with_context(|| format!("failed to open '{}'", cli.path.display()))?;
 
     println!("[*] Preparing upload");
     println!(
@@ -139,13 +139,12 @@ async fn main() -> Result<()> {
     println!("    content-type: {}", content_type);
     println!("    route: {}/upload/<file_id>", server);
 
-    let create_url = format!("{}/upload/create", server);
+    let create_url = format!("{}/upload/create/{}", server, cli.path.display());
     let start = Instant::now();
 
     let create_form = multipart::Form::new()
         .text("fileName", file_name.clone())
-        .text("contentType", content_type.clone())
-        .text("path", cli.path.to_string_lossy().to_string());
+        .text("contentType", content_type.clone());
 
     let UploadResponse { upload_id, file_id } = client
         .post(&create_url)
@@ -162,7 +161,8 @@ async fn main() -> Result<()> {
     println!("    upload id: {}", upload_id);
     println!("    file id: {}", file_id);
 
-    let chunk_url = format!("{}/upload/{}", server, file_id);
+    let chunk_url = format!("{}/upload/{}/{}", server, cli.path.display(), file_id);
+    println!("    chunk url: {}", chunk_url);
     let mut uploaded_bytes = 0u64;
 
     for chunk_number in 1..=total_chunks {
