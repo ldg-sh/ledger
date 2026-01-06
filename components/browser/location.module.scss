@@ -16,6 +16,10 @@
     color: var(--color-text-secondary);
 }
 
+.pathSegment:hover {
+    text-decoration: underline;
+}
+
 .seperator {
     margin-left: 8px;
     height: 20px;
