@@ -109,6 +109,8 @@ export default function TransferWindow() {
         setTimeout(() => {
           setProgress((prev) => {
             const fileProg = prev[task.fileId];
+            if (!fileProg) return prev;
+            
             if (fileProg.done >= fileProg.total) {
               const newProgress = { ...prev };
               delete newProgress[task.fileId];
