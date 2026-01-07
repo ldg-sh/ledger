@@ -11,7 +11,7 @@ COPY entity ./entity
 COPY migration ./migration
 COPY src ./src
 COPY build.rs ./build.rs
-RUN cargo chef prepare --recipe-path recipe.json
+RUN cargo chef prepare --recipe-path recipe.json --bin ledger
 
 FROM chef AS builder
 RUN apt-get update && apt-get install -y protobuf-compiler git
@@ -29,7 +29,7 @@ COPY migration ./migration
 COPY src ./src
 COPY build.rs ./build.rs
 
-RUN cargo chef cook --release --recipe-path recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json --bin ledger
 
 COPY . .
 RUN cargo build --release --bin ledger
