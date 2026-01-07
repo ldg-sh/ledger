@@ -25,9 +25,9 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/download")
             .wrap(Authentication)
+            .service(download::download_full)
             .service(download::metadata)
             .service(download::download)
-            .service(download::download_full),
     );
 
     cfg.service(

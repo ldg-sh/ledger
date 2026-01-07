@@ -16,10 +16,31 @@ impl PostgresService {
             .filter(entity::file::Column::OwnerId.eq(user_id))
             .all(&self.database_connection)
             .await?;
-        
+
         Ok(files)
     }
 
+    pub async fn list_related_files(&self, path: &str, user_id: &str) -> AResult<Vec<FileModel>> {
+        let files = if path.is_empty() {
+            println!(
+                "Listing all files for user_id: {} since path is empty",
+                user_id
+            );
+            File::find()
+                .filter(entity::file::Column::OwnerId.eq(user_id))
+                .all(&self.database_connection)
+                .await?
+        } else {
+            File::find()
+                .filter(entity::file::Column::Path.starts_with(path))
+                .filter(entity::file::Column::OwnerId.eq(user_id))
+                .all(&self.database_connection)
+                .await?
+        };
+
+        Ok(files)
+    }
+    
     pub async fn create_file(&self, file: TCreateFile) -> Result<String, AppError> {
         let file_am = FileActiveModel {
             id: Set(file.id.clone()),
