@@ -6,6 +6,7 @@ import styles from "./Row.module.scss";
 import { getFileIcon } from "@/lib/util/icon";
 import { usePathname, useRouter } from "next/navigation";
 import { extractPathFromUrl } from "@/lib/util/url";
+import { pretifyFileSize } from "@/lib/util/file";
 
 interface RowProps {
   fileName: string;
@@ -37,21 +38,6 @@ export default function Row({
         minute: "2-digit",
       })
     : "";
-
-  let sizeUnit = "B";
-  let displaySize = fileSize;
-  if (fileSize >= 1024) {
-    displaySize = fileSize / 1024;
-    sizeUnit = "KB";
-  }
-  if (displaySize >= 1024) {
-    displaySize = displaySize / 1024;
-    sizeUnit = "MB";
-  }
-  if (displaySize >= 1024) {
-    displaySize = displaySize / 1024;
-    sizeUnit = "GB";
-  }
 
   return (
     <div className={styles.row}>
@@ -102,7 +88,7 @@ export default function Row({
         {fileName}
       </span>
       <span className={styles.fileSize + " " + styles.rowElement}>
-        {displaySize.toFixed(1)} {sizeUnit}
+        {pretifyFileSize(fileSize)}
       </span>
       <span className={styles.fileType + " " + styles.rowElement}>
         {fileType}

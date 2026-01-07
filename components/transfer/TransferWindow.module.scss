@@ -1,3 +1,9 @@
+@property --progress-percent {
+    syntax: "<percentage>";
+    inherits: false;
+    initial-value: 0%;
+}
+
 .transferWindow {
     position: fixed;
     outline: var(--border-style);
@@ -46,14 +52,15 @@
     text-align: center;
 }
 
-.popupContent {
-    padding: 15px;
-}
-
 .text {
     font-size: 2rem;
     font-weight: 800;
     color: var(--color-text-primary);
+}
+
+.header {
+    border-bottom: var(--border-style);
+    padding: 15px;
 }
 
 .subtext {
@@ -91,4 +98,89 @@
     font-weight: 400;
     color: var(--color-text-secondary);
     margin: 0;
+}
+
+.fileProgress {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: var(--border-style);
+    padding: 15px;
+    gap: 10px;
+    width: calc(100% - 30px);
+}
+
+.progressFill {
+    height: 6px;
+    width: 0%;
+    background-color: var(--color-text-primary);
+    transition: width 0.3s ease;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.progressText {
+    font-size: 0.5rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
+    width: 20px;
+}
+
+.progressBackground {
+    position: relative;
+    width: 100%;
+    height: 6px;
+    background-color: var(--color-framework);
+}
+
+.progressBar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: width 0.3s ease;
+    margin-top: 6px;
+    position: relative;
+}
+
+.progressBars {
+    display: flex;
+    width: 100%;
+    position: relative;
+    align-items: center;
+}
+
+.fileName {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bytesUploaded {
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    margin: 0;
+    width: max-content;
+}
+
+.chunksUploaded {
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    margin: 0;
+    float: right;
+}
+
+.fileInfo {
+    width: 60%;
+}
+
+.progressNumbers {
+    flex-grow: 0;
+    width: max-content;
 }

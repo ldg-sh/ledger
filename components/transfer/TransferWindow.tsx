@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import styles from "./TransferWindow.module.scss";
 import { createUpload, uploadPart } from "@/lib/api/file";
 import { sha256_bytes } from "@/lib/util/hash";
+import { pretifyFileSize } from "@/lib/util/file";
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB
 const MAX_CONCURRENT_UPLOADS = 3;
@@ -21,7 +22,6 @@ export default function TransferWindow() {
     const files = Array.from(e.dataTransfer.files);
 
     for (const file of files) {
-      console.log("File size:", file.size);
       const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
 
       let createRes = await createUpload(file.name, file.type, "");
@@ -40,6 +40,8 @@ export default function TransferWindow() {
           fileId,
           uploadId,
           fileName: file.name,
+          bytesUploaded: 0,
+          totalBytes: file.size,
         },
       }));
 
@@ -80,7 +82,7 @@ export default function TransferWindow() {
     while (taskQueue.current.length > 0) {
       const task = taskQueue.current.shift();
       if (task) {
-        await upload(task);
+        let uploadedAmount = await upload(task);
 
         setProgress((prev) => {
           const fileProg = prev[task.fileId];
@@ -107,6 +109,8 @@ export default function TransferWindow() {
               fileId: task.fileId,
               uploadId: task.uploadId,
               fileName: task.fileName,
+              bytesUploaded: fileProg.bytesUploaded + uploadedAmount,
+              totalBytes: fileProg.totalBytes,
             },
           };
         });
@@ -139,18 +143,16 @@ export default function TransferWindow() {
       uint8Array
     );
 
-    console.log("Upload part response:", uploadRes);
+    return data.size;
   };
 
   const onDragOver = (e: React.DragEvent<HTMLDocument>) => {
-    console.log("Dragging over...");
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(true);
   };
 
   const onDragEnter = (e: React.DragEvent<HTMLDocument>) => {
-    console.log("Drag entered the area");
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(true);
@@ -217,21 +219,35 @@ export default function TransferWindow() {
 
       <div className={styles.transferWindow}>
         <div className={styles.popupContent}>
-          <h1 className={styles.title}>Active Transfers</h1>
-          <p className={styles.subtitle}>
-            {Object.values(progress).length} files uploading...
-          </p>
+          <div className={styles.header}>
+            <h1 className={styles.title}>Active Transfers</h1>
+            <p className={styles.subtitle}>
+              {Object.values(progress).length} files uploading...
+            </p>
+          </div>
           {Object.values(progress).map((fileProg) => (
             <div className={styles.fileProgress} key={fileProg.uploadId}>
-              <div className={styles.fileName}>{fileProg.name}</div>
-              <div className={styles.progressBarContainer}>
-                <div
-                  className={styles.progressBar}
-                  style={{ width: `${fileProg.percent}%` }}
-                ></div>
+              <div className={styles.fileInfo}>
+                <div className={styles.fileName}>{fileProg.fileName}</div>
+                <div className={styles.progressBar}>
+                  <p className={styles.progressText}>{fileProg.percent}%</p>
+                  <div className={styles.progressBars}>
+                    <div className={styles.progressBackground}></div>
+                    <div
+                      className={styles.progressFill}
+                      style={{ width: `${fileProg.percent}%` }}
+                    ></div>
+                  </div>
+                </div>
               </div>
-              <div className={styles.progressText}>
-                {fileProg.percent}% ({fileProg.done} / {fileProg.total} parts)
+              <div className={styles.progressNumbers}>
+                <p className={styles.bytesUploaded}>
+                  {pretifyFileSize(fileProg.bytesUploaded)} /{" "}
+                  {pretifyFileSize(fileProg.totalBytes)}
+                </p>
+                <p className={styles.chunksUploaded}>
+                  {fileProg.done} / {fileProg.total}
+                </p>
               </div>
             </div>
           ))}

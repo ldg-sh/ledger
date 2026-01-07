@@ -15,6 +15,8 @@ interface FileProgress {
   fileId: string;
   uploadId: string;
   fileName: string;
+  bytesUploaded: number;
+  totalBytes: number;
 }
 
 type ProgressMap = Record<string, FileProgress>;
