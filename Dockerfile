@@ -11,6 +11,8 @@ COPY entity ./entity
 COPY migration ./migration
 COPY src ./src
 COPY build.rs ./build.rs
+COPY tools ./tools
+
 RUN cargo chef prepare --recipe-path recipe.json --bin ledger
 
 FROM chef AS builder
@@ -28,6 +30,7 @@ COPY entity ./entity
 COPY migration ./migration
 COPY src ./src
 COPY build.rs ./build.rs
+COPY tools ./tools
 
 RUN cargo chef cook --release --recipe-path recipe.json --bin ledger
 
