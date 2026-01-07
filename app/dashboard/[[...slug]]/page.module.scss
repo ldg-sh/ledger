@@ -1,6 +1,5 @@
 .pageContainer {
   width: 100vw;
-  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -10,6 +9,7 @@
   border-left: var(--border-style);
   border-right: var(--border-style);
   width: var(--content-width);
+  position: relative;
   height: 100vh;
 }
 

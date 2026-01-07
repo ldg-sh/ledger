@@ -30,10 +30,11 @@ export default function FileList() {
       ))}
       {data?.files.map((file) => (
         <Row
-          key={file.fileName}
+          key={file.fileId}
           fileName={file.fileName}
           fileSize={file.fileSize}
           fileType={file.fileType}
+          fileId={file.fileId}
           createdAt={file.createdAt}
         />
       ))}

@@ -3,6 +3,9 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   experimental: {
     serverSourceMaps: false, 
+    serverActions: {
+      bodySizeLimit: '10mb',
+    }
   },
 }
 

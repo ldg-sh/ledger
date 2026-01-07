@@ -1,5 +1,4 @@
-import Image from "next/image";
-import styles from "./header.module.scss";
+import styles from "./Header.module.scss";
 
 export default function Logo() {
   return (

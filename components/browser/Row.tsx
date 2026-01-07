@@ -2,7 +2,7 @@
 
 import { Square } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
-import styles from "./row.module.scss";
+import styles from "./Row.module.scss";
 import { getFileIcon } from "@/lib/util/icon";
 import { usePathname, useRouter } from "next/navigation";
 import { extractPathFromUrl } from "@/lib/util/url";
@@ -11,6 +11,7 @@ interface RowProps {
   fileName: string;
   fileSize: number;
   fileType: string;
+  fileId?: string;
   createdAt?: string;
   folder?: boolean;
 }
@@ -19,6 +20,7 @@ export default function Row({
   fileName,
   fileSize,
   fileType,
+  fileId = "",
   createdAt = "",
   folder = false,
 }: RowProps) {
@@ -26,12 +28,15 @@ export default function Row({
   let pathname = usePathname();
 
   let date = new Date(createdAt);
-  let options: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  };
-  let formattedDate = folder ? "" : date.toLocaleDateString(undefined, options);
+  let formattedDate = createdAt
+    ? date.toLocaleString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "";
 
   let sizeUnit = "B";
   let displaySize = fileSize;
@@ -89,6 +94,8 @@ export default function Row({
                 currentPath === "/" ? "" : currentPath + "/"
               }${fileName}`
             );
+          } else {
+            window.open(`/preview/${currentPath}/${fileId}`, "_blank");
           }
         }}
       >

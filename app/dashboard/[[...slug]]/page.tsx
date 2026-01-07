@@ -3,11 +3,13 @@ import Location from "@/components/browser/Location";
 import TableHeader from "@/components/browser/TableHeader";
 import FileList from "@/components/browser/FileList";
 import styles from "./page.module.scss";
+import TransferWindow from "@/components/transfer/TransferWindow";
 
 export default function DashboardPage() {
   return (
     <div className={styles.pageContainer}>
       <div className={styles.centerpiece}>
+        <TransferWindow />
         <Location />
         <div className={styles.content}>
           <TableHeader />

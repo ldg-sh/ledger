@@ -48,6 +48,17 @@ export async function downloadPart(
   return new Uint8Array(data);
 }
 
+export async function downloadFull(fileId: string) {
+  const res = await authenticatedFetch(`/download/view/${fileId}`);
+  
+  console.log("Response from downloadFull:", res);
+
+  if (!res.ok) throw new Error("Failed to download full file");
+  const data = await res.arrayBuffer();
+
+  return new Uint8Array(data);
+}
+
 export async function createUpload(
   fileName: string,
   contentType: string,
@@ -80,14 +91,16 @@ export async function uploadPart(
   formData.append("chunkNumber", chunkNumber.toString());
   formData.append("totalChunks", totalChunks.toString());
   formData.append(
-    "chunkData",
+    "chunk",
     new Blob([chunkData] as BlobPart[], { type: "application/octet-stream" })
   );
 
   const res = await authenticatedMultipartFetch(
-    `/upload/${path}/${fileId}`,
+    `/upload${path}/${fileId}`,
     formData
   );
+
+  console.log("Upload part response status:", await res.text());
 
   return res.ok;
 }

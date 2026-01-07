@@ -1,4 +1,4 @@
-import styles from "./tableheader.module.scss";
+import styles from "./TableHeader.module.scss";
 
 export default function TableHeader() {
     return (

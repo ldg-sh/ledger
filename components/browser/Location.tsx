@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import styles from "./location.module.scss";
+import styles from "./Location.module.scss";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
