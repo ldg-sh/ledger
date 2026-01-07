@@ -2,7 +2,7 @@ FROM lukemathwalker/cargo-chef:latest-rust-1 AS chef
 WORKDIR /ledger
 
 FROM chef AS planner
-RUN apt-get update && apt-get install -y git protobuf-compiler musl-tools
+RUN apt-get update && apt-get install -y git protobuf-compiler musl-tools libssl-dev
 RUN rustup target add x86_64-unknown-linux-musl
 
 RUN git clone --depth 1 --branch main https://github.com/ldg-sh/ledger-protobuf proto
@@ -17,7 +17,7 @@ COPY tools ./tools
 RUN cargo chef prepare --recipe-path recipe.json --bin ledger
 
 FROM chef AS builder
-RUN apt-get update && apt-get install -y protobuf-compiler git musl-tools
+RUN apt-get update && apt-get install -y protobuf-compiler git musl-tools libssl-dev
 RUN rustup target add x86_64-unknown-linux-musl
 ENV PROTOC=/usr/bin/protoc
 
