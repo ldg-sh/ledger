@@ -23,7 +23,7 @@ export default function FileList() {
         <Row
           key={folder.folderName}
           fileName={folder.folderName}
-          fileSize={0}
+          fileSize={folder.size}
           fileType="folder"
           folder={true}
         />

@@ -1,6 +1,6 @@
 "use client";
 
-import { Icon, Square } from "lucide-react";
+import { Square } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
 import styles from "./row.module.scss";
 import { getFileIcon } from "@/lib/util/icon";
