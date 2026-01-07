@@ -87,6 +87,17 @@ export default function TransferWindow() {
           const done = fileProg.done + 1;
           const percent = Math.floor((done / fileProg.total) * 100);
 
+          if (done >= fileProg.total) {
+            setTimeout(() => {
+              setProgress((prev) => {
+                const newProgress = { ...prev };
+                delete newProgress[task.fileId];
+
+                return newProgress;
+              });
+            }, 2000);
+          }
+
           return {
             ...prev,
             [task.fileId]: {
@@ -105,22 +116,6 @@ export default function TransferWindow() {
             task.totalChunks
           } for file ${task.fileName}`
         );
-
-        setTimeout(() => {
-          setProgress((prev) => {
-            const fileProg = prev[task.fileId];
-            if (!fileProg) return prev;
-            
-            if (fileProg.done >= fileProg.total) {
-              const newProgress = { ...prev };
-              delete newProgress[task.fileId];
-
-              return newProgress;
-            } else {
-              return prev;
-            }
-          });
-        }, 2000);
       } else {
         break;
       }
