@@ -20,7 +20,7 @@ export async function listFiles(directoryPath: string) {
   }));
 
   let folderList: Folder[] = folders.map((folder: any) => ({
-    folderName: folder.folder_name,
+    folderName: folder.name,
     fileCount: folder.file_count,
     size: folder.size,
   }));
