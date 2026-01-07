@@ -1,10 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./TransferWindow.module.scss";
 import { createUpload, uploadPart } from "@/lib/api/file";
 import { sha256_bytes } from "@/lib/util/hash";
-
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB
 const MAX_CONCURRENT_UPLOADS = 3;
@@ -12,7 +11,9 @@ const MAX_CONCURRENT_UPLOADS = 3;
 export default function TransferWindow() {
   const [progress, setProgress] = useState<ProgressMap>({});
   const [uploading, setUploading] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
 
+  const overlayRef = useRef<HTMLDivElement>(null);
   const taskQueue = useRef<UploadTask[]>([]);
 
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
@@ -20,7 +21,7 @@ export default function TransferWindow() {
     const files = Array.from(e.dataTransfer.files);
 
     for (const file of files) {
-        console.log("File size:", file.size);
+      console.log("File size:", file.size);
       const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
 
       let createRes = await createUpload(file.name, file.type, "");
@@ -38,7 +39,9 @@ export default function TransferWindow() {
 
       for (let i = 0; i < totalChunks; i++) {
         const chunk = file.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
-        console.log(`Prepared chunk ${i + 1} of ${totalChunks} for file ${file.name}`);
+        console.log(
+          `Prepared chunk ${i + 1} of ${totalChunks} for file ${file.name}`
+        );
 
         taskQueue.current.push({
           fileId,
@@ -52,7 +55,6 @@ export default function TransferWindow() {
     }
 
     if (!uploading) {
-      console.log("Launching upload workers");
       await launchWorkers();
     } else {
       console.log("Upload already in progress, workers will pick up new tasks");
@@ -60,7 +62,6 @@ export default function TransferWindow() {
   };
 
   const launchWorkers = async () => {
-    console.log("Starting upload workers");
     setUploading(true);
     const workers = Array.from({ length: MAX_CONCURRENT_UPLOADS }, runWorker);
     await Promise.all(workers);
@@ -98,7 +99,7 @@ export default function TransferWindow() {
     let data = task.chunk;
     let arrayBuffer = await data.arrayBuffer();
     let uint8Array = new Uint8Array(arrayBuffer);
-    
+
     let checksum = await sha256_bytes(uint8Array);
 
     let uploadRes = await uploadPart(
@@ -114,30 +115,82 @@ export default function TransferWindow() {
     console.log("Upload part response:", uploadRes);
   };
 
-  return (
-    <div className={styles.transferWindow} onDrop={handleDrop}>
-      <input
-        type="file"
-        multiple
-        onChange={(e) => {
-          const files = e.target.files;
-          console.log("File input change event:", e);
-          if (files) {
-            console.log("Files selected via input:", files);
-            const dt = new DataTransfer();
-            for (let i = 0; i < files.length; i++) {
-              dt.items.add(files[i]);
-            }
-            const event = {
-              preventDefault: () => {},
-              dataTransfer: dt,
-            } as unknown as React.DragEvent<HTMLDivElement>;
+  const onDragOver = (e: React.DragEvent<HTMLDocument>) => {
+    console.log("Dragging over...");
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
 
-            handleDrop(event);
-          }
-        }}
-      />
-      Transfer Window Component
-    </div>
+  const onDragEnter = (e: React.DragEvent<HTMLDocument>) => {
+    console.log("Drag entered the area");
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const onDragLeave = (e: React.DragEvent<HTMLDocument>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  useEffect(() => {
+    const overlay = overlayRef.current;
+    if (!overlay) return;
+
+    document.addEventListener("dragover", (e) => {
+      onDragOver(e as unknown as React.DragEvent<HTMLDocument>);
+    });
+    document.addEventListener("dragenter", (e) => {
+      onDragEnter(e as unknown as React.DragEvent<HTMLDocument>);
+    });
+    document.addEventListener("dragleave", (e) => {
+      onDragLeave(e as unknown as React.DragEvent<HTMLDocument>);
+    });
+    document.addEventListener("blur", () => {
+      setIsDragOver(false);
+    });
+    document.addEventListener("drop", (e) => {      
+      handleDrop(e as unknown as React.DragEvent<HTMLDivElement>);
+      onDragLeave(e as unknown as React.DragEvent<HTMLDocument>);
+    });
+  }, []);
+
+  return (
+    <>
+      <div
+        className={`${styles.dropOverlay} ${isDragOver ? styles.visible : ""}`}
+        ref={overlayRef}
+      >
+        <div className={styles.borderBox}>
+          <div className={styles.content}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="80"
+              height="80"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--color-text-primary)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path className={styles.arrowPath} d="M12 13v8"></path>
+              <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
+              <path className={styles.arrowPath} d="m8 17 4-4 4 4"></path>
+            </svg>
+            <div className={styles.text}>Drag and Drop</div>
+            <div className={styles.subtext}>
+              Files will be uploaded to the current directory
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.transferWindow}>
+        Transfer Window Component
+      </div>
+    </>
   );
 }

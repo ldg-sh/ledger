@@ -9,13 +9,17 @@ export default function DashboardPage() {
   return (
     <div className={styles.pageContainer}>
       <div className={styles.centerpiece}>
-        <TransferWindow />
+        <div className={styles.transferWindowContainer}>
+          <TransferWindow />
+        </div>
         <Location />
         <div className={styles.content}>
           <TableHeader />
-          
+
           <div className={styles.rows}>
-            <Suspense fallback={<div className={styles.loading}>Loading files...</div>}>
+            <Suspense
+              fallback={<div className={styles.loading}>Loading files...</div>}
+            >
               <FileList />
             </Suspense>
           </div>

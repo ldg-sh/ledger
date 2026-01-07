@@ -1,8 +1,72 @@
 .transferWindow {
     position: fixed;
-    bottom: 0;
-    right: 10%;
+
     background-color: red;
     width: 300px;
     height: 200px;
+}
+
+.dropOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    opacity: 0;
+    background-color: rgba(255, 255, 255, 0.5);
+    transition: opacity 0.3s ease, backdrop-filter 0.3s ease;
+}
+
+.visible {
+    pointer-events: all;
+    opacity: 1;
+    backdrop-filter: blur(2px);
+}
+
+.borderBox {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100% - 40px);
+    height: calc(100% - 40px);
+    outline: 10px solid var(--color-text-primary);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.content {
+    text-align: center;
+}
+
+.text {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+}
+
+.subtext {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--color-text-secondary);
+}
+
+.arrowPath {
+    stroke: var(--color-text-primary);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(2px);
+    }
+    100% {
+        transform: translateY(0);
+    }
 }

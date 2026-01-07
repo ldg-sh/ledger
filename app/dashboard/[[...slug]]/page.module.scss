@@ -9,11 +9,19 @@
   border-left: var(--border-style);
   border-right: var(--border-style);
   width: var(--content-width);
+  max-width: 1500px;
   position: relative;
   height: 100vh;
 }
 
 .content {
     overflow: scroll;
+}
 
+.transferWindowContainer {
+  position: absolute;
+  bottom: 20px;
+  right: 0px;
+  width: 300px;
+  height: 200px;
 }

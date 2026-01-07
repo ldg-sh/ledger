@@ -11,6 +11,8 @@ export function getFileIcon(fileType: string): string {
         return "file-video";
     } else if (fileType.startsWith('audio/')) {
         return "file-audio";
+    } else if (fileType === "application/x-apple-diskimage") {
+        return "hard-drive";
     }
     
     return "file";

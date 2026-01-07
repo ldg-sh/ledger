@@ -6,7 +6,7 @@
     color: var(--color-text-secondary);
     font-weight: 350;
     font-size: .9rem;
-    min-width: 1000px;
+    min-width: 800px;
 }
 
 .rowElement {
@@ -21,14 +21,14 @@
 }
 
 .fileSize {
-    width: 15%;
+    width: 10%;
 }
 
 .fileType {
     width: 15%;
 }
 
-.rowElement:hover {
+.fileName:hover {
     cursor: pointer;
     text-decoration: underline;
 }
