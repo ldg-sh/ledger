@@ -5,6 +5,7 @@
     --color-text-primary: #4A4A4A;
     --color-text-bold: #191919;
     --content-width: 80%;
+    --color-background: #f9f9f9;
 }
 
 @media (max-width: 1100px) {
@@ -16,10 +17,11 @@
 html {
     scroll-behavior: smooth;
     margin: 0;
+    overflow: hidden;
 }
 
 body {
     margin: 0;
-    background-color: #f9f9f9;
+    background-color: var(--color-background);
     color: #333;
 }

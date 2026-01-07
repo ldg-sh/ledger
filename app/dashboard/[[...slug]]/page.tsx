@@ -14,7 +14,9 @@ export default function DashboardPage() {
         </div>
         <Location />
         <div className={styles.content}>
-          <TableHeader />
+          <div className={styles.tableHeader}>
+            <TableHeader />
+          </div>
 
           <div className={styles.rows}>
             <Suspense

@@ -32,7 +32,15 @@ export default function TransferWindow() {
 
       setProgress((prev) => ({
         ...prev,
-        [fileId]: { name: file.name, pct: 0, done: 0, total: totalChunks },
+        [fileId]: {
+          name: file.name,
+          percent: 0,
+          done: 0,
+          total: totalChunks,
+          fileId,
+          uploadId,
+          fileName: file.name,
+        },
       }));
 
       console.log("Created upload session:", createRes);
@@ -77,10 +85,18 @@ export default function TransferWindow() {
         setProgress((prev) => {
           const fileProg = prev[task.fileId];
           const done = fileProg.done + 1;
-          const pct = Math.floor((done / fileProg.total) * 100);
+          const percent = Math.floor((done / fileProg.total) * 100);
+
           return {
             ...prev,
-            [task.fileId]: { ...fileProg, done, pct },
+            [task.fileId]: {
+              ...fileProg,
+              done,
+              percent,
+              fileId: task.fileId,
+              uploadId: task.uploadId,
+              fileName: task.fileName,
+            },
           };
         });
 
@@ -89,6 +105,20 @@ export default function TransferWindow() {
             task.totalChunks
           } for file ${task.fileName}`
         );
+
+        setTimeout(() => {
+          setProgress((prev) => {
+            const fileProg = prev[task.fileId];
+            if (fileProg.done >= fileProg.total) {
+              const newProgress = { ...prev };
+              delete newProgress[task.fileId];
+
+              return newProgress;
+            } else {
+              return prev;
+            }
+          });
+        }, 2000);
       } else {
         break;
       }
@@ -151,7 +181,7 @@ export default function TransferWindow() {
     document.addEventListener("blur", () => {
       setIsDragOver(false);
     });
-    document.addEventListener("drop", (e) => {      
+    document.addEventListener("drop", (e) => {
       handleDrop(e as unknown as React.DragEvent<HTMLDivElement>);
       onDragLeave(e as unknown as React.DragEvent<HTMLDocument>);
     });
@@ -189,7 +219,26 @@ export default function TransferWindow() {
       </div>
 
       <div className={styles.transferWindow}>
-        Transfer Window Component
+        <div className={styles.popupContent}>
+          <h1 className={styles.title}>Active Transfers</h1>
+          <p className={styles.subtitle}>
+            {Object.values(progress).length} files uploading...
+          </p>
+          {Object.values(progress).map((fileProg) => (
+            <div className={styles.fileProgress} key={fileProg.uploadId}>
+              <div className={styles.fileName}>{fileProg.name}</div>
+              <div className={styles.progressBarContainer}>
+                <div
+                  className={styles.progressBar}
+                  style={{ width: `${fileProg.percent}%` }}
+                ></div>
+              </div>
+              <div className={styles.progressText}>
+                {fileProg.percent}% ({fileProg.done} / {fileProg.total} parts)
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </>
   );

@@ -9,9 +9,12 @@ interface UploadTask {
 
 interface FileProgress {
   name: string;
-  pct: number;
+  percent: number;
   done: number;
   total: number;
+  fileId: string;
+  uploadId: string;
+  fileName: string;
 }
 
 type ProgressMap = Record<string, FileProgress>;
