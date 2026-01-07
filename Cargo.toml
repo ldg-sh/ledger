@@ -35,6 +35,9 @@ async-trait = "0.1.89"
 chrono = "0.4.42"
 futures = "0.3.31"
 
+[target.'cfg(target_env = "musl")'.dependencies]
+openssl = { version = "*", features = ["vendored"] }
+
 [workspace]
 members = ["tools/cargo-upload", "tools/cargo-download", "migration", "entity"]
 
