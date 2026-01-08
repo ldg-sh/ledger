@@ -9,10 +9,22 @@
     min-width: 800px;
 }
 
+.row:hover {
+    background-color: var(--color-background-hover);
+    cursor: pointer;
+}
+
+.row:active {
+    background-color: var(--color-background-active) !important;
+}
+
+.row.selected {
+    background-color: var(--color-background-selected);
+}
+
 .rowElement {
     padding-left: 20px;
     white-space: nowrap;
-    overflow: hidden;
     text-overflow: ellipsis;
 }
 

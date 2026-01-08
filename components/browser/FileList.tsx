@@ -7,15 +7,72 @@ import { useEffect, useState } from "react";
 import { extractPathFromUrl } from "@/lib/util/url";
 
 export default function FileList() {
-    let pathname = usePathname();
-    const [data, setData] = useState<{ folders: Folder[]; files: File[] } | null>(null);
+  let pathname = usePathname();
+  const [data, setData] = useState<{ folders: Folder[]; files: File[] } | null>(
+    null
+  );
 
-    useEffect(() => {
-        let promise = listFiles(extractPathFromUrl(pathname));
-        promise.then((res) => {
-            setData(res);
+  let [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
+  let [lastDeliberateClick, setLastDeliberateClick] = useState<string | null>(null);
+
+  function handleRowClick(
+    fileId: string,
+    selected: boolean,
+    isShiftKey: boolean,
+    isCommandKey: boolean
+  ) {
+    console.log("All files selected before:", Array.from(selectedFiles));
+    setSelectedFiles((prevSelected) => {
+      const newSelected = new Set(prevSelected);
+
+      if (isCommandKey) {
+        if (selected) {
+          newSelected.delete(fileId);
+        } else {
+          newSelected.add(fileId);
+        }
+      } else if (isShiftKey && lastDeliberateClick) {
+        newSelected.clear();
+        
+        let allFileIds: string[] = [];
+
+        data?.folders.forEach((folder) => {
+          allFileIds.push(folder.folderName);
         });
-    }, [pathname]);
+        data?.files.forEach((file) => {
+          allFileIds.push(file.fileId);
+        });
+
+        let startIndex = allFileIds.indexOf(lastDeliberateClick);
+        let endIndex = allFileIds.indexOf(fileId);
+
+        if (startIndex > -1 && endIndex > -1) {
+          let [from, to] =
+            startIndex < endIndex
+              ? [startIndex, endIndex]
+              : [endIndex, startIndex];
+
+          for (let i = from; i <= to; i++) {
+            newSelected.add(allFileIds[i]);
+          }
+        }
+      } else {
+        newSelected.clear();
+
+        newSelected.add(fileId);
+        setLastDeliberateClick(fileId);
+      }
+
+      return newSelected;
+    });
+  }
+
+  useEffect(() => {
+    let promise = listFiles(extractPathFromUrl(pathname));
+    promise.then((res) => {
+      setData(res);
+    });
+  }, [pathname]);
 
   return (
     <>
@@ -26,6 +83,8 @@ export default function FileList() {
           fileSize={folder.size}
           fileType="folder"
           folder={true}
+          clickCallback={handleRowClick}
+          selected={selectedFiles.has(folder.folderName)}
         />
       ))}
       {data?.files.map((file) => (
@@ -36,6 +95,8 @@ export default function FileList() {
           fileType={file.fileType}
           fileId={file.fileId}
           createdAt={file.createdAt}
+          clickCallback={handleRowClick}
+          selected={selectedFiles.has(file.fileId)}
         />
       ))}
     </>

@@ -15,6 +15,13 @@ interface RowProps {
   fileId?: string;
   createdAt?: string;
   folder?: boolean;
+  clickCallback?: (
+    fileId: string,
+    selected: boolean,
+    isShiftKey: boolean,
+    isCommandKey: boolean
+  ) => void;
+  selected?: boolean;
 }
 
 export default function Row({
@@ -24,6 +31,8 @@ export default function Row({
   fileId = "",
   createdAt = "",
   folder = false,
+  selected = false,
+  clickCallback,
 }: RowProps) {
   let router = useRouter();
   let pathname = usePathname();
@@ -40,7 +49,38 @@ export default function Row({
     : "";
 
   return (
-    <div className={styles.row}>
+    <div
+      className={styles.row + (selected ? " " + styles.selected : "")}
+      onMouseDown={(event) => {
+        let isShiftKey = event.shiftKey;
+
+        if (isShiftKey) {
+          document.getSelection()?.removeAllRanges();
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      }}
+      onClick={(event) => {
+        if (clickCallback) {
+          let isShiftKey = event.shiftKey;
+          let isCommandKey = event.metaKey || event.ctrlKey;
+
+          if (isShiftKey && document) {
+            document.getSelection()?.removeAllRanges();
+            event.preventDefault();
+            event.stopPropagation();
+          }
+
+          let newFileId = fileId;
+
+          if (folder) {
+            newFileId = fileName;
+          }
+
+          clickCallback(newFileId, selected, isShiftKey, isCommandKey);
+        }
+      }}
+    >
       <Square
         size={16}
         strokeWidth={1.6}
