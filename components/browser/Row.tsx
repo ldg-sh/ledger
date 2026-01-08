@@ -79,12 +79,6 @@ export default function Row({
         }
       }}
     >
-      <Square
-        size={16}
-        strokeWidth={1.6}
-        color={"var(--color-text-secondary)"}
-        className={styles.rowElement}
-      />
       {folder ? (
         <DynamicIcon
           name={"folder"}
