@@ -11,21 +11,22 @@
 
 .row:hover {
     background-color: var(--color-background-hover);
-    cursor: pointer;
 }
 
 .row:active {
-    background-color: var(--color-background-active) !important;
+    background-color: var(--color-background-active);
 }
 
 .row.selected {
-    background-color: var(--color-background-selected);
+    background-color: var(--color-background-selected) !important;
 }
 
 .rowElement {
     padding-left: 20px;
     white-space: nowrap;
     text-overflow: ellipsis;
+    cursor: default;
+    user-select: none;
 }
 
 .fileName {
@@ -38,9 +39,4 @@
 
 .fileType {
     width: 15%;
-}
-
-.fileName:hover {
-    cursor: pointer;
-    text-decoration: underline;
 }

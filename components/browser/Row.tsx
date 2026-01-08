@@ -51,25 +51,10 @@ export default function Row({
   return (
     <div
       className={styles.row + (selected ? " " + styles.selected : "")}
-      onMouseDown={(event) => {
-        let isShiftKey = event.shiftKey;
-
-        if (isShiftKey) {
-          document.getSelection()?.removeAllRanges();
-          event.preventDefault();
-          event.stopPropagation();
-        }
-      }}
       onClick={(event) => {
         if (clickCallback) {
           let isShiftKey = event.shiftKey;
           let isCommandKey = event.metaKey || event.ctrlKey;
-
-          if (isShiftKey && document) {
-            document.getSelection()?.removeAllRanges();
-            event.preventDefault();
-            event.stopPropagation();
-          }
 
           let newFileId = fileId;
 
@@ -78,6 +63,19 @@ export default function Row({
           }
 
           clickCallback(newFileId, selected, isShiftKey, isCommandKey);
+        }
+      }}
+      onDoubleClick={() => {
+        let currentPath = extractPathFromUrl(pathname);
+
+        if (folder) {
+          router.push(
+            `/dashboard/${
+              currentPath === "/" ? "" : currentPath + "/"
+            }${fileName}`
+          );
+        } else {
+          window.open(`/preview/${currentPath}/${fileId}`, "_blank");
         }
       }}
     >
@@ -111,19 +109,6 @@ export default function Row({
           styles.rowElement +
           (folder ? " " + styles.folderLink : "")
         }
-        onClick={() => {
-          let currentPath = extractPathFromUrl(pathname);
-
-          if (folder) {
-            router.push(
-              `/dashboard/${
-                currentPath === "/" ? "" : currentPath + "/"
-              }${fileName}`
-            );
-          } else {
-            window.open(`/preview/${currentPath}/${fileId}`, "_blank");
-          }
-        }}
       >
         {fileName}
       </span>
