@@ -107,7 +107,7 @@ export default function FileList() {
   }, [pathname]);
 
   return (
-    <>
+    <div>
       {data?.folders.map((folder) => (
         <Row
           key={folder.folderName}
@@ -131,6 +131,7 @@ export default function FileList() {
           selected={selectedFiles.has(file.fileId)}
         />
       ))}
-    </>
+      <div style={{ height: "100px", width: "100%" }}></div>
+    </div>
   );
 }

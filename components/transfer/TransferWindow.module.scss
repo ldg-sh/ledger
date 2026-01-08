@@ -9,7 +9,7 @@
     outline: var(--border-style);
     background-color: var(--color-background);
     bottom: 0px;
-    right: calc(10%);
+    right: calc((100% - var(--content-width)) / 2);
     width: 450px;
     z-index: 1;
     overflow: hidden;
