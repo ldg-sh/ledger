@@ -225,32 +225,35 @@ export default function TransferWindow() {
               {Object.values(progress).length} files uploading...
             </p>
           </div>
-          {Object.values(progress).map((fileProg) => (
-            <div className={styles.fileProgress} key={fileProg.uploadId}>
-              <div className={styles.fileInfo}>
-                <div className={styles.fileName}>{fileProg.fileName}</div>
-                <div className={styles.progressBar}>
-                  <p className={styles.progressText}>{fileProg.percent}%</p>
-                  <div className={styles.progressBars}>
-                    <div className={styles.progressBackground}></div>
-                    <div
-                      className={styles.progressFill}
-                      style={{ width: `${fileProg.percent}%` }}
-                    ></div>
+          
+          <div className={styles.rows}>
+            {Object.values(progress).map((fileProg) => (
+              <div className={styles.fileProgress} key={fileProg.uploadId}>
+                <div className={styles.fileInfo}>
+                  <div className={styles.fileName}>{fileProg.fileName}</div>
+                  <div className={styles.progressBar}>
+                    <p className={styles.progressText}>{fileProg.percent}%</p>
+                    <div className={styles.progressBars}>
+                      <div className={styles.progressBackground}></div>
+                      <div
+                        className={styles.progressFill}
+                        style={{ width: `${fileProg.percent}%` }}
+                      ></div>
+                    </div>
                   </div>
                 </div>
+                <div className={styles.progressNumbers}>
+                  <p className={styles.bytesUploaded}>
+                    {pretifyFileSize(fileProg.bytesUploaded)} /{" "}
+                    {pretifyFileSize(fileProg.totalBytes)}
+                  </p>
+                  <p className={styles.chunksUploaded}>
+                    {fileProg.done} / {fileProg.total}
+                  </p>
+                </div>
               </div>
-              <div className={styles.progressNumbers}>
-                <p className={styles.bytesUploaded}>
-                  {pretifyFileSize(fileProg.bytesUploaded)} /{" "}
-                  {pretifyFileSize(fileProg.totalBytes)}
-                </p>
-                <p className={styles.chunksUploaded}>
-                  {fileProg.done} / {fileProg.total}
-                </p>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </>

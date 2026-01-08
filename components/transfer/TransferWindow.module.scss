@@ -11,6 +11,7 @@
     width: 400px;
     height: 300px;
     z-index: 1;
+    overflow: hidden;
 }
 
 .dropOverlay {
@@ -183,4 +184,9 @@
 .progressNumbers {
     flex-grow: 0;
     width: max-content;
+}
+
+.rows {
+    overflow: scroll;
+    height: 230px;
 }
