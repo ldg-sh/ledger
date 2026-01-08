@@ -5,6 +5,7 @@ import styles from "./TransferWindow.module.scss";
 import { createUpload, uploadPart } from "@/lib/api/file";
 import { sha256_bytes } from "@/lib/util/hash";
 import { pretifyFileSize } from "@/lib/util/file";
+import GlyphButton from "../general/GlyphButton";
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB
 const MAX_CONCURRENT_UPLOADS = 3;
@@ -13,7 +14,7 @@ export default function TransferWindow() {
   const [progress, setProgress] = useState<ProgressMap>({});
   const [uploading, setUploading] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [targetSize, setTargetSize] = useState(0);
   const [totalUploadedSize, setTotalUploadedSize] = useState(0);
 
@@ -58,7 +59,7 @@ export default function TransferWindow() {
             fileId,
             status: undefined,
           };
-          
+
           return newProgress;
         });
 
@@ -116,6 +117,9 @@ export default function TransferWindow() {
                 if (Object.keys(newProgress).length === 0) {
                   setTargetSize(0);
                   setTotalUploadedSize(0);
+                  if (isExpanded) {
+                    setIsExpanded(false);
+                  }
                 }
 
                 return newProgress;
@@ -250,37 +254,61 @@ export default function TransferWindow() {
       <div className={styles.transferWindow}>
         <div className={styles.popupContent}>
           <div className={styles.header}>
-            <h1 className={styles.title}>Active Transfers</h1>
-            <div className={styles.subtitle}>
-              {Object.values(progress).length} upload
-              {Object.values(progress).length !== 1 ? "s" : ""} in progress{" "}
-              {Object.values(progress).length > 0
-                ? `- ${pretifyFileSize(totalUploadedSize)} / ${pretifyFileSize(
-                    targetSize
-                  )}`
-                : ""}
-              <div className={styles.progressBar}>
-                <div className={styles.progressBars}>
-                  <div className={styles.progressBackground}></div>
-                  <div
-                    className={styles.progressFill}
-                    style={{
-                      width: `${
-                        targetSize > 0
-                          ? Math.floor((totalUploadedSize / targetSize) * 100)
-                          : 0
-                      }%`,
-                    }}
-                  ></div>
+            <div className={styles.left}>
+              <h1 className={styles.title}>Active Transfers</h1>
+              <div className={styles.subtitle}>
+                {Object.values(progress).length} upload
+                {Object.values(progress).length !== 1 ? "s" : ""} in progress{" "}
+                {Object.values(progress).length > 0
+                  ? `- ${pretifyFileSize(
+                      totalUploadedSize
+                    )} / ${pretifyFileSize(targetSize)}`
+                  : ""}
+                <div className={styles.progressBar}>
+                  <div className={styles.progressBars}>
+                    <div className={styles.progressBackground}></div>
+                    <div
+                      className={styles.progressFill}
+                      style={{
+                        width: `${
+                          targetSize > 0
+                            ? Math.floor((totalUploadedSize / targetSize) * 100)
+                            : 0
+                        }%`,
+                      }}
+                    ></div>
+                  </div>
                 </div>
               </div>
+            </div>
+            <div
+              className={
+                styles.expandButton + " " + (isExpanded ? styles.expanded : "")
+              }
+              onClick={() => {
+                setIsExpanded(!isExpanded);
+              }}
+            >
+              <GlyphButton glyph="chevron-down" rotate></GlyphButton>
             </div>
           </div>
 
           <div
             className={styles.rows}
-            style={{ height: isExpanded ? "100%" : "0" }}
+            style={{
+              maxHeight: isExpanded ? "300px" : "0px",
+              minHeight: isExpanded ? "300px" : "0px",
+              display: Object.keys(progress).length === 0 ? "flex" : "block",
+            }}
           >
+            {Object.keys(progress).length === 0 && (
+              <div
+                className={styles.subtitle}
+                style={{ opacity: isExpanded ? 1 : 0 }}
+              >
+                <p>No active transfers.</p>
+              </div>
+            )}
             {Object.values(progress).map((fileProg) => (
               <div className={styles.fileProgress} key={fileProg.uploadId}>
                 <div className={styles.fileInfo}>
