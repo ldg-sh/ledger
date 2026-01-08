@@ -13,7 +13,39 @@ export default function FileList() {
   );
 
   let [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
-  let [lastDeliberateClick, setLastDeliberateClick] = useState<string | null>(null);
+  let [lastDeliberateClick, setLastDeliberateClick] = useState<string | null>(
+    null
+  );
+
+  const handleSelectAll = () => {
+    if (data) {
+      const allFileIds: string[] = [];
+      data.folders.forEach((folder) => {
+        allFileIds.push(folder.folderName);
+      });
+      data.files.forEach((file) => {
+        allFileIds.push(file.fileId);
+      });
+      setSelectedFiles(new Set(allFileIds));
+    }
+  };
+
+  const escape = () => {
+    setSelectedFiles(new Set());
+    setLastDeliberateClick(null);
+  };
+
+  useEffect(() => {
+    document.addEventListener("keydown", (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === "a") {
+        event.preventDefault();
+        handleSelectAll();
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        escape();
+      }
+    });
+  });
 
   function handleRowClick(
     fileId: string,
@@ -33,7 +65,7 @@ export default function FileList() {
         }
       } else if (isShiftKey && lastDeliberateClick) {
         newSelected.clear();
-        
+
         let allFileIds: string[] = [];
 
         data?.folders.forEach((folder) => {
