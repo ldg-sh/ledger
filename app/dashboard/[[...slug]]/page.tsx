@@ -4,6 +4,7 @@ import TableHeader from "@/components/browser/TableHeader";
 import FileList from "@/components/browser/FileList";
 import styles from "./page.module.scss";
 import TransferWindow from "@/components/transfer/TransferWindow";
+import Footer from "@/components/browser/Footer";
 
 export default function DashboardPage() {
   return (
@@ -22,6 +23,9 @@ export default function DashboardPage() {
             >
               <FileList />
             </Suspense>
+          </div>
+          <div className={styles.footer}>
+            <Footer />
           </div>
         </div>
       </div>

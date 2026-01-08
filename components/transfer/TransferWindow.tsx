@@ -6,6 +6,7 @@ import { createUpload, uploadPart } from "@/lib/api/file";
 import { sha256_bytes } from "@/lib/util/hash";
 import { pretifyFileSize } from "@/lib/util/file";
 import GlyphButton from "../general/GlyphButton";
+import { defaultColor, errorColor, successColor } from "@/lib/util/color";
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB
 const MAX_CONCURRENT_UPLOADS = 3;
@@ -21,9 +22,29 @@ export default function TransferWindow() {
   const overlayRef = useRef<HTMLDivElement>(null);
   const taskQueue = useRef<UploadTask[]>([]);
 
-  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const files = Array.from(e.dataTransfer.files);
+  useEffect(() => {
+    const handleExternalUpload = async (e: Event) => {
+      const files = (e as CustomEvent).detail as FileList;
+
+      if (files.length > 0) {
+        await handleDrop(files);
+      }
+    };
+
+    window.addEventListener("trigger-upload", handleExternalUpload);
+
+    return () =>
+      window.removeEventListener("trigger-upload", handleExternalUpload);
+  }, []);
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement> | FileList) => {
+    let files: FileList = {} as FileList;
+    if (Array.isArray(e)) {
+      files = e as unknown as FileList;
+    } else {
+      let event = e as React.DragEvent<HTMLDivElement>;
+      files = Array.from(event.dataTransfer.files) as unknown as FileList;
+    }
 
     for (const file of files) {
       setTargetSize((prev) => prev + file.size);
@@ -45,6 +66,7 @@ export default function TransferWindow() {
           bytesUploaded: 0,
           totalBytes: file.size,
           status: "Waiting...",
+          stateKey,
         },
       }));
 
@@ -139,6 +161,7 @@ export default function TransferWindow() {
               bytesUploaded: fileProg.bytesUploaded + uploadedAmount,
               totalBytes: fileProg.totalBytes,
               status: undefined,
+              stateKey: task.stateKey,
             },
           };
         });
@@ -257,13 +280,20 @@ export default function TransferWindow() {
             <div className={styles.left}>
               <h1 className={styles.title}>Active Transfers</h1>
               <div className={styles.subtitle}>
-                {Object.values(progress).length} upload
-                {Object.values(progress).length !== 1 ? "s" : ""} in progress{" "}
-                {Object.values(progress).length > 0
-                  ? `- ${pretifyFileSize(
-                      totalUploadedSize
-                    )} / ${pretifyFileSize(targetSize)}`
-                  : ""}
+                {Object.values(progress).length === 0 ? (
+                  "No active transfers"
+                ) : (
+                  <div>
+                    {Object.values(progress).length} upload
+                    {Object.values(progress).length !== 1 ? "s" : ""} in
+                    progress{" "}
+                    {Object.values(progress).length > 0
+                      ? `- ${pretifyFileSize(
+                          totalUploadedSize
+                        )} / ${pretifyFileSize(targetSize)}`
+                      : ""}
+                  </div>
+                )}
                 <div className={styles.progressBar}>
                   <div className={styles.progressBars}>
                     <div className={styles.progressBackground}></div>
@@ -289,7 +319,12 @@ export default function TransferWindow() {
                 setIsExpanded(!isExpanded);
               }}
             >
-              <GlyphButton glyph="chevron-down" rotate></GlyphButton>
+              <GlyphButton
+                glyph="chevron-down"
+                size={24}
+                color={defaultColor}
+                rotate
+              ></GlyphButton>
             </div>
           </div>
 
@@ -306,7 +341,7 @@ export default function TransferWindow() {
                 className={styles.subtitle}
                 style={{ opacity: isExpanded ? 1 : 0 }}
               >
-                <p>No active transfers.</p>
+                <p>No active transfers</p>
               </div>
             )}
             {Object.values(progress).map((fileProg) => (
@@ -320,12 +355,13 @@ export default function TransferWindow() {
                       <div
                         className={styles.progressFill}
                         style={{
-                          width: `
-                            ${
-                              fileProg.percent
-                                ? Math.floor(fileProg.percent)
-                                : 0
-                            }%`,
+                          width: `${
+                            progress[fileProg.stateKey].bytesUploaded > 0
+                              ? (progress[fileProg.stateKey].bytesUploaded /
+                                  progress[fileProg.stateKey].totalBytes) *
+                                100
+                              : 0
+                          }%`,
                         }}
                       ></div>
                     </div>

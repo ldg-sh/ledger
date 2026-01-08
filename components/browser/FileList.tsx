@@ -30,6 +30,46 @@ export default function FileList() {
     }
   };
 
+  const handleSelectUpper = () => {
+    if (data && lastDeliberateClick) {
+      const allFileIds: string[] = [];
+      data.folders.forEach((folder) => {
+        allFileIds.push(folder.folderName);
+      });
+      data.files.forEach((file) => {
+        allFileIds.push(file.fileId);
+      });
+
+      const lastIndex = allFileIds.indexOf(lastDeliberateClick);
+      if (lastIndex > 0) {
+        const newSelected = new Set(selectedFiles);
+        newSelected.add(allFileIds[lastIndex - 1]);
+        setSelectedFiles(newSelected);
+        setLastDeliberateClick(allFileIds[lastIndex - 1]);
+      }
+    }
+  };
+
+  const handleSelectLower = () => {
+    if (data && lastDeliberateClick) {
+      const allFileIds: string[] = [];
+      data.folders.forEach((folder) => {
+        allFileIds.push(folder.folderName);
+      });
+      data.files.forEach((file) => {
+        allFileIds.push(file.fileId);
+      });
+
+      const lastIndex = allFileIds.indexOf(lastDeliberateClick);
+      if (lastIndex < allFileIds.length - 1) {
+        const newSelected = new Set(selectedFiles);
+        newSelected.add(allFileIds[lastIndex + 1]);
+        setSelectedFiles(newSelected);
+        setLastDeliberateClick(allFileIds[lastIndex + 1]);
+      }
+    }
+  };
+
   const escape = () => {
     setSelectedFiles(new Set());
     setLastDeliberateClick(null);
@@ -43,6 +83,12 @@ export default function FileList() {
       } else if (event.key === "Escape") {
         event.preventDefault();
         escape();
+      } else if (event.key === "ArrowUp" && event.shiftKey) {
+        event.preventDefault();
+        handleSelectUpper();
+      } else if (event.key === "ArrowDown" && event.shiftKey) {
+        event.preventDefault();
+        handleSelectLower();
       }
     });
   });

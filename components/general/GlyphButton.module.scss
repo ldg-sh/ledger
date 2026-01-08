@@ -9,23 +9,23 @@
     width: 40px;
     height: 40px;
     border-radius: 8px;
+    background-color: var(--color-background);
+    transition: background-color 0.2s ease;
 }
 
 .glyphButton:hover {
-    background-color: var(--color-background-active);
+    background-color: var(--color-button-background-active);
 }
 
 .glyphButton:active {
-    background-color: var(--color-background-selected);
+    background-color: var(--color-button-background-selected);
 }
 
 .glyphIcon {
-    width: 24px;
-    height: 24px;
     transition: transform 0.2s ease;
 
     & path {
-        stroke: var(--color-text-primary);
+        stroke: var(--color-foreground);
     }
 }
 

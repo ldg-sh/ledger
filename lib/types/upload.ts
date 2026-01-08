@@ -19,6 +19,7 @@ interface FileProgress {
   bytesUploaded: number;
   totalBytes: number;
   status?: "Waiting..." | "Completed" | "Error";
+  stateKey: string;
 }
 
 type ProgressMap = Record<string, FileProgress>;

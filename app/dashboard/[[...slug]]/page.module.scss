@@ -25,3 +25,12 @@
   flex-direction: column;
   height: calc(100% - 80px);
 }
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  border-top: var(--border-style);
+  background-color: var(--color-background);
+  height: 78.5px;
+}

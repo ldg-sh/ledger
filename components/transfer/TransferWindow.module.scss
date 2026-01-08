@@ -100,6 +100,7 @@
     font-weight: 700;
     color: var(--color-text-primary);
     margin: 0;
+    margin-top: -4px;
 }
 
 .subtitle {
@@ -122,7 +123,6 @@
 
 .progressFill {
     height: 6px;
-    width: 0%;
     background-color: var(--color-text-primary);
     transition: width 0.3s ease;
     position: absolute;
@@ -199,7 +199,10 @@
     overflow: scroll;
     max-height: 230px;
     min-height: 230px;
-    transition: height 0.3s ease, max-height 0.3s ease, min-height 0.3s ease;
+    transition:
+        height 0.3s ease,
+        max-height 0.3s ease,
+        min-height 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
