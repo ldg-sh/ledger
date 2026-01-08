@@ -9,9 +9,7 @@ export default function DashboardPage() {
   return (
     <div className={styles.pageContainer}>
       <div className={styles.centerpiece}>
-        <div className={styles.transferWindowContainer}>
-          <TransferWindow />
-        </div>
+        <TransferWindow />
         <Location />
         <div className={styles.content}>
           <div className={styles.tableHeader}>

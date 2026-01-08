@@ -7,7 +7,7 @@ export function getFileIcon(fileType: string): string {
         return "file-text";
     } else if (fileType === 'application/zip') {
         return "file-archive";
-    } else if (fileType === 'video/mp4') {
+    } else if (fileType.startsWith('video/')) {
         return "file-video";
     } else if (fileType.startsWith('audio/')) {
         return "file-audio";

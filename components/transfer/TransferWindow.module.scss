@@ -8,8 +8,9 @@
     position: fixed;
     outline: var(--border-style);
     background-color: var(--color-background);
-    width: 400px;
-    height: 300px;
+    bottom: 0px;
+    right: calc(10%);
+    width: 450px;
     z-index: 1;
     overflow: hidden;
 }
@@ -188,5 +189,5 @@
 
 .rows {
     overflow: scroll;
-    height: 230px;
+    max-height: 230px;
 }

@@ -13,6 +13,9 @@ export default function TransferWindow() {
   const [progress, setProgress] = useState<ProgressMap>({});
   const [uploading, setUploading] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
+  const [targetSize, setTargetSize] = useState(0);
+  const [totalUploadedSize, setTotalUploadedSize] = useState(0);
 
   const overlayRef = useRef<HTMLDivElement>(null);
   const taskQueue = useRef<UploadTask[]>([]);
@@ -22,36 +25,43 @@ export default function TransferWindow() {
     const files = Array.from(e.dataTransfer.files);
 
     for (const file of files) {
+      setTargetSize((prev) => prev + file.size);
+
       const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+      const fakeFileId = Math.random().toString(36).substring(2, 15);
+      const fakeUploadId = "upload-" + fakeFileId;
+
+      setTimeout(() => {
+        setProgress((prev) => ({
+          ...prev,
+          [fakeFileId]: {
+            name: file.name,
+            percent: 0,
+            done: 0,
+            total: totalChunks,
+            fileId: fakeFileId,
+            uploadId: fakeUploadId,
+            fileName: file.name,
+            bytesUploaded: 0,
+            totalBytes: file.size,
+          },
+        }));
+      }, 100);
 
       let createRes = await createUpload(file.name, file.type, "");
 
       const fileId = createRes.file_id;
-      console.log("Create upload response:", createRes);
       const uploadId = createRes.upload_id;
 
-      setProgress((prev) => ({
-        ...prev,
-        [fileId]: {
-          name: file.name,
-          percent: 0,
-          done: 0,
-          total: totalChunks,
-          fileId,
-          uploadId,
-          fileName: file.name,
-          bytesUploaded: 0,
-          totalBytes: file.size,
-        },
-      }));
-
-      console.log("Created upload session:", createRes);
+      setProgress((prev) => {
+        const newProgress = { ...prev };
+        newProgress[fileId] = { ...newProgress[fakeFileId], fileId };
+        delete newProgress[fakeFileId];
+        return newProgress;
+      });
 
       for (let i = 0; i < totalChunks; i++) {
         const chunk = file.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
-        console.log(
-          `Prepared chunk ${i + 1} of ${totalChunks} for file ${file.name}`
-        );
 
         taskQueue.current.push({
           fileId,
@@ -89,11 +99,18 @@ export default function TransferWindow() {
           const done = fileProg.done + 1;
           const percent = Math.floor((done / fileProg.total) * 100);
 
+          setTotalUploadedSize((prevSize) => prevSize + task.chunk.size / 2);
+
           if (done >= fileProg.total) {
             setTimeout(() => {
               setProgress((prev) => {
                 const newProgress = { ...prev };
                 delete newProgress[task.fileId];
+
+                if (Object.keys(newProgress).length === 0) {
+                  setTargetSize(0);
+                  setTotalUploadedSize(0);
+                }
 
                 return newProgress;
               });
@@ -114,6 +131,12 @@ export default function TransferWindow() {
             },
           };
         });
+
+        console.log(
+          `Total uploaded size: ${
+            totalUploadedSize + uploadedAmount
+          } / ${targetSize}`
+        );
 
         console.log(
           `Uploaded chunk ${task.chunkIndex + 1} of ${
@@ -221,12 +244,36 @@ export default function TransferWindow() {
         <div className={styles.popupContent}>
           <div className={styles.header}>
             <h1 className={styles.title}>Active Transfers</h1>
-            <p className={styles.subtitle}>
-              {Object.values(progress).length} files uploading...
-            </p>
+            <div className={styles.subtitle}>
+              {Object.values(progress).length} upload
+              {Object.values(progress).length !== 1 ? "s" : ""} in progress{" "}
+              {Object.values(progress).length > 0
+                ? `- ${pretifyFileSize(totalUploadedSize)} / ${pretifyFileSize(
+                    targetSize
+                  )}`
+                : ""}
+              <div className={styles.progressBar}>
+                <div className={styles.progressBars}>
+                  <div className={styles.progressBackground}></div>
+                  <div
+                    className={styles.progressFill}
+                    style={{
+                      width: `${
+                        targetSize > 0
+                          ? Math.floor((totalUploadedSize / targetSize) * 100)
+                          : 0
+                      }%`,
+                    }}
+                  ></div>
+                </div>
+              </div>
+            </div>
           </div>
-          
-          <div className={styles.rows}>
+
+          <div
+            className={styles.rows}
+            style={{ height: isExpanded ? "100%" : "0" }}
+          >
             {Object.values(progress).map((fileProg) => (
               <div className={styles.fileProgress} key={fileProg.uploadId}>
                 <div className={styles.fileInfo}>
@@ -237,7 +284,10 @@ export default function TransferWindow() {
                       <div className={styles.progressBackground}></div>
                       <div
                         className={styles.progressFill}
-                        style={{ width: `${fileProg.percent}%` }}
+                        style={{
+                          width: `
+                            ${fileProg.percent ? Math.floor(fileProg.percent) : 0}%`,
+                        }}
                       ></div>
                     </div>
                   </div>
