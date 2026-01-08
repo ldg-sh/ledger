@@ -39,7 +39,7 @@ export default function TransferWindow() {
 
   const handleDrop = async (e: React.DragEvent<HTMLDivElement> | FileList) => {
     let files: FileList = {} as FileList;
-    if (Array.isArray(e)) {
+    if (e instanceof FileList) {
       files = e as unknown as FileList;
     } else {
       let event = e as React.DragEvent<HTMLDivElement>;
