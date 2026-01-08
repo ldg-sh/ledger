@@ -43,7 +43,7 @@
     transform: translate(-50%, -50%);
     width: calc(100% - 40px);
     height: calc(100% - 40px);
-    outline: 10px solid var(--color-text-primary);
+    outline: 10px solid var(--color-text-bold);
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -98,7 +98,7 @@
 .title {
     font-size: 1.2rem;
     font-weight: 700;
-    color: var(--color-text-primary);
+    color: var(--color-text-bold);
     margin: 0;
     margin-top: -4px;
 }

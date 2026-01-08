@@ -257,7 +257,7 @@ export default function TransferWindow() {
               height="80"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="var(--color-text-primary)"
+              stroke="var(--color-text-bold)"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
