@@ -28,56 +28,62 @@ export default function TransferWindow() {
       setTargetSize((prev) => prev + file.size);
 
       const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-      const fakeFileId = Math.random().toString(36).substring(2, 15);
-      const fakeUploadId = "upload-" + fakeFileId;
+      const stateKey = Math.random().toString(36).substring(2, 15);
+      const fakeUploadId = "upload-" + stateKey;
 
-      setTimeout(() => {
-        setProgress((prev) => ({
-          ...prev,
-          [fakeFileId]: {
-            name: file.name,
-            percent: 0,
-            done: 0,
-            total: totalChunks,
-            fileId: fakeFileId,
-            uploadId: fakeUploadId,
-            fileName: file.name,
-            bytesUploaded: 0,
-            totalBytes: file.size,
-          },
-        }));
-      }, 100);
-
-      let createRes = await createUpload(file.name, file.type, "");
-
-      const fileId = createRes.file_id;
-      const uploadId = createRes.upload_id;
-
-      setProgress((prev) => {
-        const newProgress = { ...prev };
-        newProgress[fileId] = { ...newProgress[fakeFileId], fileId };
-        delete newProgress[fakeFileId];
-        return newProgress;
-      });
-
-      for (let i = 0; i < totalChunks; i++) {
-        const chunk = file.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
-
-        taskQueue.current.push({
-          fileId,
-          uploadId,
+      setProgress((prev) => ({
+        ...prev,
+        [stateKey]: {
+          name: file.name,
+          percent: 0,
+          done: 0,
+          total: totalChunks,
+          fileId: stateKey,
+          uploadId: fakeUploadId,
           fileName: file.name,
-          chunkIndex: i,
-          totalChunks,
-          chunk,
-        });
-      }
-    }
+          bytesUploaded: 0,
+          totalBytes: file.size,
+          status: "Waiting...",
+        },
+      }));
 
-    if (!uploading) {
-      await launchWorkers();
-    } else {
-      console.log("Upload already in progress, workers will pick up new tasks");
+      createUpload(file.name, file.type, "").then(async (createRes) => {
+        const fileId = createRes.file_id;
+        const uploadId = createRes.upload_id;
+
+        setProgress((prev) => {
+          const newProgress = { ...prev };
+          newProgress[stateKey] = {
+            ...newProgress[stateKey],
+            fileId,
+            status: undefined,
+          };
+          
+          return newProgress;
+        });
+
+        for (let i = 0; i < totalChunks; i++) {
+          const chunk = file.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+
+          taskQueue.current.push({
+            fileId,
+            uploadId,
+            fileName: file.name,
+            chunkIndex: i,
+            totalChunks,
+            chunk,
+            stateKey,
+          });
+        }
+
+        if (!uploading) {
+          await launchWorkers();
+        } else {
+          console.log(
+            "Upload already in progress, workers will pick up new tasks"
+          );
+        }
+      });
     }
   };
 
@@ -95,7 +101,7 @@ export default function TransferWindow() {
         let uploadedAmount = await upload(task);
 
         setProgress((prev) => {
-          const fileProg = prev[task.fileId];
+          const fileProg = prev[task.stateKey];
           const done = fileProg.done + 1;
           const percent = Math.floor((done / fileProg.total) * 100);
 
@@ -105,7 +111,7 @@ export default function TransferWindow() {
             setTimeout(() => {
               setProgress((prev) => {
                 const newProgress = { ...prev };
-                delete newProgress[task.fileId];
+                delete newProgress[task.stateKey];
 
                 if (Object.keys(newProgress).length === 0) {
                   setTargetSize(0);
@@ -119,7 +125,7 @@ export default function TransferWindow() {
 
           return {
             ...prev,
-            [task.fileId]: {
+            [task.stateKey]: {
               ...fileProg,
               done,
               percent,
@@ -128,6 +134,7 @@ export default function TransferWindow() {
               fileName: task.fileName,
               bytesUploaded: fileProg.bytesUploaded + uploadedAmount,
               totalBytes: fileProg.totalBytes,
+              status: undefined,
             },
           };
         });
@@ -286,20 +293,30 @@ export default function TransferWindow() {
                         className={styles.progressFill}
                         style={{
                           width: `
-                            ${fileProg.percent ? Math.floor(fileProg.percent) : 0}%`,
+                            ${
+                              fileProg.percent
+                                ? Math.floor(fileProg.percent)
+                                : 0
+                            }%`,
                         }}
                       ></div>
                     </div>
                   </div>
                 </div>
                 <div className={styles.progressNumbers}>
-                  <p className={styles.bytesUploaded}>
-                    {pretifyFileSize(fileProg.bytesUploaded)} /{" "}
-                    {pretifyFileSize(fileProg.totalBytes)}
-                  </p>
-                  <p className={styles.chunksUploaded}>
-                    {fileProg.done} / {fileProg.total}
-                  </p>
+                  {fileProg.status ? (
+                    <p className={styles.bytesUploaded}>{fileProg.status}</p>
+                  ) : (
+                    <>
+                      <p className={styles.bytesUploaded}>
+                        {pretifyFileSize(fileProg.bytesUploaded)} /{" "}
+                        {pretifyFileSize(fileProg.totalBytes)}
+                      </p>
+                      <p className={styles.chunksUploaded}>
+                        {fileProg.done} / {fileProg.total}
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             ))}

@@ -5,6 +5,7 @@ interface UploadTask {
   chunkIndex: number;
   totalChunks: number;
   chunk: Blob;
+  stateKey: string;
 }
 
 interface FileProgress {
@@ -17,6 +18,7 @@ interface FileProgress {
   fileName: string;
   bytesUploaded: number;
   totalBytes: number;
+  status?: "Waiting..." | "Completed" | "Error";
 }
 
 type ProgressMap = Record<string, FileProgress>;
