@@ -33,7 +33,7 @@ export default function CreateFolder({ onCreate, onClose }: CreateFolderProps) {
               onChange={(newValue) => {
                 setValue(newValue);
               }}
-              placeholder="/path/to/new/folder"
+              placeholder="path/to/new/folder"
             />
             <div className={styles.actions}>
               <button
