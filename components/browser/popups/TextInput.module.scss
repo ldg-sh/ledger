@@ -16,6 +16,10 @@
     border-color: var(--color-framework-selected);
 }
 
+.textInput::placeholder {
+    color: var(--color-framework-selected);
+}
+
 .title {
     font-size: 0.7rem;
     font-weight: 600;
