@@ -1,0 +1,39 @@
+.popupContainer {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);   
+    justify-content: center;
+    z-index: 5;
+}
+
+.popupChildren {
+    background-color: var(--color-background);
+    border: var(--border-style);
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    min-width: 400px;
+    max-width: 90%;
+    position: relative;
+    z-index: 4;
+}
+
+.close {
+    cursor: pointer;
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 4;
+}
+
+.popupBackdrop {
+    position: fixed;
+    height: 100vh;
+    width: 100vw;
+    top: 0;
+    left: 0;
+    z-index: 4;
+    background-color: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(2px);
+}

@@ -1,0 +1,36 @@
+.pageContainer {
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.centerpiece {
+  border-left: var(--border-style);
+  border-right: var(--border-style);
+  width: var(--content-width);
+  max-width: 1500px;
+  position: relative;
+  height: calc(100vh - 90px);
+  overflow-y: hidden;
+}
+
+.content {
+  height: 100%;
+}
+
+.rows {
+  overflow: scroll;
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 80px);
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  border-top: var(--border-style);
+  background-color: var(--color-background);
+  height: 78.5px;
+}

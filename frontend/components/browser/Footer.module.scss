@@ -1,0 +1,51 @@
+.uploadFile {
+    background-color: var(--color-text-bold);
+
+    color: var(--color-background);
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.uploadFile:hover {
+    background-color: var(--color-background-bold-hover);
+}
+
+.uploadFile:active {
+    background-color: var(--color-button-background-active);
+}
+
+.buttonComponent {
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 100%;
+    width: 130px;
+    padding: 16px 20px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+}
+
+.footerContainer {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 15px;
+}
+
+.createFolder {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.nonPrimaryElement:hover {
+    background-color: var(--color-background-active);
+}
+
+.nonPrimaryElement:active {
+    background-color: var(--color-background-selected);
+}

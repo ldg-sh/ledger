@@ -1,0 +1,32 @@
+.spacer {
+    width: 36px;
+    display: inline-block;
+}
+
+.tableHeader {
+    min-width: 800px;
+    white-space: nowrap;
+    border-bottom: var(--border-style);
+}
+
+.headerElement {
+    padding-left: 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    line-height: 1;
+    display: inline-block;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.fileName {
+    width: 30%;
+}
+
+.fileSize {
+    width: 10%;
+}
+
+.fileType {
+    width: 15%;
+}

@@ -1,0 +1,44 @@
+.row {
+    border-bottom: var(--border-style);
+    display: flex;
+    align-items: center;
+    padding: 15px 0;
+    color: var(--color-text-secondary);
+    font-weight: 350;
+    font-size: 0.9rem;
+    min-width: 800px;
+    transition: background-color 0.1s ease;
+}
+
+.row:hover {
+    background-color: var(--color-background-hover);
+}
+
+.row:active {
+    background-color: var(--color-background-active);
+}
+
+.row.selected {
+    background-color: var(--color-background-selected) !important;
+}
+
+.rowElement {
+    padding-left: 20px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    cursor: default;
+    user-select: none;
+    overflow: hidden;
+}
+
+.fileName {
+    width: 30%;
+}
+
+.fileSize {
+    width: 10%;
+}
+
+.fileType {
+    width: 15%;
+}

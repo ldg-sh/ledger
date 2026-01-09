@@ -1,0 +1,46 @@
+.header {
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--header-background);
+    border-bottom: var(--border-style);
+}
+
+.headerCenter {
+    width: var(--content-width);
+    max-width: 1500px;
+    border-left: var(--border-style);
+    border-right: var(--border-style);
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    margin: 0 30px;
+}
+
+.logoText {
+    margin-left: 25px;
+    display: flex;
+    flex-direction: column;
+
+}
+
+.logoTitle {
+    font-size: 1.6rem;
+    color: var(--color-text-bold);
+    font-weight: 1000;
+    margin: 0;
+    font-family: var(--font-overused-grotesk);
+}
+
+.logoSubtitle {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+    margin-top: -4px;
+}

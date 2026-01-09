@@ -1,0 +1,214 @@
+@property --progress-percent {
+    syntax: "<percentage>";
+    inherits: false;
+    initial-value: 0%;
+}
+
+.transferWindow {
+    position: fixed;
+    outline: var(--border-style);
+    background-color: var(--color-background);
+    bottom: 0px;
+    right: calc((100% - var(--content-width)) / 2);
+    width: 450px;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.dropOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    opacity: 0;
+    background-color: rgba(255, 255, 255, 0.5);
+    transition:
+        opacity 0.3s ease,
+        backdrop-filter 0.3s ease;
+    z-index: 2;
+}
+
+.visible {
+    pointer-events: all;
+    opacity: 1;
+    backdrop-filter: blur(2px);
+}
+
+.borderBox {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100% - 40px);
+    height: calc(100% - 40px);
+    outline: 10px solid var(--color-text-bold);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.content {
+    text-align: center;
+}
+
+.text {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+}
+
+.header {
+    border-bottom: var(--border-style);
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.left {
+    width: 70%;
+}
+
+.subtext {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--color-text-secondary);
+}
+
+.arrowPath {
+    stroke: var(--color-text-primary);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(2px);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+.title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-text-bold);
+    margin: 0;
+    margin-top: -4px;
+}
+
+.subtitle {
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    margin: 0;
+    transition: opacity 0.3s ease;
+}
+
+.fileProgress {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: var(--border-style);
+    padding: 15px;
+    gap: 10px;
+    width: calc(100% - 30px);
+}
+
+.progressFill {
+    height: 6px;
+    background-color: var(--color-text-primary);
+    transition: width 0.3s ease;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.progressText {
+    font-size: 0.5rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
+    width: 20px;
+}
+
+.progressBackground {
+    position: relative;
+    width: 100%;
+    height: 6px;
+    background-color: var(--color-framework);
+}
+
+.progressBar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: width 0.3s ease;
+    margin-top: 6px;
+    position: relative;
+}
+
+.progressBars {
+    display: flex;
+    width: 100%;
+    position: relative;
+    align-items: center;
+}
+
+.fileName {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bytesUploaded {
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    margin: 0;
+    width: max-content;
+}
+
+.chunksUploaded {
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    margin: 0;
+    float: right;
+}
+
+.fileInfo {
+    width: 60%;
+}
+
+.progressNumbers {
+    flex-grow: 0;
+    width: max-content;
+}
+
+.rows {
+    overflow: scroll;
+    max-height: 230px;
+    min-height: 230px;
+    transition:
+        height 0.3s ease,
+        max-height 0.3s ease,
+        min-height 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}
