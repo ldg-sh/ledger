@@ -1,0 +1,9 @@
+/target
+/.idea
+.env
+/data
+
+CRUSH.md
+.crush/
+
+.DS_Store
