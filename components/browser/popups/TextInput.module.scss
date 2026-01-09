@@ -1,0 +1,25 @@
+.textInput {
+    border: var(--border-style);
+    background-color: var(--color-background);
+    border-radius: 6px;
+    padding: 5px 10px;
+    width: calc(100% - 22px);
+    height: 20px;
+    color: var(--color-text-primary);
+    font-size: 0.7rem;
+    font-family: var(--font-family);
+    transition: border-color 0.2s ease, outline-width 0.2s ease;
+    outline: none;
+}
+
+.textInput:focus {
+    border-color: var(--color-framework-selected);
+}
+
+.title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--color-text-bold);
+    margin: 0;
+    margin-bottom: 4px;
+}

@@ -2,15 +2,19 @@
 
 import { FolderPlus, Upload } from "lucide-react";
 import styles from "./Footer.module.scss";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { cn } from "@/lib/util/class";
+import CreateFolder from "./popups/CreateFolder";
+import { AnimatePresence } from "motion/react";
 
 export default function Footer() {
   let inputRef = useRef<HTMLInputElement>(null);
+  const [isFolderPopupOpen, setIsFolderPopupOpen] = useState(false);
 
   return (
     <div className={styles.footerContainer}>
       <div
-        className={styles.uploadFile + " " + styles.buttonComponent}
+        className={cn(styles.uploadFile, styles.buttonComponent)}
         onClick={() => {
           inputRef.current?.click();
         }}
@@ -24,26 +28,37 @@ export default function Footer() {
         multiple
         ref={inputRef}
         onChange={(e) => {
-          console.log(e.target.files);
           const event = new CustomEvent("trigger-upload", {
             detail: e.target.files,
           });
-          
+
           window.dispatchEvent(event);
         }}
       />
       <div
-        className={
-          styles.createFolder +
-          " " +
-          styles.buttonComponent +
-          " " +
+        className={cn(
+          styles.createFolder,
+          styles.buttonComponent,
           styles.nonPrimaryElement
-        }
+        )}
+        onClick={() => {
+          setIsFolderPopupOpen(true);
+        }}
       >
         <FolderPlus size={16} strokeWidth={2.5} />
         <span>Create Folder</span>
       </div>
+
+      <AnimatePresence>
+        {isFolderPopupOpen && (
+          <CreateFolder
+            onClose={() => {
+              setIsFolderPopupOpen(false);
+            }}
+            onCreate={() => {}}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

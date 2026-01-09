@@ -99,7 +99,6 @@ export default function FileList() {
     isShiftKey: boolean,
     isCommandKey: boolean
   ) {
-    console.log("All files selected before:", Array.from(selectedFiles));
     setSelectedFiles((prevSelected) => {
       const newSelected = new Set(prevSelected);
 

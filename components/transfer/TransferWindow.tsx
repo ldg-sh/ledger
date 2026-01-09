@@ -7,6 +7,7 @@ import { sha256_bytes } from "@/lib/util/hash";
 import { pretifyFileSize } from "@/lib/util/file";
 import GlyphButton from "../general/GlyphButton";
 import { defaultColor, errorColor, successColor } from "@/lib/util/color";
+import { cn } from "@/lib/util/class";
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB
 const MAX_CONCURRENT_UPLOADS = 3;
@@ -312,9 +313,10 @@ export default function TransferWindow() {
               </div>
             </div>
             <div
-              className={
-                styles.expandButton + " " + (isExpanded ? styles.expanded : "")
-              }
+              className={cn(
+                styles.expandButton,
+                isExpanded && styles.expanded
+              )}
               onClick={() => {
                 setIsExpanded(!isExpanded);
               }}

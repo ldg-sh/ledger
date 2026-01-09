@@ -7,6 +7,7 @@ import { getFileIcon } from "@/lib/util/icon";
 import { usePathname, useRouter } from "next/navigation";
 import { extractPathFromUrl } from "@/lib/util/url";
 import { pretifyFileSize } from "@/lib/util/file";
+import { cn } from "@/lib/util/class";
 
 interface RowProps {
   fileName: string;
@@ -50,7 +51,7 @@ export default function Row({
 
   return (
     <div
-      className={styles.row + (selected ? " " + styles.selected : "")}
+      className={cn(styles.row, selected && styles.selected)}
       onClick={(event) => {
         if (clickCallback) {
           let isShiftKey = event.shiftKey;
@@ -97,22 +98,21 @@ export default function Row({
         />
       )}
       <span
-        className={
-          styles.fileName +
-          " " +
-          styles.rowElement +
-          (folder ? " " + styles.folderLink : "")
-        }
+        className={cn(
+          styles.fileName,
+          styles.rowElement,
+          folder && styles.folderLink
+        )}
       >
         {fileName}
       </span>
-      <span className={styles.fileSize + " " + styles.rowElement}>
+      <span className={cn(styles.fileSize, styles.rowElement)}>
         {pretifyFileSize(fileSize)}
       </span>
-      <span className={styles.fileType + " " + styles.rowElement}>
+      <span className={cn(styles.fileType, styles.rowElement)}>
         {fileType}
       </span>
-      <span className={styles.createdAt + " " + styles.rowElement}>
+      <span className={cn(styles.createdAt, styles.rowElement)}>
         {formattedDate}
       </span>
     </div>

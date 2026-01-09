@@ -1,0 +1,78 @@
+.title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-text-bold);
+    margin: 0;
+    margin-top: -4px;
+}
+
+.description {
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.actionButton {
+    border: none;
+    height: 36px;
+    padding: 0 40px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-family: var(--font-family);
+    font-size: 0.8rem;
+}
+
+.submitButton {
+    background-color: var(--color-text-bold);
+    color: var(--color-background);
+    opacity: 1;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.submitButton:hover:not(:disabled) {
+    background-color: var(--color-background-bold-hover);
+}
+
+.submitButton:active:not(:disabled) {
+    background-color: var(--color-button-background-active);
+}
+
+.submitButton:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.cancelButton {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+}
+
+.cancelButton:hover {
+    background-color: var(--color-background-active);
+}
+
+.cancelButton:active {
+    background-color: var(--color-background-selected);
+}
+
+.createFolderContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: relative;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+}
