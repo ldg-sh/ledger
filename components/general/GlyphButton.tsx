@@ -17,7 +17,7 @@ export default function GlyphButton({
   rotate,
   size,
   color,
-  fullSize,
+  fullSize = 40,
 }: GlyphButtonProps) {
   const [rotated, setRotated] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
