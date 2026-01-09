@@ -20,7 +20,6 @@ export default function TextInput({
         type="text"
         name="text"
         className={styles.textInput}
-        // value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         disabled={disabled}
