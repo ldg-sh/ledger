@@ -1,7 +1,7 @@
 export function extractPathFromUrl(endPath: string): string {
   try {
     if (endPath.startsWith("/dashboard")) {
-      return endPath.slice("/dashboard".length) || "/";
+      return endPath.slice("/dashboard".length) || ""
     }
 
     return endPath;

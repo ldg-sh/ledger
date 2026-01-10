@@ -117,70 +117,54 @@ export default function TransferWindow() {
     await Promise.all(workers);
     setUploading(false);
   };
-
   const runWorker = async () => {
     while (taskQueue.current.length > 0) {
       const task = taskQueue.current.shift();
-      if (task) {
-        let uploadedAmount = await upload(task);
+      if (!task) break;
 
-        setProgress((prev) => {
-          const fileProg = prev[task.stateKey];
-          const done = fileProg.done + 1;
-          const percent = Math.floor((done / fileProg.total) * 100);
+      const uploadedAmount = await upload(task);
 
-          setTotalUploadedSize((prevSize) => prevSize + task.chunk.size / 2);
+      setProgress((prev) => {
+        const fileProg = prev[task.stateKey];
+        if (!fileProg) return prev;
+        const done = fileProg.done + 1;
+        return {
+          ...prev,
+          [task.stateKey]: {
+            ...fileProg,
+            done,
+            percent: Math.floor((done / fileProg.total) * 100),
+            bytesUploaded: fileProg.bytesUploaded + uploadedAmount,
+          },
+        };
+      });
 
-          if (done >= fileProg.total) {
-            setTimeout(() => {
-              setProgress((prev) => {
-                const newProgress = { ...prev };
-                delete newProgress[task.stateKey];
+      setTotalUploadedSize((prevSize) => prevSize + uploadedAmount);
 
-                if (Object.keys(newProgress).length === 0) {
-                  setTargetSize(0);
-                  setTotalUploadedSize(0);
-                  if (isExpanded) {
-                    setIsExpanded(false);
-                  }
-                }
+      setProgress((currentProgress) => {
+        const fileProg = currentProgress[task.stateKey];
 
-                return newProgress;
-              });
-            }, 2000);
-          }
+        if (fileProg && fileProg.done >= fileProg.total) {
+          setTimeout(() => {
+            setProgress((prevCleanup) => {
+              const nextProgress = { ...prevCleanup };
+              delete nextProgress[task.stateKey];
 
-          return {
-            ...prev,
-            [task.stateKey]: {
-              ...fileProg,
-              done,
-              percent,
-              fileId: task.fileId,
-              uploadId: task.uploadId,
-              fileName: task.fileName,
-              bytesUploaded: fileProg.bytesUploaded + uploadedAmount,
-              totalBytes: fileProg.totalBytes,
-              status: undefined,
-              stateKey: task.stateKey,
-            },
-          };
-        });
+              if (Object.keys(nextProgress).length === 0) {
+                setTargetSize(0);
+                setTotalUploadedSize(0);
+                setIsExpanded(false);
+              }
+              return nextProgress;
+            });
+          }, 2000);
 
-        console.log(
-          `Total uploaded size: ${
-            totalUploadedSize + uploadedAmount
-          } / ${targetSize}`
-        );
-
-        console.log(
-          `Uploaded chunk ${task.chunkIndex + 1} of ${
-            task.totalChunks
-          } for file ${task.fileName}`
-        );
-      } else {
-        break;
-      }
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent("refresh-folder-list"));
+          });
+        }
+        return currentProgress;
+      });
     }
   };
 
@@ -313,10 +297,7 @@ export default function TransferWindow() {
               </div>
             </div>
             <div
-              className={cn(
-                styles.expandButton,
-                isExpanded && styles.expanded
-              )}
+              className={cn(styles.expandButton, isExpanded && styles.expanded)}
               onClick={() => {
                 setIsExpanded(!isExpanded);
               }}

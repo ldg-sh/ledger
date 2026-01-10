@@ -145,11 +145,27 @@ export default function FileList() {
   }
 
   useEffect(() => {
-    let promise = listFiles(extractPathFromUrl(pathname));
-    promise.then((res) => {
-      setData(res);
+    loadData();
+
+    window.addEventListener("refresh-folder-list", async (event) => {
+      if (event instanceof CustomEvent && event.detail) {
+        const onClose = event.detail;
+        await loadData();
+
+        if (onClose) {
+          onClose();
+        }
+      } else {
+        loadData();
+      }
     });
   }, [pathname]);
+
+  async function loadData() {
+    let res = await listFiles(extractPathFromUrl(pathname));
+
+    setData(res);
+  }
 
   return (
     <div>

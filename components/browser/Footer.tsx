@@ -6,9 +6,11 @@ import { useRef, useState } from "react";
 import { cn } from "@/lib/util/class";
 import CreateFolder from "./popups/CreateFolder";
 import { AnimatePresence } from "motion/react";
+import { usePathname } from "next/navigation";
 
 export default function Footer() {
   let inputRef = useRef<HTMLInputElement>(null);
+
   const [isFolderPopupOpen, setIsFolderPopupOpen] = useState(false);
 
   return (
@@ -33,6 +35,8 @@ export default function Footer() {
           });
 
           window.dispatchEvent(event);
+
+          (e.target as HTMLInputElement).value = "";
         }}
       />
       <div
@@ -55,7 +59,6 @@ export default function Footer() {
             onClose={() => {
               setIsFolderPopupOpen(false);
             }}
-            onCreate={() => {}}
           />
         )}
       </AnimatePresence>
