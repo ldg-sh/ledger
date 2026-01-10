@@ -1,6 +1,6 @@
 "use client";
 
-import { listFiles } from "@/lib/api/file";
+import { copyFile, copyMultipleFiles, listFiles } from "@/lib/api/file";
 import Row from "./Row";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -16,6 +16,96 @@ export default function FileList() {
   let [lastDeliberateClick, setLastDeliberateClick] = useState<string | null>(
     null
   );
+
+  const copyFileIdsToClipboard = () => {
+    if (selectedFiles.size > 0) {
+      const fileIdsArray = Array.from(selectedFiles);
+
+      const fileIdsString = fileIdsArray.join("\n");
+      navigator.clipboard.writeText(fileIdsString).then(
+        () => {},
+        (err) => {
+          console.error("Could not copy text: ", err);
+        }
+      );
+    } else {
+      if (lastDeliberateClick) {
+        navigator.clipboard.writeText(lastDeliberateClick).then(
+          () => {},
+          (err) => {
+            console.error("Could not copy text: ", err);
+          }
+        );
+      }
+    }
+  };
+
+  const copyFileIdToClipboard = (fileId: string) => {
+    if (selectedFiles.size > 0) {
+      const fileIdsArray = Array.from(selectedFiles);
+
+      const fileIdsString = fileIdsArray.join("\n");
+      navigator.clipboard.writeText(fileIdsString).then(
+        () => {},
+        (err) => {
+          console.error("Could not copy text: ", err);
+        }
+      );
+      
+      return;
+    }
+
+    navigator.clipboard.writeText(fileId).then(
+      () => {},
+      (err) => {
+        console.error("Could not copy text: ", err);
+      }
+    );
+  };
+
+  const pasteFileIdsFromClipboard = (ids: string[]) => {
+    copyMultipleFiles(ids, extractPathFromUrl(pathname)).then(
+      (file_ids: string[]) => {
+        const event = new CustomEvent("refresh-file-list", {
+          detail: () => {
+            const newSelected = new Set(selectedFiles);
+            newSelected.clear();
+
+            file_ids.forEach((id) => {
+              if (id) {
+                newSelected.add(id);
+              }
+            });
+
+            setSelectedFiles(newSelected);
+          },
+        });
+
+        window.dispatchEvent(event);
+      }
+    );
+  };
+
+  const pasteFileIdFromClipboard = (id: string) => {
+    copyFile(id.trim(), extractPathFromUrl(pathname)).then((fileId: string) => {
+      const event = new CustomEvent("refresh-file-list", {
+        detail: () => {
+          setSelectedFiles((prevSelected) => {
+            const newSelected = new Set(prevSelected);
+            newSelected.clear();
+
+            if (fileId) {
+              newSelected.add(fileId);
+            }
+
+            return newSelected;
+          });
+        },
+      });
+
+      window.dispatchEvent(event);
+    });
+  };
 
   const handleSelectAll = () => {
     if (data) {
@@ -75,8 +165,22 @@ export default function FileList() {
     setLastDeliberateClick(null);
   };
 
+  async function getClipboardData() {
+    try {
+      const text = await navigator.clipboard.readText();
+
+      return text
+        .split("\n")
+        .map((id) => id.trim())
+        .filter((id) => id.length > 0);
+    } catch (err) {
+      console.error("Failed to read clipboard contents: ", err);
+      return [];
+    }
+  }
+
   useEffect(() => {
-    document.addEventListener("keydown", (event) => {
+    const handleKeyDown = async (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key === "a") {
         event.preventDefault();
         handleSelectAll();
@@ -89,9 +193,65 @@ export default function FileList() {
       } else if (event.key === "ArrowDown" && event.shiftKey) {
         event.preventDefault();
         handleSelectLower();
+      } else if ((event.metaKey || event.ctrlKey) && event.key === "c") {
+        event.preventDefault();
+        copyFileIdsToClipboard();
+      } else if ((event.metaKey || event.ctrlKey) && event.key === "v") {
+        event.preventDefault();
+
+        let clipboard = await getClipboardData();
+
+        if (clipboard.length === 1) {
+          pasteFileIdFromClipboard(clipboard[0]);
+        } else if (clipboard.length > 1) {
+          pasteFileIdsFromClipboard(clipboard);
+        }
       }
-    });
-  });
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [data, selectedFiles, lastDeliberateClick, pathname]);
+
+  useEffect(() => {
+    const handler = async (event: Event) => {
+      if (event instanceof CustomEvent && event.detail) {
+        const fileId = event.detail.fileId;
+        copyFileIdToClipboard(fileId);
+      } else {
+        copyFileIdsToClipboard();
+      }
+      await refreshFileList(event);
+    };
+
+    document.addEventListener("copy-file-ids", handler);
+
+    return () => {
+      document.removeEventListener("copy-file-ids", handler);
+    };
+  }, [selectedFiles]);
+
+  useEffect(() => {
+    const handler = async (event: Event) => {
+      let clipboard = await getClipboardData();
+
+      if (clipboard.length === 1) {
+        pasteFileIdFromClipboard(clipboard[0]);
+      } else if (clipboard.length > 1) {
+        pasteFileIdsFromClipboard(clipboard);
+      }
+
+      await refreshFileList(event);
+    };
+
+    document.addEventListener("paste-file-ids", handler);
+
+    return () => {
+      document.removeEventListener("paste-file-ids", handler);
+    };
+  }, [selectedFiles, pathname]);
 
   function handleRowClick(
     fileId: string,
@@ -148,18 +308,28 @@ export default function FileList() {
     loadData();
 
     window.addEventListener("refresh-file-list", async (event) => {
-      if (event instanceof CustomEvent && event.detail) {
-        const onClose = event.detail;
-        await loadData();
-
-        if (onClose) {
-          onClose();
-        }
-      } else {
-        loadData();
-      }
+      await refreshFileList(event);
     });
+
+    return () => {
+      window.removeEventListener("refresh-file-list", async (event) => {
+        await refreshFileList(event);
+      });
+    };
   }, [pathname]);
+
+  async function refreshFileList(event: Event) {
+    if (event instanceof CustomEvent && event.detail) {
+      const onClose = event.detail;
+      await loadData();
+
+      if (onClose && typeof onClose === "function") {
+        onClose();
+      }
+    } else {
+      loadData();
+    }
+  }
 
   async function loadData() {
     let res = await listFiles(extractPathFromUrl(pathname));

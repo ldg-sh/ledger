@@ -132,3 +132,50 @@ export async function deleteFile(
 
   return res.ok;
 }
+
+export async function copyFile(
+  fileId: string,
+  destinationPath: string,
+) {
+  let jsonData = {
+    destinationPath: destinationPath,
+  };
+
+  const res = await authenticatedFetch(
+    `/file/${fileId}/copy`,
+    {
+      method: "POST",
+      body: JSON.stringify(jsonData),
+    }
+  );
+
+  let json = await res.json();
+
+  if (!res.ok) throw new Error("Failed to copy file");
+
+  return json.file_id;
+}
+
+export async function copyMultipleFiles(
+  fileIds: string[],
+  destinationPath: string,
+) {  
+  let jsonData = {
+    fileIds: fileIds,
+    destinationPath: destinationPath,
+  };
+
+  const res = await authenticatedFetch(
+    `/bulk/copy`,
+    {
+      method: "POST",
+      body: JSON.stringify(jsonData),
+    }
+  );
+
+  let json = await res.json();
+
+  if (!res.ok) throw new Error("Failed to copy files");
+
+  return json.file_ids;
+}

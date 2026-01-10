@@ -36,28 +36,34 @@ pub async fn copy(
     ).await;
 
     if files.is_err() {
-        return HttpResponse::InternalServerError().finish();
+        return HttpResponse::InternalServerError().body(
+            "Failed to retrieve files for copying."
+        )
     }
 
     let files = files.unwrap();
+    let mut new_file_ids = Vec::new();
 
     for file in files {
         let original_path = file.path.clone();
         let new_file_id = uuid::Uuid::new_v4().to_string();
+        new_file_ids.push(new_file_id.clone());
 
         let copy = postgres_service.copy_file(
-            file,
+            file.clone(),
             &new_file_id,
             &copy_request.destination_path,
         ).await;
 
         if copy.is_err() {
-            return HttpResponse::InternalServerError().finish();
+            return HttpResponse::InternalServerError().body(
+                "Failed to copy file in database."
+            )
         }
 
         let source_key = build_key_from_path(
             &authenticated_user,
-            &original_path,
+            &format!("{}/{}", original_path, file.id)
         );
 
         let destination_key = build_key(
@@ -72,11 +78,17 @@ pub async fn copy(
         ).await;
 
         if s3_copy.is_err() {
-            return HttpResponse::InternalServerError().finish();
+            return HttpResponse::InternalServerError().body(
+                "Failed to copy file in storage."
+            )
         }
     }
 
-    HttpResponse::Ok().finish()
+    HttpResponse::Ok().json(
+        serde_json::json!({
+            "file_ids": new_file_ids,
+        })
+    )
 }
 
 #[delete("")]

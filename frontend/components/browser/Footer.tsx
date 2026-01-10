@@ -6,7 +6,6 @@ import { useRef, useState } from "react";
 import { cn } from "@/lib/util/class";
 import CreateFolder from "./popups/CreateFolder";
 import { AnimatePresence } from "motion/react";
-import { usePathname } from "next/navigation";
 
 export default function Footer() {
   let inputRef = useRef<HTMLInputElement>(null);

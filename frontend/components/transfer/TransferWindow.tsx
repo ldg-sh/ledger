@@ -209,22 +209,40 @@ export default function TransferWindow() {
     const overlay = overlayRef.current;
     if (!overlay) return;
 
-    document.addEventListener("dragover", (e) => {
+    const dragOverHandler = (e: DragEvent) => {
       onDragOver(e as unknown as React.DragEvent<HTMLDocument>);
-    });
-    document.addEventListener("dragenter", (e) => {
+    }
+
+    const onDragEnterHandler = (e: DragEvent) => {
       onDragEnter(e as unknown as React.DragEvent<HTMLDocument>);
-    });
-    document.addEventListener("dragleave", (e) => {
+    }
+
+    const onDragLeaveHandler = (e: DragEvent) => {
       onDragLeave(e as unknown as React.DragEvent<HTMLDocument>);
-    });
+    }
+
+    const onDropHandler = (e: DragEvent) => {
+      handleDrop(e as unknown as React.DragEvent<HTMLDivElement>);
+      onDragLeave(e as unknown as React.DragEvent<HTMLDocument>);
+    }
+    
+    document.addEventListener("dragover", dragOverHandler);
+    document.addEventListener("dragenter", onDragEnterHandler);
+    document.addEventListener("dragleave", onDragLeaveHandler);
     document.addEventListener("blur", () => {
       setIsDragOver(false);
     });
-    document.addEventListener("drop", (e) => {
-      handleDrop(e as unknown as React.DragEvent<HTMLDivElement>);
-      onDragLeave(e as unknown as React.DragEvent<HTMLDocument>);
-    });
+    document.addEventListener("drop", onDropHandler);
+
+    return () => {
+      document.removeEventListener("dragover", dragOverHandler);
+      document.removeEventListener("dragenter", onDragEnterHandler);
+      document.removeEventListener("dragleave", onDragLeaveHandler);
+      document.removeEventListener("blur", () => {
+        setIsDragOver(false);
+      });
+      document.removeEventListener("drop", onDropHandler);
+    }
   }, []);
 
   return (

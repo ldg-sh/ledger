@@ -44,6 +44,7 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
                 .service(file::delete_file)
                 .service(file::rename_file)
                 .service(file::r#move)
+                .service(file::copy)
             ),
     );
     
@@ -56,10 +57,9 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/bulk")
             .wrap(Authentication)
-            .service(web::scope(FILE_SCOPE)
-                .service(bulk::delete)
-                .service(bulk::r#move)
-            ),
+            .service(bulk::delete)
+            .service(bulk::r#move)
+            .service(bulk::copy)
     );
 
     cfg.service(

@@ -43,7 +43,7 @@ pub async fn copy(
 
     let file = file.unwrap().unwrap();
 
-    let original_path = file.path.clone();
+    let original_path = format!("{}/{}", file.path.clone(), file.id.clone());
     let new_file_id = uuid::Uuid::new_v4().to_string();
 
     let source_key = build_key_from_path(
@@ -56,7 +56,7 @@ pub async fn copy(
         Some(copy_request.destination_path.as_str()),
         &new_file_id,
     );
-
+    
     let s3_copy = s3_service.copy_file(
         &source_key,
         &destination_key,

@@ -62,10 +62,7 @@ export default function Row({
 
   return (
     <div className={styles.rowContainer}>
-      <div
-        className={styles.moreOptions}
-        onClick={showMenu}
-      >
+      <div className={styles.moreOptions} onClick={showMenu}>
         <GlyphButton
           glyph="ellipsis-vertical"
           size={16}
@@ -146,8 +143,27 @@ export default function Row({
                 <ContextMenuItem
                   label="Copy"
                   glyph="copy"
-                  hotkey="Ctrl + C"
-                  onClick={() => alert("Copy")}
+                  hotkey="CtrlC"
+                  onClick={() => {
+                    document.dispatchEvent(
+                      new CustomEvent("copy-file-ids", {
+                        detail: {
+                          fileId: fileId,
+                        },
+                      })
+                    );
+                    hideMenu();
+                  }}
+                />
+                <ContextMenuItem
+                  label="Paste"
+                  glyph="clipboard-paste"
+                  hotkey="CtrlV"
+                  onClick={() => {
+                    document.dispatchEvent(new CustomEvent("paste-file-ids"));
+
+                    hideMenu();
+                  }}
                 />
                 <ContextMenuItem
                   label="Rename"
