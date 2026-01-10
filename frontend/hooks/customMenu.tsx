@@ -1,34 +1,58 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useContext } from "react";
+import { MenuContext } from "../context/MenuContext";
 
-export const useCustomMenu = () => {
-  const [visible, setVisible] = useState(false);
+const MENU_WIDTH = 200;
+
+export const useCustomMenu = (menuId: string) => {
+  const context = useContext(MenuContext);
+
+  if (!context) {
+    throw new Error("useCustomMenu must be used within a MenuProvider");
+  }
+
+  const { activeMenuId, openMenu, closeMenu } = context;
   const [position, setPosition] = useState({ x: 0, y: 0 });
+
+  const isVisible = activeMenuId === menuId;
 
   const showMenu = useCallback((event: React.MouseEvent) => {
     event.preventDefault();
 
-    setPosition({ x: event.pageX, y: event.pageY });
-    setVisible(true);
-  }, []);
-
-  const hideMenu = useCallback(() => {
-    setVisible(false);
-  }, []);
+    if (event.pageX + MENU_WIDTH > window.innerWidth) {
+      setPosition({ x: event.pageX - MENU_WIDTH, y: event.pageY });
+    } else {
+      setPosition({ x: event.pageX, y: event.pageY });
+    }
+    
+    openMenu(menuId);
+  }, [menuId, openMenu]);
 
   useEffect(() => {
-    document.addEventListener("click", hideMenu);
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        hideMenu();
-      }
-    });
-    return () => {
-      () => {
-        document.removeEventListener("click", hideMenu);
-        document.removeEventListener("keydown", hideMenu);
-      };
-    };
-  }, [hideMenu]);
+    if (!isVisible) return;
 
-  return { visible, position, showMenu, hideMenu };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeMenu();
+      }
+    };
+
+    const handleClickOutside = () => {
+      closeMenu();
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isVisible, closeMenu]);
+
+  return { 
+    visible: isVisible, 
+    position, 
+    showMenu, 
+    hideMenu: closeMenu 
+  };
 };

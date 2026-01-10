@@ -3,6 +3,7 @@ import styles from "./layout.module.scss";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { cn } from "@/lib/util/class";
+import { MenuProvider } from "@/context/MenuContext";
 
 const inter = Inter({ subsets: ["latin"] });
 const overusedGrotesk = localFont({
@@ -18,7 +19,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     >
       <body className={styles.body}>
         <Logo />
-        {children}
+        <MenuProvider>{children}</MenuProvider>
       </body>
     </html>
   );

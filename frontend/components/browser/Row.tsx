@@ -14,6 +14,7 @@ import { AnimatePresence } from "motion/react";
 import { useState } from "react";
 import RenameFile from "./popups/RenameFile";
 import DeleteFile from "./popups/DeleteFile";
+import GlyphButton from "../general/GlyphButton";
 
 interface RowProps {
   fileName: string;
@@ -43,7 +44,7 @@ export default function Row({
 }: RowProps) {
   let router = useRouter();
   let pathname = usePathname();
-  const { visible, position, showMenu, hideMenu } = useCustomMenu();
+  const { visible, position, showMenu, hideMenu } = useCustomMenu(fileId);
 
   const [isRenamePopupOpen, setIsRenamePopupOpen] = useState(false);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
@@ -60,121 +61,136 @@ export default function Row({
     : "";
 
   return (
-    <div
-      className={cn(styles.row, selected && styles.selected)}
-      onContextMenu={showMenu}
-      onClick={(event) => {
-        if (clickCallback) {
-          let isShiftKey = event.shiftKey;
-          let isCommandKey = event.metaKey || event.ctrlKey;
+    <div className={styles.rowContainer}>
+      <div
+        className={styles.moreOptions}
+        onClick={showMenu}
+      >
+        <GlyphButton
+          glyph="ellipsis-vertical"
+          size={16}
+          fullSize={30}
+          color="var(--color-text-secondary)"
+        />
+      </div>
+      <div
+        className={cn(styles.row, selected && styles.selected)}
+        onContextMenu={showMenu}
+        onClick={(event) => {
+          if (clickCallback) {
+            let isShiftKey = event.shiftKey;
+            let isCommandKey = event.metaKey || event.ctrlKey;
 
-          let newFileId = fileId;
+            let newFileId = fileId;
+
+            if (folder) {
+              newFileId = fileName;
+            }
+
+            clickCallback(newFileId, selected, isShiftKey, isCommandKey);
+          }
+        }}
+        onDoubleClick={() => {
+          let currentPath = extractPathFromUrl(pathname);
 
           if (folder) {
-            newFileId = fileName;
+            router.push(
+              `/dashboard/${
+                currentPath === "/" ? "" : currentPath + "/"
+              }${fileName}`
+            );
+          } else {
+            window.open(`/preview/${currentPath}/${fileId}`, "_blank");
           }
-
-          clickCallback(newFileId, selected, isShiftKey, isCommandKey);
-        }
-      }}
-      onDoubleClick={() => {
-        let currentPath = extractPathFromUrl(pathname);
-
-        if (folder) {
-          router.push(
-            `/dashboard/${
-              currentPath === "/" ? "" : currentPath + "/"
-            }${fileName}`
-          );
-        } else {
-          window.open(`/preview/${currentPath}/${fileId}`, "_blank");
-        }
-      }}
-    >
-      {folder ? (
-        <DynamicIcon
-          name={"folder"}
-          size={16}
-          strokeWidth={1.6}
-          color={"var(--color-text-secondary)"}
-          className={styles.rowElement}
-        />
-      ) : (
-        <DynamicIcon
-          name={getFileIcon(fileType) as any}
-          size={16}
-          strokeWidth={1.6}
-          color={"var(--color-text-secondary)"}
-          className={styles.rowElement}
-        />
-      )}
-      <span
-        className={cn(
-          styles.fileName,
-          styles.rowElement,
-          folder && styles.folderLink
-        )}
+        }}
       >
-        {fileName}
-      </span>
-      <span className={cn(styles.fileSize, styles.rowElement)}>
-        {pretifyFileSize(fileSize)}
-      </span>
-      <span className={cn(styles.fileType, styles.rowElement)}>{fileType}</span>
-      <span className={cn(styles.createdAt, styles.rowElement)}>
-        {formattedDate}
-      </span>
-      <AnimatePresence>
-        {visible && (
-          <div>
-            <ContextMenu x={position.x} y={position.y}>
-              <ContextMenuItem
-                label="Copy"
-                glyph="copy"
-                hotkey="Ctrl + C"
-                onClick={() => alert("Copy")}
-              />
-              <ContextMenuItem
-                label="Rename"
-                glyph="pencil-line"
-                onClick={() => {
-                  setIsRenamePopupOpen(true);
-                  hideMenu();
-                }}
-              />
-              <ContextMenuItem
-                label="Delete"
-                glyph="trash-2"
-                destructive
-                onClick={() => {
-                  setIsDeletePopupOpen(true);
-                  hideMenu();
-                }}
-              />
-            </ContextMenu>
-          </div>
+        {folder ? (
+          <DynamicIcon
+            name={"folder"}
+            size={16}
+            strokeWidth={1.6}
+            color={"var(--color-text-secondary)"}
+            className={styles.rowElement}
+          />
+        ) : (
+          <DynamicIcon
+            name={getFileIcon(fileType) as any}
+            size={16}
+            strokeWidth={1.6}
+            color={"var(--color-text-secondary)"}
+            className={styles.rowElement}
+          />
         )}
-      </AnimatePresence>
+        <span
+          className={cn(
+            styles.fileName,
+            styles.rowElement,
+            folder && styles.folderLink
+          )}
+        >
+          {fileName}
+        </span>
+        <span className={cn(styles.fileSize, styles.rowElement)}>
+          {pretifyFileSize(fileSize)}
+        </span>
+        <span className={cn(styles.fileType, styles.rowElement)}>
+          {fileType}
+        </span>
+        <span className={cn(styles.createdAt, styles.rowElement)}>
+          {formattedDate}
+        </span>
+        <AnimatePresence>
+          {visible && (
+            <div>
+              <ContextMenu x={position.x} y={position.y}>
+                <ContextMenuItem
+                  label="Copy"
+                  glyph="copy"
+                  hotkey="Ctrl + C"
+                  onClick={() => alert("Copy")}
+                />
+                <ContextMenuItem
+                  label="Rename"
+                  glyph="pencil-line"
+                  onClick={() => {
+                    setIsRenamePopupOpen(true);
+                    hideMenu();
+                  }}
+                />
+                <ContextMenuItem
+                  label="Delete"
+                  glyph="trash-2"
+                  destructive
+                  onClick={() => {
+                    setIsDeletePopupOpen(true);
+                    hideMenu();
+                  }}
+                />
+              </ContextMenu>
+            </div>
+          )}
+        </AnimatePresence>
 
-      <AnimatePresence>
-        {isRenamePopupOpen && (
-          <RenameFile
-            placeholder={fileName}
-            fileId={fileId}
-            onClose={() => {
-              setIsRenamePopupOpen(false);
-            }}
-          />
-        )}
-        {isDeletePopupOpen && (
-          <DeleteFile
-            fileId={fileId}
-            onClose={() => {
-              setIsDeletePopupOpen(false);
-            }}
-          />
-        )}
-      </AnimatePresence>
+        <AnimatePresence>
+          {isRenamePopupOpen && (
+            <RenameFile
+              placeholder={fileName}
+              fileId={fileId}
+              onClose={() => {
+                setIsRenamePopupOpen(false);
+              }}
+            />
+          )}
+          {isDeletePopupOpen && (
+            <DeleteFile
+              fileId={fileId}
+              onClose={() => {
+                setIsDeletePopupOpen(false);
+              }}
+            />
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

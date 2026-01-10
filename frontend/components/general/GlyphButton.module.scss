@@ -9,7 +9,6 @@
     width: 40px;
     height: 40px;
     border-radius: 8px;
-    background-color: var(--color-background);
     transition: background-color 0.2s ease;
 }
 
@@ -31,4 +30,8 @@
 
 .rotated {
     transform: rotate(180deg);
+}
+
+.danger .glyphIcon path {
+    stroke: var(--color-error-foreground);
 }

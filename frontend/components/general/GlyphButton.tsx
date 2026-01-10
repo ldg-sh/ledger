@@ -8,6 +8,7 @@ interface GlyphButtonProps {
   rotate?: boolean;
   size: number;
   danger?: boolean;
+  color?: string;
   fullSize?: number;
 }
 
@@ -16,6 +17,7 @@ export default function GlyphButton({
   rotate,
   size,
   danger,
+  color,
   fullSize = 40,
 }: GlyphButtonProps) {
   const [rotated, setRotated] = useState(false);
@@ -35,7 +37,8 @@ export default function GlyphButton({
       <DynamicIcon
         name={glyph || ("ban" as any)}
         size={size}
-        className={cn(styles.glyphIcon, rotated && styles.rotated)}
+        color={color}
+        className={cn(styles.glyphIcon, rotated && styles.rotated, danger && styles.danger)}
         style={{
           width: size,
           height: size,
