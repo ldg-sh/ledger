@@ -51,8 +51,6 @@ export async function downloadPart(
 export async function downloadFull(fileId: string) {
   const res = await authenticatedFetch(`/download/view/${fileId}`);
   
-  console.log("Response from downloadFull:", res);
-
   if (!res.ok) throw new Error("Failed to download full file");
   const data = await res.arrayBuffer();
 
@@ -99,8 +97,6 @@ export async function uploadPart(
     `/upload${path}/${fileId}`,
     formData
   );
-
-  console.log("Upload part response status:", await res.text());
 
   return res.ok;
 }
