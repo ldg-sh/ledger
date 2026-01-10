@@ -35,7 +35,9 @@
     background-color: var(--color-text-bold);
     color: var(--color-background);
     opacity: 1;
-    transition: opacity 0.2s ease, background-color 0.2s ease;
+    transition:
+        opacity 0.2s ease,
+        background-color 0.2s ease;
 }
 
 .submitButton:hover:not(:disabled) {
@@ -70,7 +72,7 @@
     background-color: var(--color-background-selected);
 }
 
-.createFolderContainer {
+.renameFileContainer {
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -80,10 +82,4 @@
 .header {
     display: flex;
     justify-content: space-between;
-}
-
-.hint {
-    font-size: 0.6rem;
-    color: var(--color-text-secondary);
-    margin-top: 4px;
 }

@@ -20,6 +20,19 @@ export default function CreateFolder({ onClose }: CreateFolderProps) {
   const [value, setValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  function handleSubmit() {
+    let path = extractPathFromUrl(pathname);
+    setIsLoading(true);
+
+    createFolder(path, value).then(() => {
+      setIsLoading(false);
+
+      router.push(
+        pathname + (pathname.endsWith("/") ? "" : "/") + value
+      );
+    });
+  }
+
   return (
     <div>
       <Popup
@@ -39,8 +52,30 @@ export default function CreateFolder({ onClose }: CreateFolderProps) {
             onChange={(newValue) => {
               setValue(newValue);
             }}
+            onSubmit={handleSubmit}
             placeholder="path/to/new/folder"
             select
+            hint={
+              <>
+                {value ? (
+                  <p className={styles.hint}>
+                    Your folder will be created {"at "}
+                    <strong>
+                      {" "}
+                      {"home" +
+                        (extractPathFromUrl(pathname) == ""
+                          ? "/"
+                          : "" + extractPathFromUrl(pathname)) +
+                        value}
+                    </strong>
+                  </p>
+                ) : (
+                  <p className={styles.hint}>
+                    Your folder will be created relative to the current path.
+                  </p>
+                )}
+              </>
+            }
           />
           <div className={styles.actions}>
             <button
@@ -58,16 +93,7 @@ export default function CreateFolder({ onClose }: CreateFolderProps) {
                 isLoading && styles.loading
               )}
               disabled={!value}
-              onClick={() => {
-                let path = extractPathFromUrl(pathname);
-                setIsLoading(true);
-
-                createFolder(path, value).then(() => {
-                  setIsLoading(false);
-
-                  router.push(pathname + (pathname.endsWith("/") ? "" : "/") + value);
-                });
-              }}
+              onClick={handleSubmit}
             >
               Submit
             </button>

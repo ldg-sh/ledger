@@ -5,7 +5,6 @@ import FileList from "@/components/browser/FileList";
 import styles from "./page.module.scss";
 import TransferWindow from "@/components/transfer/TransferWindow";
 import Footer from "@/components/browser/Footer";
-import CreateFolder from "@/components/browser/popups/CreateFolder";
 
 export default function DashboardPage() {
   return (

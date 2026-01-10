@@ -1,5 +1,5 @@
 "use server";
-import { authenticatedFetch, authenticatedMultipartFetch } from "./api-client";
+import { authenticatedFetch, authenticatedMultipartFetch } from "./apiClient";
 
 export async function listFiles(directoryPath: string) {
   const res = await authenticatedFetch(`/list/${directoryPath}`);
@@ -96,6 +96,38 @@ export async function uploadPart(
   const res = await authenticatedMultipartFetch(
     `/upload${path}/${fileId}`,
     formData
+  );
+
+  return res.ok;
+}
+
+export async function renameFile(
+  fileId: string,
+  newFileName: string,
+) {
+  let jsonData = {
+    newName: newFileName,
+  };
+
+  const res = await authenticatedFetch(
+    `/file/${fileId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(jsonData),
+    }
+  );
+
+  return res.ok;
+}
+
+export async function deleteFile(
+  fileId: string,
+) {
+  const res = await authenticatedFetch(
+    `/file/${fileId}`,
+    {
+      method: "DELETE",
+    }
   );
 
   return res.ok;

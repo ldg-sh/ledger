@@ -1,0 +1,13 @@
+.contextMenu {
+    position: fixed;
+    z-index: 9999;
+    min-width: 200px;
+    background-color: white;
+    border: var(--border-style);
+    box-shadow: var(--box-shadow-standard);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+}

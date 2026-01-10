@@ -147,7 +147,7 @@ export default function FileList() {
   useEffect(() => {
     loadData();
 
-    window.addEventListener("refresh-folder-list", async (event) => {
+    window.addEventListener("refresh-file-list", async (event) => {
       if (event instanceof CustomEvent && event.detail) {
         const onClose = event.detail;
         await loadData();

@@ -6,7 +6,6 @@ import { createUpload, uploadPart } from "@/lib/api/file";
 import { sha256_bytes } from "@/lib/util/hash";
 import { pretifyFileSize } from "@/lib/util/file";
 import GlyphButton from "../general/GlyphButton";
-import { defaultColor, errorColor, successColor } from "@/lib/util/color";
 import { cn } from "@/lib/util/class";
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -160,7 +159,7 @@ export default function TransferWindow() {
           }, 2000);
 
           setTimeout(() => {
-            window.dispatchEvent(new CustomEvent("refresh-folder-list"));
+            window.dispatchEvent(new CustomEvent("refresh-file-list"));
           });
         }
         return currentProgress;
@@ -305,7 +304,6 @@ export default function TransferWindow() {
               <GlyphButton
                 glyph="chevron-down"
                 size={24}
-                color={defaultColor}
                 rotate
               ></GlyphButton>
             </div>

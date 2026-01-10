@@ -1,6 +1,5 @@
 "use client";
 
-import { defaultColor } from "@/lib/util/color";
 import styles from "./Popup.module.scss";
 import GlyphButton from "@/components/general/GlyphButton";
 import { easeOut, motion } from "framer-motion";
@@ -57,12 +56,7 @@ export default function Popup({ children, onClosePopup }: PopupProps) {
               onClosePopup && onClosePopup();
             }}
           >
-            <GlyphButton
-              glyph={"x"}
-              size={16}
-              fullSize={30}
-              color={defaultColor}
-            />
+            <GlyphButton glyph={"x"} size={16} fullSize={30} />
           </div>
           {children}
         </motion.div>

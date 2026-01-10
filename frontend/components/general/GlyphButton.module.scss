@@ -14,18 +14,18 @@
 }
 
 .glyphButton:hover {
-    background-color: var(--color-button-background-active);
+    background-color: var(--color-background-active);
 }
 
 .glyphButton:active {
-    background-color: var(--color-button-background-selected);
+    background-color: var(--color-background-selected);
 }
 
 .glyphIcon {
     transition: transform 0.2s ease;
 
     & path {
-        stroke: var(--color-foreground);
+        stroke: var(--color-text-primary);
     }
 }
 

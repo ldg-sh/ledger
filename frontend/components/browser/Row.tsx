@@ -1,6 +1,5 @@
 "use client";
 
-import { Square } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
 import styles from "./Row.module.scss";
 import { getFileIcon } from "@/lib/util/icon";
@@ -8,6 +7,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { extractPathFromUrl } from "@/lib/util/url";
 import { pretifyFileSize } from "@/lib/util/file";
 import { cn } from "@/lib/util/class";
+import { ContextMenu } from "../general/menu/ContextMenu";
+import { useCustomMenu } from "@/hooks/customMenu";
+import ContextMenuItem from "../general/menu/ContextMenuItem";
+import { AnimatePresence } from "motion/react";
+import { useState } from "react";
+import RenameFile from "./popups/RenameFile";
+import DeleteFile from "./popups/DeleteFile";
 
 interface RowProps {
   fileName: string;
@@ -37,6 +43,10 @@ export default function Row({
 }: RowProps) {
   let router = useRouter();
   let pathname = usePathname();
+  const { visible, position, showMenu, hideMenu } = useCustomMenu();
+
+  const [isRenamePopupOpen, setIsRenamePopupOpen] = useState(false);
+  const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
 
   let date = new Date(createdAt);
   let formattedDate = createdAt
@@ -52,6 +62,7 @@ export default function Row({
   return (
     <div
       className={cn(styles.row, selected && styles.selected)}
+      onContextMenu={showMenu}
       onClick={(event) => {
         if (clickCallback) {
           let isShiftKey = event.shiftKey;
@@ -109,12 +120,61 @@ export default function Row({
       <span className={cn(styles.fileSize, styles.rowElement)}>
         {pretifyFileSize(fileSize)}
       </span>
-      <span className={cn(styles.fileType, styles.rowElement)}>
-        {fileType}
-      </span>
+      <span className={cn(styles.fileType, styles.rowElement)}>{fileType}</span>
       <span className={cn(styles.createdAt, styles.rowElement)}>
         {formattedDate}
       </span>
+      <AnimatePresence>
+        {visible && (
+          <div>
+            <ContextMenu x={position.x} y={position.y}>
+              <ContextMenuItem
+                label="Copy"
+                glyph="copy"
+                hotkey="Ctrl + C"
+                onClick={() => alert("Copy")}
+              />
+              <ContextMenuItem
+                label="Rename"
+                glyph="pencil-line"
+                onClick={() => {
+                  setIsRenamePopupOpen(true);
+                  hideMenu();
+                }}
+              />
+              <ContextMenuItem
+                label="Delete"
+                glyph="trash-2"
+                destructive
+                onClick={() => {
+                  setIsDeletePopupOpen(true);
+                  hideMenu();
+                }}
+              />
+            </ContextMenu>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isRenamePopupOpen && (
+          <RenameFile
+            placeholder={fileName}
+            fileId={fileId}
+            onClose={() => {
+              setIsRenamePopupOpen(false);
+            }}
+          />
+        )}
+        {isDeletePopupOpen && (
+          <DeleteFile
+            fileId={fileId}
+            onClose={() => {
+              setIsDeletePopupOpen(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

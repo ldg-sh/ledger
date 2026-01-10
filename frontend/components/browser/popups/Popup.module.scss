@@ -12,7 +12,7 @@
     border: var(--border-style);
     border-radius: 12px;
     padding: 25px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--box-shadow-standard);
     min-width: 400px;
     max-width: 90%;
     position: relative;

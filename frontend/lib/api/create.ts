@@ -1,5 +1,5 @@
 "use server";
-import { authenticatedFetch } from "./api-client";
+import { authenticatedFetch } from "./apiClient";
 
 export async function createFolder(path: string, folderName: string) {
   console.log(`/create/directory${path}/${folderName}`);
