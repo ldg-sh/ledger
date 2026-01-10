@@ -19,12 +19,14 @@ export default function DeleteFile({ onClose, fileId }: DeleteFileProps) {
     setIsLoading(true);
 
     deleteFile(fileId).then(() => {
-      setIsLoading(false);
-
-      let event = new CustomEvent("refresh-file-list");
+      let event = new CustomEvent("refresh-file-list", {
+        detail: () => {
+          onClose();
+          setIsLoading(false);
+        },
+      });
+      
       window.dispatchEvent(event);
-
-      onClose();
     });
   }
 

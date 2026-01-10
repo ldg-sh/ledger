@@ -21,12 +21,14 @@ export default function RenameFile({ onClose, placeholder, fileId }: RenameFileP
     setIsLoading(true);
 
     renameFile(fileId, value).then(() => {
-      setIsLoading(false);
-
-      let event = new CustomEvent("refresh-file-list");
+      let event = new CustomEvent("refresh-file-list", {
+        detail: () => {
+          setIsLoading(false);
+          onClose();
+        }
+      });
+      
       window.dispatchEvent(event);
-
-      onClose();
     });
   }
 
