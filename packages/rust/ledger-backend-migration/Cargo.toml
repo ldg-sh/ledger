@@ -1,0 +1,13 @@
+[package]
+name = "ledger-backend-migration"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[lib]
+name = "ledger_backend_migration"
+path = "src/lib.rs"
+
+[dependencies]
+async-std = { version = "1", features = ["attributes", "tokio1"] }
+sea-orm-migration.workspace = true

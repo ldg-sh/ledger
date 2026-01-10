@@ -1,1 +1,26 @@
+# OS
 .DS_Store
+
+# Rust
+/target/
+
+# Node
+node_modules/
+.pnpm-store/
+
+# Next.js
+.next/
+out/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Context (conductor workspace files)
+.context/

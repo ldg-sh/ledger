@@ -1,0 +1,13 @@
+[package]
+name = "ledger-common"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+actix-web.workspace = true
+sea-orm.workspace = true
+sea-orm-migration.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+dotenv.workspace = true

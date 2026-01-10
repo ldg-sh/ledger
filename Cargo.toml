@@ -1,0 +1,50 @@
+[workspace]
+resolver = "2"
+members = [
+    "apps/backend",
+    "packages/rust/ledger-common",
+    "packages/rust/ledger-backend-entity",
+    "packages/rust/ledger-backend-migration",
+    "tools/cargo-upload",
+    "tools/cargo-download",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+authors = ["Ledger Team"]
+
+[workspace.dependencies]
+# Web framework
+actix-web = "4.12"
+actix-web-httpauth = "0.8"
+actix-multipart = "0.7"
+
+# Async runtime
+tokio = { version = "1.49", features = ["full"] }
+
+# Database
+sea-orm = { version = "1.1", features = ["sqlx-postgres", "runtime-tokio-native-tls", "macros", "uuid", "chrono"] }
+sea-orm-migration = { version = "1.1", features = ["sqlx-postgres", "runtime-tokio"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Error handling
+anyhow = "1.0"
+thiserror = "2.0"
+
+# Utilities
+uuid = { version = "1.19", features = ["v4"] }
+chrono = "0.4"
+dotenv = "0.15"
+tracing = "0.1"
+log = "0.4"
+env_logger = "0.11"
+base64 = "0.22"
+
+# Internal crates
+ledger-common = { path = "packages/rust/ledger-common" }
+ledger-backend-entity = { path = "packages/rust/ledger-backend-entity" }
+ledger-backend-migration = { path = "packages/rust/ledger-backend-migration" }

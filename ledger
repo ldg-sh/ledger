@@ -1,0 +1,195 @@
+#!/usr/bin/env bash
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[0;33m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+# PIDs for cleanup
+PIDS=()
+
+cleanup() {
+    echo -e "\n${YELLOW}Shutting down services...${NC}"
+    for pid in "${PIDS[@]}"; do
+        if kill -0 "$pid" 2>/dev/null; then
+            kill "$pid" 2>/dev/null || true
+        fi
+    done
+    wait 2>/dev/null
+    echo -e "${GREEN}All services stopped.${NC}"
+    exit 0
+}
+
+trap cleanup SIGINT SIGTERM
+
+usage() {
+    echo "Usage: ./ledger <command> [options]"
+    echo ""
+    echo "Commands:"
+    echo "  dev                  Start development servers"
+    echo "  build                Build all Rust packages"
+    echo "  check                Type-check all Rust packages"
+    echo "  fmt                  Format all Rust code"
+    echo "  migrate              Run database migrations"
+    echo "  generate             Generate entities from database"
+    echo ""
+    echo "Options for 'dev':"
+    echo "  --backend    Run the backend service"
+    echo "  --web        Run the web frontend"
+    echo ""
+    echo "Options for 'migrate':"
+    echo "  Subcommands: up, down, fresh, refresh, reset, status (default: up)"
+    echo ""
+    echo "Examples:"
+    echo "  ./ledger dev                    # Run all services"
+    echo "  ./ledger dev --backend          # Run only backend"
+    echo "  ./ledger build                  # Build all Rust packages"
+    echo "  ./ledger fmt                    # Format Rust code"
+    echo "  ./ledger migrate                # Run migrations"
+    echo "  ./ledger migrate status         # Check migration status"
+    echo "  ./ledger generate               # Generate entities"
+}
+
+run_backend() {
+    echo -e "${BLUE}[backend]${NC} Starting..."
+    cd "$SCRIPT_DIR/apps/backend"
+    cargo run 2>&1 | while IFS= read -r line; do
+        echo -e "${BLUE}[backend]${NC} $line"
+    done &
+    PIDS+=($!)
+}
+
+run_web() {
+    echo -e "${CYAN}[web]${NC} Starting..."
+    cd "$SCRIPT_DIR/apps/web"
+    pnpm dev 2>&1 | while IFS= read -r line; do
+        echo -e "${CYAN}[web]${NC} $line"
+    done &
+    PIDS+=($!)
+}
+
+cmd_dev() {
+    local run_backend=false
+    local run_web=false
+
+    # Parse flags
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --backend)
+                run_backend=true
+                shift
+                ;;
+            --web)
+                run_web=true
+                shift
+                ;;
+            *)
+                echo "Unknown option: $1"
+                usage
+                exit 1
+                ;;
+        esac
+    done
+
+    # If no services specified, run all
+    if [[ "$run_backend" == "false" && "$run_web" == "false" ]]; then
+        run_backend=true
+        run_web=true
+    fi
+
+    echo -e "${YELLOW}Starting development services...${NC}"
+    echo ""
+
+    if [[ "$run_backend" == "true" ]]; then
+        run_backend
+    fi
+
+    if [[ "$run_web" == "true" ]]; then
+        run_web
+    fi
+
+    echo ""
+    echo -e "${YELLOW}Press Ctrl+C to stop all services${NC}"
+    echo ""
+
+    # Wait for all background processes
+    wait
+}
+
+cmd_build() {
+    echo -e "${YELLOW}Building all Rust packages...${NC}"
+    cargo build --workspace "$@"
+}
+
+cmd_check() {
+    echo -e "${YELLOW}Type-checking all Rust packages...${NC}"
+    cargo check --workspace "$@"
+}
+
+cmd_fmt() {
+    echo -e "${YELLOW}Formatting all Rust code...${NC}"
+    cargo fmt --all "$@"
+}
+
+cmd_migrate() {
+    local subcmd="${1:-up}"
+
+    echo -e "${BLUE}[backend]${NC} Running migration: $subcmd"
+    cargo run -p ledger-backend-migration -- "$subcmd"
+}
+
+cmd_generate() {
+    if ! command -v sea-orm-cli &> /dev/null; then
+        echo -e "${RED}Error: sea-orm-cli not found. Install with: cargo install sea-orm-cli${NC}"
+        exit 1
+    fi
+
+    echo -e "${BLUE}[backend]${NC} Generating entities..."
+    sea-orm-cli generate entity -o "$SCRIPT_DIR/packages/rust/ledger-backend-entity/src"
+}
+
+# Main
+case "${1:-}" in
+    dev)
+        shift
+        cmd_dev "$@"
+        ;;
+    build)
+        shift
+        cmd_build "$@"
+        ;;
+    check)
+        shift
+        cmd_check "$@"
+        ;;
+    fmt)
+        shift
+        cmd_fmt "$@"
+        ;;
+    migrate)
+        shift
+        cmd_migrate "$@"
+        ;;
+    generate)
+        shift
+        cmd_generate "$@"
+        ;;
+    help|--help|-h)
+        usage
+        ;;
+    "")
+        usage
+        ;;
+    *)
+        echo "Unknown command: $1"
+        usage
+        exit 1
+        ;;
+esac

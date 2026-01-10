@@ -1,0 +1,14 @@
+{
+  "name": "kabul",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev": "pnpm --filter @ledger/web dev",
+    "build": "pnpm --filter '@ledger/*' build",
+    "lint": "pnpm --filter '@ledger/*' lint",
+    "typecheck": "pnpm --filter '@ledger/*' typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}

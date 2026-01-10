@@ -1,0 +1,17 @@
+[package]
+name = "cargo-upload"
+version.workspace = true
+edition = "2021"
+description = "Cargo subcommand to upload"
+authors = ["Crush"]
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+anyhow.workspace = true
+futures = "0.3.31"
+reqwest = { version = "0.13.1", features = ["multipart", "json"] }
+tokio.workspace = true
+sha2 = "0.11.0-rc.3"
+mime_guess = "2.0.5"
+serde.workspace = true
+serde_json.workspace = true
