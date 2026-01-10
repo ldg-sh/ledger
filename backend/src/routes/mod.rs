@@ -1,39 +1,65 @@
 use crate::middleware::authentication::Authentication;
 use actix_web::web;
 
-mod delete;
 mod download;
 mod upload;
 mod test;
+mod file;
+mod list;
+mod bulk;
+mod create;
 
-static FILE_SCOPE: &str = "/{path:.*}";
+static FILE_SCOPE: &str = "/{file_id}";
 
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/upload")
             .wrap(Authentication)
-            .service(web::scope("/create").service(upload::create_upload))
+            .service(web::scope("/create")
+                .service(upload::create_upload))
             .service(upload::upload),
     );
 
     cfg.service(
         web::scope("/list")
             .wrap(Authentication)
-            .service(download::list_files),
+            .service(list::list_files),
     );
 
     cfg.service(
         web::scope("/download")
             .wrap(Authentication)
-            .service(download::download_full)
-            .service(download::metadata)
-            .service(download::download)
+            .service(
+                web::scope(FILE_SCOPE)
+                    .service(download::download_full)
+                    .service(download::metadata)
+                    .service(download::download)
+            )
     );
 
     cfg.service(
-        web::scope("/delete")
+        web::scope("/file")
             .wrap(Authentication)
-            .service(web::scope(FILE_SCOPE).service(delete::delete)),
+            .service(web::scope(FILE_SCOPE)
+                .service(file::delete_file)
+                .service(file::rename_file)
+                .service(file::r#move)
+            ),
+    );
+    
+    cfg.service(
+        web::scope("/create")
+            .wrap(Authentication)
+            .service(create::create_directory)
+    );
+
+    cfg.service(
+        web::scope("/bulk")
+            .wrap(Authentication)
+            .service(web::scope(FILE_SCOPE)
+                .service(bulk::delete)
+                .service(bulk::r#move)
+            ),
     );
 
     cfg.service(

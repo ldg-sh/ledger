@@ -1,4 +1,0 @@
-[submodule "proto"]
-	path = proto
-	url = https://github.com/ldg-sh/ledger-protobuf
-	branch = main
