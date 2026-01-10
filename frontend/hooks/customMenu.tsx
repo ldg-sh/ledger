@@ -18,7 +18,7 @@ export const useCustomMenu = (menuId: string) => {
   const showMenu = useCallback((event: React.MouseEvent) => {
     event.preventDefault();
 
-    if (event.pageX + MENU_WIDTH > window.innerWidth) {
+    if (event.pageX + MENU_WIDTH + 100 > window.innerWidth) {
       setPosition({ x: event.pageX - MENU_WIDTH, y: event.pageY });
     } else {
       setPosition({ x: event.pageX, y: event.pageY });
