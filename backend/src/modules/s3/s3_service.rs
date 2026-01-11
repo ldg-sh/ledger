@@ -116,6 +116,7 @@ impl S3Service {
 
     pub async fn copy_file(&self, source_key: &str, destination_key: &str) -> Result<(), Error> {
         let copy_source = format!("{}/{}", &self.bucket, source_key);
+        println!("Copying from '{}' to '{}'", copy_source, destination_key);
 
         self.client
             .copy_object()

@@ -66,11 +66,18 @@ pub async fn copy(
         return HttpResponse::InternalServerError().body("S3 Copy Failed");
     }
 
-    if let Err(_) = db.create_multiple(new_db_entries).await {
+    if let Err(error) = db.create_multiple(new_db_entries).await {
+        println!(
+            "DB Batch Insert Failed: {:?}",
+            error
+        );
         return HttpResponse::InternalServerError().body("DB Batch Insert Failed");
     }
 
-    HttpResponse::Ok().finish()
+    let all_copied_ids: Vec<String> = copy_request.file_ids.iter().map(|id| id.to_string()).collect();
+    HttpResponse::Ok().json(serde_json::json!({
+        "file_ids": all_copied_ids,
+    }))
 }
 
 #[delete("")]

@@ -53,7 +53,6 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             .service(directory::create)
             .service(directory::delete)
             .service(directory::rename)
-            .service(directory::copy)
     );
 
     cfg.service(

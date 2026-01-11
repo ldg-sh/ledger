@@ -14,6 +14,15 @@ pub struct TCreateFile {
     pub path: String,
 }
 
+pub struct TCreateDirectory {
+    pub id: String,
+    pub file_name: String,
+    pub upload_id: String,
+    pub owner_id: String,
+    pub created_at: DateTimeUtc,
+    pub path: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TFileInfo {
     pub key: String,

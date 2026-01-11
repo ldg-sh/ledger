@@ -10,6 +10,7 @@ use entity::file::ActiveModel as FileActiveModel;
 use entity::file::{Entity as File, Model as FileModel};
 use sea_orm::{EntityTrait, Set};
 use sea_orm::sea_query::Expr;
+use crate::types::file::TCreateDirectory;
 
 impl PostgresService {
     pub async fn get_file(&self, file_id: &str, user_id: &str) -> AResult<Option<FileModel>> {
@@ -76,6 +77,26 @@ impl PostgresService {
             .await?;
 
         Ok(file.id)
+    }
+
+    pub async fn create_directory(&self, dir: TCreateDirectory) -> Result<String, AppError> {
+        let dir_am = FileActiveModel {
+            id: Set(dir.id.clone()),
+            file_name: Set(dir.file_name),
+            upload_id: Set(dir.upload_id),
+            owner_id: Set(dir.owner_id),
+            file_size: Set(0),
+            created_at: Set(dir.created_at),
+            upload_completed: Set(true),
+            file_type: Set("directory".to_string()),
+            path: Set(dir.path),
+        };
+
+        File::insert(dir_am)
+            .exec(&self.database_connection)
+            .await?;
+
+        Ok(dir.id)
     }
 
     pub async fn copy_file(&self, source_file: FileModel, new_file_id: &str, new_path: &str) -> Result<(), AppError> {

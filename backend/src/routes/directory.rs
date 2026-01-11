@@ -5,16 +5,18 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use crate::context::AppContext;
 use crate::middleware::authentication::AuthenticatedUser;
-use crate::types::file::TCreateFile;
-use crate::util::file::{build_key};
+use crate::types::file::{TCreateDirectory, TCreateFile};
+use crate::util::file::{build_key, is_directory};
 
 #[derive(Serialize, Deserialize)]
 struct RenameRequest {
+    #[serde(rename = "newName")]
     pub new_name: String,
 }
 
 #[derive(Serialize, Deserialize)]
 struct CopyRequest {
+    #[serde(rename = "destinationPath")]
     pub destination_path: String,
 }
 
@@ -42,19 +44,16 @@ pub async fn create(
 
     let id = uuid::Uuid::new_v4().to_string();
 
-    let new_file = TCreateFile {
-        id: id.clone(),
-        file_name: last_segment,
-        upload_id: "".to_string(),
-        owner_id: authenticated_user.id.clone(),
-        file_size: 0,
-        created_at: Utc::now(),
-        file_type: "directory".to_string(),
-        upload_completed: true,
-        path: without_last_segment.to_string(),
-    };
-
-    if let Err(e) = postgres_service.create_file(new_file).await {
+    if let Err(e) = postgres_service.create_directory(
+        TCreateDirectory {
+            id: id.clone(),
+            file_name: last_segment,
+            upload_id: String::new(),
+            owner_id: authenticated_user.id.clone(),
+            created_at: Utc::now(),
+            path: without_last_segment.to_string(),
+        }
+    ).await {
         log::error!("DB create directory failed: {:?}", e);
 
         return HttpResponse::InternalServerError().body(
@@ -125,85 +124,6 @@ pub async fn rename(
     if let Err(e) = context.postgres_service.move_prefix(&old_path, &new_path, &authenticated_user.id).await {
         log::error!("DB Move failed: {:?}", e);
         return HttpResponse::InternalServerError().body("DB update failed");
-    }
-
-    HttpResponse::Ok().finish()
-}
-
-#[post("/copy/{path:.*}")]
-pub async fn copy(
-    context: web::Data<Arc<AppContext>>,
-    authenticated_user: AuthenticatedUser,
-    path: web::Path<String>,
-    copy_request: web::Json<CopyRequest>,
-) -> HttpResponse {
-    let s3_service = Arc::clone(&context.clone().into_inner().s3_service);
-    let postgres_service = Arc::clone(&context.into_inner().postgres_service);
-
-    let files = postgres_service.list_related_files(&path, &authenticated_user.id).await;
-
-    if files.is_err() {
-        log::error!("Failed to list files for copy: {:?}", files.unwrap_err());
-
-        return HttpResponse::InternalServerError().body(
-            "Failed to list files for copy."
-        );
-    }
-
-    let files = files.unwrap();
-    let mut new_db_entries = Vec::new();
-
-    for file in files.clone() {
-        let new_id = uuid::Uuid::new_v4().to_string();
-
-        new_db_entries.push(TCreateFile {
-            id: new_id,
-            file_name: file.file_name,
-            upload_id: file.upload_id,
-            owner_id: file.owner_id,
-            file_size: file.file_size,
-            created_at: Utc::now(),
-            file_type: file.file_type,
-            upload_completed: file.upload_completed,
-            path: copy_request.destination_path.clone(),
-        })
-    }
-
-    let source_keys: Vec<String> = files.iter().map(|f| {
-        build_key(
-            &authenticated_user,
-            f.id.as_str(),
-        )
-    }).collect();
-
-    let destination_keys: Vec<String> = new_db_entries.iter().map(|f| {
-        build_key(
-            &authenticated_user,
-            f.id.as_str(),
-        )
-    }).collect();
-
-    let mut s3_tasks = Vec::new();
-    for (src, dest) in source_keys.iter().zip(destination_keys.iter()) {
-        let s3_clone = Arc::clone(&s3_service);
-        let src_clone = src.clone();
-        let dest_clone = dest.clone();
-
-        s3_tasks.push(async move {
-            s3_clone.copy_file(&src_clone, &dest_clone).await
-        });
-    }
-
-    if let Err(e) = futures::future::join_all(s3_tasks).await.into_iter().collect::<Result<Vec<_>, _>>() {
-        log::error!("S3 Copy Failed: {:?}", e);
-
-        return HttpResponse::InternalServerError().body("S3 Copy Failed");
-    }
-
-    if let Err(e) = postgres_service.create_multiple(new_db_entries).await {
-        log::error!("DB Batch Insert Failed: {:?}", e);
-
-        return HttpResponse::InternalServerError().body("DB Batch Insert Failed");
     }
 
     HttpResponse::Ok().finish()

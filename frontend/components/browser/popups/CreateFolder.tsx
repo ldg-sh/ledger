@@ -7,7 +7,7 @@ import { cn } from "@/lib/util/class";
 import { useState } from "react";
 import { extractPathFromUrl } from "@/lib/util/url";
 import { usePathname, useRouter } from "next/navigation";
-import { createFolder } from "@/lib/api/create";
+import { createDirectory } from "@/lib/api/directory";
 
 interface CreateFolderProps {
   onClose: () => void;
@@ -24,7 +24,7 @@ export default function CreateFolder({ onClose }: CreateFolderProps) {
     let path = extractPathFromUrl(pathname);
     setIsLoading(true);
 
-    createFolder(path, value).then(() => {
+    createDirectory(path, value).then(() => {
       setIsLoading(false);
 
       router.push(
