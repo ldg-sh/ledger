@@ -7,7 +7,7 @@ mod test;
 mod file;
 mod list;
 mod bulk;
-mod create;
+mod directory;
 
 static FILE_SCOPE: &str = "/{file_id}";
 
@@ -32,7 +32,6 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             .service(
                 web::scope(FILE_SCOPE)
                     .service(download::download_full)
-                    .service(download::metadata)
                     .service(download::download)
             )
     );
@@ -49,9 +48,9 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     );
     
     cfg.service(
-        web::scope("/create")
+        web::scope("/directory")
             .wrap(Authentication)
-            .service(create::create_directory)
+            .service(directory::create)
     );
 
     cfg.service(

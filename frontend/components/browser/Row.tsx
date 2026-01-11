@@ -44,7 +44,7 @@ export default function Row({
 }: RowProps) {
   let router = useRouter();
   let pathname = usePathname();
-  const { visible, position, showMenu, hideMenu } = useCustomMenu(fileId);
+  const { visible, position, showMenu, hideMenu } = useCustomMenu(folder ? fileName : fileId);
 
   const [isRenamePopupOpen, setIsRenamePopupOpen] = useState(false);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);

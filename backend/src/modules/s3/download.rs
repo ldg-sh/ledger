@@ -1,35 +1,13 @@
-use crate::modules::s3::s3_service::S3Service;
-use anyhow::Result;
-use aws_sdk_s3::error::SdkError;
-use aws_sdk_s3::operation::get_object::GetObjectOutput;
-use aws_sdk_s3::operation::head_object::{HeadObjectError, HeadObjectOutput};
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::io::Error;
 use crate::config::config;
+use crate::modules::s3::s3_service::S3Service;
 use crate::types::file::TFileInfo;
+use anyhow::Result;
+use aws_sdk_s3::operation::get_object::GetObjectOutput;
 use chrono::{DateTime as ChronoDateTime, Utc};
+use std::io::Error;
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct GetMetadataResponse {
-    pub content_size: i64,
-    pub metadata: Option<HashMap<String, String>>,
-    pub mime: String,
-}
 
 impl S3Service {
-    pub async fn get_metadata(
-        &self,
-        key: &str,
-    ) -> Result<HeadObjectOutput, SdkError<HeadObjectError>> {
-        self.client
-            .head_object()
-            .bucket(&self.bucket)
-            .key(key)
-            .send()
-            .await
-    }
-
     pub async fn list_files(
         &self,
         cursor: Option<String>
@@ -50,7 +28,6 @@ impl S3Service {
             .unwrap_or(&[])
             .iter()
             .filter_map(|obj| {
-                // extract required fields
                 let key = obj.key.as_ref()?.clone();
                 let size = obj.size?;
                 if size == 0 {
@@ -71,7 +48,6 @@ impl S3Service {
             })
             .collect();
 
-        // This is the continuation token for next page (if any)
         let next_cursor = objs
             .next_continuation_token
             .map(|s| s.to_string());

@@ -10,7 +10,7 @@ use sea_orm::sqlx::types::{chrono::Utc, uuid};
 use std::io::Read;
 use std::sync::Arc;
 use crate::middleware::authentication::AuthenticatedUser;
-use crate::util::file::{build_key, build_key_from_path, extract_file_id_from_key};
+use crate::util::file::{build_key};
 
 #[derive(MultipartForm)]
 pub struct ChunkUploadForm {
@@ -26,11 +26,11 @@ pub struct ChunkUploadForm {
     pub(crate) chunk_data: Vec<actix_multipart::form::tempfile::TempFile>,
 }
 
-#[post("/{path:.*}")]
+#[post("/{file_id}")]
 pub async fn upload(
     context: web::Data<Arc<AppContext>>,
     MultipartForm(form): MultipartForm<ChunkUploadForm>,
-    path: web::Path<String>,
+    file_id: web::Path<String>,
     authenticated_user: AuthenticatedUser
 ) -> impl Responder {
     let context = context.into_inner();
@@ -52,23 +52,8 @@ pub async fn upload(
     }
 
     let upload_id = form.upload_id.as_ref().unwrap().0.clone();
-    let key = build_key_from_path(
-        &authenticated_user,
-        &path.into_inner(),
-    );
-
-    let file_id = extract_file_id_from_key(
-        &authenticated_user,
-        &key,
-    );
-
-    if file_id.is_none() {
-        log::error!("Failed to extract file ID from key: {}", key);
-        return "Invalid file ID extracted from key".to_string();
-    }
-
-    let file_id = file_id.unwrap();
-
+    let key = build_key(&authenticated_user, &file_id);
+    
     let result = s3_service
         .upload_part(
             &upload_id,
@@ -130,9 +115,9 @@ pub async fn create_upload(
     let content_type = form.content_type.0.clone();
     let file_id = uuid::Uuid::new_v4().to_string();
     let path = path.into_inner();
+    
     let key = build_key(
         &authenticated_user,
-        if path.is_empty() { None } else { Some(&path) },
         &file_id,
     );
 

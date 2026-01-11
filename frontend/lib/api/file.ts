@@ -133,6 +133,19 @@ export async function deleteFile(
   return res.ok;
 }
 
+export async function deleteDirectory(
+  directoryPath: string,
+) {
+  const res = await authenticatedFetch(
+    `/directory/${directoryPath}`,
+    {
+      method: "DELETE",
+    }
+  );
+
+  return res.ok;
+}
+
 export async function copyFile(
   fileId: string,
   destinationPath: string,

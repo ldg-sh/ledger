@@ -34,14 +34,4 @@ impl RedisService {
 
         Ok(())
     }
-
-    pub async fn get_file_meta(&self, file_key: &str) -> Result<RedisFileMeta> {
-        let meta_key = RedisKeyBuilder::file_log_key(file_key);
-
-        let mut conn = self.connection().await?;
-        let payload: String = conn.get(&meta_key).await?;
-        let file_data: RedisFileMeta = serde_json::from_str(&payload)?;
-
-        Ok(file_data)
-    }
 }

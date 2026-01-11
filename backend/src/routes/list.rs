@@ -2,13 +2,11 @@ use std::sync::Arc;
 use actix_web::{get, web, HttpResponse, Responder};
 use crate::context::AppContext;
 use crate::middleware::authentication::AuthenticatedUser;
-use crate::util::file::build_key_from_path;
 
 
 #[derive(serde::Serialize)]
 struct AllFilesSummary {
     files: Vec<FileSummary>,
-    folders: Vec<FolderSummary>,
 }
 
 #[derive(serde::Serialize)]
@@ -21,30 +19,13 @@ struct FileSummary {
     path: String,
 }
 
-#[derive(serde::Serialize)]
-struct FolderSummary {
-    name: String,
-    file_count: i64,
-    size: i64,
-}
-
 #[get("/{path:.*}")]
 pub async fn list_files(
     context: web::Data<Arc<AppContext>>,
     path: Option<web::Path<String>>,
     authenticated_user: AuthenticatedUser,
-    query: web::Query<std::collections::HashMap<String, String>>,
 ) -> impl Responder {
     let postgres = Arc::clone(&context.clone().into_inner().postgres_service);
-    let s3_service = Arc::clone(&context.into_inner().s3_service);
-    let deep = query.get("deep").is_some();
-
-    let full_path = if path.is_none() {
-        build_key_from_path(&authenticated_user, "")
-    } else {
-        let path_value = path.as_ref().unwrap();
-        build_key_from_path(&authenticated_user, &path_value)
-    };
 
     let path_str = if path.is_none() {
         "".to_string()
@@ -63,21 +44,11 @@ pub async fn list_files(
         p
     };
 
-    let files = if deep {
-        postgres.list_related_files(
-            path_str.clone().as_str(),
-            &authenticated_user.id
-        ).await
-    } else {
-        postgres.list_files(
-            path_str.clone().as_str(),
-            &authenticated_user.id
-        ).await
-    };
-
-    let folders = s3_service.list_directories(
-        &full_path
+    let files = postgres.list_related_files(
+        &path_str,
+        &authenticated_user.id
     ).await;
+
 
     if let Ok(files) = files {
         let files: Vec<_> = files
@@ -92,45 +63,8 @@ pub async fn list_files(
             })
             .collect();
 
-        let mut folder_summaries = vec![];
-
-        if let Ok(folders) = folders {
-            for folder in folders {
-                let folder = if !path_str.is_empty() {
-                    format!("{}/{}", path_str, folder)
-                } else {
-                    folder
-                };
-
-                let files_in_folder = if deep {
-                    postgres.list_related_files(
-                        &folder,
-                        &authenticated_user.id
-                    ).await
-                } else {
-                    postgres.list_files(
-                        &folder,
-                        &authenticated_user.id
-                    ).await
-                };
-
-                if let Ok(files_in_folder) = files_in_folder {
-                    let file_count = files_in_folder.len() as i64;
-                    let size: i64 = files_in_folder.iter().map(|f| f.file_size).sum();
-
-                    folder_summaries.push(FolderSummary {
-                        name: folder.replace(&format!("{}/", path_str), ""),
-                        file_count,
-                        size,
-                    });
-                }
-            }
-        }
-
-
         let cleaned = AllFilesSummary {
             files,
-            folders: folder_summaries,
         };
 
         return HttpResponse::Ok().json(cleaned);

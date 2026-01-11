@@ -41,7 +41,7 @@ export default function FileList() {
   };
 
   const copyFileIdToClipboard = (fileId: string) => {
-    if (selectedFiles.size > 0) {
+    if (selectedFiles.size > 1) {
       const fileIdsArray = Array.from(selectedFiles);
 
       const fileIdsString = fileIdsArray.join("\n");
@@ -219,6 +219,7 @@ export default function FileList() {
     const handler = async (event: Event) => {
       if (event instanceof CustomEvent && event.detail) {
         const fileId = event.detail.fileId;
+        console.log("Copying file ID from event detail:", fileId);
         copyFileIdToClipboard(fileId);
       } else {
         copyFileIdsToClipboard();

@@ -3,7 +3,7 @@ use actix_web::{delete, patch, post, web, HttpResponse};
 use serde::{Deserialize, Serialize};
 use crate::context::AppContext;
 use crate::middleware::authentication::AuthenticatedUser;
-use crate::util::file::{build_key, build_key_from_path};
+use crate::util::file::{build_key};
 
 #[derive(Serialize, Deserialize)]
 pub struct CopyRequest {
@@ -43,17 +43,15 @@ pub async fn copy(
 
     let file = file.unwrap().unwrap();
 
-    let original_path = format!("{}/{}", file.path.clone(), file.id.clone());
     let new_file_id = uuid::Uuid::new_v4().to_string();
 
-    let source_key = build_key_from_path(
+    let source_key = build_key(
         &authenticated_user,
-        &original_path,
+        &file_id.clone(),
     );
 
     let destination_key = build_key(
         &authenticated_user,
-        Some(copy_request.destination_path.as_str()),
         &new_file_id,
     );
     
@@ -92,7 +90,6 @@ pub async fn r#move(
     authenticated_user: AuthenticatedUser,
     move_request: web::Json<CopyRequest>,
 ) -> HttpResponse {
-    let s3_service = Arc::clone(&context.clone().into_inner().s3_service);
     let postgres_service = Arc::clone(&context.into_inner().postgres_service);
 
     let file = postgres_service.get_file(
@@ -109,28 +106,6 @@ pub async fn r#move(
     }
 
     let file = file.unwrap().unwrap();
-    let original_path = file.path.clone();
-
-    let source_key = build_key_from_path(
-        &authenticated_user,
-        &original_path,
-    );
-
-    let destination_key = build_key_from_path(
-        &authenticated_user,
-        &move_request.destination_path,
-    );
-
-    let s3_move = s3_service.move_file(
-        &source_key,
-        &destination_key,
-    ).await;
-
-    if s3_move.is_err() {
-        return HttpResponse::InternalServerError().body(
-            "Failed to move file in storage."
-        )
-    }
 
     let move_result = postgres_service.move_file(
         file,
@@ -138,13 +113,8 @@ pub async fn r#move(
     ).await;
 
     if move_result.is_err() {
-        let _ = s3_service.move_file(
-            &destination_key,
-            &source_key,
-        ).await;
-
         return HttpResponse::InternalServerError().body(
-            "File moved in storage but failed to update database."
+            "Failed to move file in database."
         )
     }
 
@@ -176,12 +146,9 @@ pub async fn delete_file(
     }
 
     let file = file.unwrap().unwrap();
-    let path = build_key_from_path(
-        &authenticated_user,
-        &file.path,
-    );
+    let key = build_key(&authenticated_user, &file.id);
 
-    let s3_delete = s3_service.delete(&path).await;
+    let s3_delete = s3_service.delete_file(&key).await;
 
     if s3_delete.is_err() {
         return HttpResponse::InternalServerError().body(

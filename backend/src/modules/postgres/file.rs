@@ -1,4 +1,4 @@
-use sea_orm::QueryFilter;
+use sea_orm::{QueryFilter, QueryOrder};
 use sea_orm::ColumnTrait;
 use crate::{
     modules::postgres::postgres_service::PostgresService,
@@ -9,6 +9,7 @@ use chrono::Utc;
 use entity::file::ActiveModel as FileActiveModel;
 use entity::file::{Entity as File, Model as FileModel};
 use sea_orm::{EntityTrait, Set};
+use sea_orm::sea_query::Expr;
 
 impl PostgresService {
     pub async fn get_file(&self, file_id: &str, user_id: &str) -> AResult<Option<FileModel>> {
@@ -30,38 +31,22 @@ impl PostgresService {
 
         Ok(files)
     }
-    
-    pub async fn list_files(&self, path: &str, user_id: &str) -> AResult<Vec<FileModel>> {
-        let files = File::find()
-            .filter(entity::file::Column::Path.eq(path))
-            .filter(entity::file::Column::OwnerId.eq(user_id))
+
+    pub async fn list_related_files(&self, path: &str, user_id: &str) -> AResult<Vec<FileModel>> {
+        let mut query = File::find()
+            .filter(entity::file::Column::OwnerId.eq(user_id));
+
+        if !path.is_empty() {
+            query = query.filter(entity::file::Column::Path.starts_with(path));
+        }
+
+        let files = query
+            .order_by_asc(entity::file::Column::Path)
             .all(&self.database_connection)
             .await?;
 
         Ok(files)
     }
-
-    pub async fn list_related_files(&self, path: &str, user_id: &str) -> AResult<Vec<FileModel>> {
-        let files = if path.is_empty() {
-            println!(
-                "Listing all files for user_id: {} since path is empty",
-                user_id
-            );
-            File::find()
-                .filter(entity::file::Column::OwnerId.eq(user_id))
-                .all(&self.database_connection)
-                .await?
-        } else {
-            File::find()
-                .filter(entity::file::Column::Path.starts_with(path))
-                .filter(entity::file::Column::OwnerId.eq(user_id))
-                .all(&self.database_connection)
-                .await?
-        };
-
-        Ok(files)
-    }
-
     pub async fn create_file(&self, file: TCreateFile) -> Result<String, AppError> {
         let file_am = FileActiveModel {
             id: Set(file.id.clone()),
@@ -133,51 +118,69 @@ impl PostgresService {
         Ok(())
     }
 
-    pub async fn copy_multiple(&self, source_files: Vec<FileModel>, new_path: &str) -> Result<(), AppError> {
-        for source_file in source_files {
-            let new_file_id = uuid::Uuid::new_v4().to_string();
-
-            let new_file_am = FileActiveModel {
-                id: Set(new_file_id),
-                file_name: Set(source_file.file_name),
-                upload_id: Set(source_file.upload_id),
-                owner_id: Set(source_file.owner_id),
-                file_size: Set(source_file.file_size),
-                created_at: Set(Utc::now()),
-                upload_completed: Set(source_file.upload_completed),
-                file_type: Set(source_file.file_type),
-                path: Set(new_path.to_string()),
-            };
-            File::insert(new_file_am)
-                .exec(&self.database_connection)
-                .await?;
-        }
+    pub async fn move_multiple(&self, file_ids: Vec<String>, new_path: &str, user_id: &str) -> Result<(), AppError> {
+        File::update_many()
+            .col_expr(entity::file::Column::Path, Expr::value(new_path))
+            .filter(entity::file::Column::Id.is_in(file_ids))
+            .filter(entity::file::Column::OwnerId.eq(user_id))
+            .exec(&self.database_connection)
+            .await?;
 
         Ok(())
     }
 
-    pub async fn delete_multiple(&self, source_files: Vec<FileModel>) -> Result<(), AppError> {
-        for file in source_files {
-            let file_am: FileActiveModel = file.into();
-
-            File::delete(file_am)
-                .exec(&self.database_connection)
-                .await?;
-        }
+    pub async fn delete_prefix(&self, source_prefix: &str, user_id: &str) -> Result<(), AppError> {
+        File::delete_many()
+            .filter(entity::file::Column::Path.starts_with(source_prefix))
+            .filter(entity::file::Column::OwnerId.eq(user_id))
+            .exec(&self.database_connection)
+            .await?;
 
         Ok(())
     }
 
-    pub async fn move_multiple(&self, source_files: Vec<FileModel>, new_path: &str) -> Result<(), AppError> {
-        for file in source_files {
-            let mut file_am: FileActiveModel = file.into();
-            file_am.path = Set(new_path.to_string());
+    pub async fn move_prefix(&self, old_prefix: &str, new_prefix: &str, user_id: &str) -> Result<(), AppError> {
+        File::update_many()
+            .filter(entity::file::Column::Path.starts_with(old_prefix))
+            .filter(entity::file::Column::OwnerId.eq(user_id))
+            .col_expr(
+                entity::file::Column::Path,
+                Expr::cust_with_exprs(
+                    "REPLACE(path, $1, $2)",
+                    vec![old_prefix.into(), new_prefix.into()]
+                ),
+            )
+            .exec(&self.database_connection)
+            .await?;
 
-            File::update(file_am)
-                .exec(&self.database_connection)
-                .await?;
-        }
+        Ok(())
+    }
 
+    pub async fn delete_multiple(&self, file_ids: Vec<String>, user_id: &str) -> AResult<()> {
+        File::delete_many()
+            .filter(entity::file::Column::Id.is_in(file_ids))
+            .filter(entity::file::Column::OwnerId.eq(user_id))
+            .exec(&self.database_connection)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn create_multiple(&self, files: Vec<TCreateFile>) -> AResult<()> {
+        let active_models: Vec<FileActiveModel> = files.into_iter().map(|f| FileActiveModel {
+            id: Set(f.id),
+            file_name: Set(f.file_name),
+            upload_id: Set(f.upload_id),
+            owner_id: Set(f.owner_id),
+            file_size: Set(f.file_size),
+            created_at: Set(f.created_at),
+            upload_completed: Set(f.upload_completed),
+            file_type: Set(f.file_type),
+            path: Set(f.path),
+        }).collect();
+
+        File::insert_many(active_models)
+            .exec(&self.database_connection)
+            .await?;
         Ok(())
     }
 }
