@@ -40,8 +40,8 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
         web::scope("/file")
             .wrap(Authentication)
             .service(web::scope(FILE_SCOPE)
-                .service(file::delete_file)
-                .service(file::rename_file)
+                .service(file::delete)
+                .service(file::rename)
                 .service(file::r#move)
                 .service(file::copy)
             ),
@@ -51,6 +51,9 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
         web::scope("/directory")
             .wrap(Authentication)
             .service(directory::create)
+            .service(directory::delete)
+            .service(directory::rename)
+            .service(directory::copy)
     );
 
     cfg.service(

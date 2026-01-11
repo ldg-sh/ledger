@@ -20,7 +20,7 @@ interface RowProps {
   fileName: string;
   fileSize: number;
   fileType: string;
-  fileId?: string;
+  fileId: string;
   createdAt?: string;
   folder?: boolean;
   clickCallback?: (
@@ -36,7 +36,7 @@ export default function Row({
   fileName,
   fileSize,
   fileType,
-  fileId = "",
+  fileId,
   createdAt = "",
   folder = false,
   selected = false,
@@ -44,7 +44,7 @@ export default function Row({
 }: RowProps) {
   let router = useRouter();
   let pathname = usePathname();
-  const { visible, position, showMenu, hideMenu } = useCustomMenu(folder ? fileName : fileId);
+  const { visible, position, showMenu, hideMenu } = useCustomMenu(fileId);
 
   const [isRenamePopupOpen, setIsRenamePopupOpen] = useState(false);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
@@ -78,13 +78,7 @@ export default function Row({
             let isShiftKey = event.shiftKey;
             let isCommandKey = event.metaKey || event.ctrlKey;
 
-            let newFileId = fileId;
-
-            if (folder) {
-              newFileId = fileName;
-            }
-
-            clickCallback(newFileId, selected, isShiftKey, isCommandKey);
+            clickCallback(fileId, selected, isShiftKey, isCommandKey);
           }
         }}
         onDoubleClick={() => {
@@ -128,13 +122,13 @@ export default function Row({
           {fileName}
         </span>
         <span className={cn(styles.fileSize, styles.rowElement)}>
-          {pretifyFileSize(fileSize)}
+          {fileSize !== 0 ? pretifyFileSize(fileSize) : "—"}
         </span>
         <span className={cn(styles.fileType, styles.rowElement)}>
           {fileType}
         </span>
         <span className={cn(styles.createdAt, styles.rowElement)}>
-          {formattedDate}
+          {formattedDate !== "" ? formattedDate : "—"}
         </span>
         <AnimatePresence>
           {visible && (

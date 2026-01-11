@@ -8,7 +8,6 @@ export async function listFiles(directoryPath: string) {
   let json = await res.json();
 
   let files = json.files;
-  let folders = json.folders;
 
   let fileList: File[] = files.map((file: any) => ({
     fileId: file.file_id,
@@ -19,13 +18,15 @@ export async function listFiles(directoryPath: string) {
     path: file.path,
   }));
 
-  let folderList: Folder[] = folders.map((folder: any) => ({
-    folderName: folder.name,
-    fileCount: folder.file_count,
-    size: folder.size,
-  }));
+  let folders = [];
 
-  return { files: fileList, folders: folderList };
+  folders = fileList.filter(file => file.fileType === 'directory');
+  folders.sort((a, b) => a.fileName.localeCompare(b.fileName));
+
+  fileList = fileList.filter(file => file.fileType !== 'directory');
+  fileList.sort((a, b) => a.fileName.localeCompare(b.fileName));
+
+  return { files: fileList, folders: folders };
 }
 
 export async function downloadPart(
@@ -66,17 +67,24 @@ export async function createUpload(
   formData.append("fileName", fileName);
   formData.append("contentType", contentType);
 
+  if (path === "") {
+    path = "/";
+  }
+
   const res = await authenticatedMultipartFetch(
-    `/upload/create/${path}`,
+    `/upload/create${path}`,
     formData
   );
+
+  console.log("Create Upload Response:", res);
+
+  if (!res.ok) throw new Error("Failed to create upload: " + JSON.stringify(res));
 
   return res.json();
 }
 
 export async function uploadPart(
   uploadId: string,
-  path: string,
   fileId: string,
   checksum: string,
   chunkNumber: number,
@@ -94,7 +102,7 @@ export async function uploadPart(
   );
 
   const res = await authenticatedMultipartFetch(
-    `/upload${path}/${fileId}`,
+    `/upload/${fileId}`,
     formData
   );
 
@@ -150,8 +158,12 @@ export async function copyFile(
   fileId: string,
   destinationPath: string,
 ) {
+  let destPath = destinationPath.startsWith("/")
+    ? destinationPath.slice(1)
+    : destinationPath;
+
   let jsonData = {
-    destinationPath: destinationPath,
+    destinationPath: destPath,
   };
 
   const res = await authenticatedFetch(

@@ -122,7 +122,7 @@ pub async fn r#move(
 }
 
 #[delete("")]
-pub async fn delete_file(
+pub async fn delete(
     context: web::Data<Arc<AppContext>>,
     file_id: web::Path<String>,
     authenticated_user: AuthenticatedUser
@@ -170,7 +170,7 @@ pub async fn delete_file(
 }
 
 #[patch("")]
-pub async fn rename_file(
+pub async fn rename(
     context: web::Data<Arc<AppContext>>,
     file_id: web::Path<String>,
     authenticated_user: AuthenticatedUser,

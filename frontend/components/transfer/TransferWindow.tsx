@@ -7,6 +7,8 @@ import { sha256_bytes } from "@/lib/util/hash";
 import { pretifyFileSize } from "@/lib/util/file";
 import GlyphButton from "../general/GlyphButton";
 import { cn } from "@/lib/util/class";
+import { usePathname } from "next/navigation";
+import { extractPathFromUrl } from "@/lib/util/url";
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB
 const MAX_CONCURRENT_UPLOADS = 3;
@@ -18,6 +20,8 @@ export default function TransferWindow() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [targetSize, setTargetSize] = useState(0);
   const [totalUploadedSize, setTotalUploadedSize] = useState(0);
+
+  const path = usePathname();
 
   const overlayRef = useRef<HTMLDivElement>(null);
   const taskQueue = useRef<UploadTask[]>([]);
@@ -70,7 +74,7 @@ export default function TransferWindow() {
         },
       }));
 
-      createUpload(file.name, file.type, "").then(async (createRes) => {
+      createUpload(file.name, file.type, extractPathFromUrl(path)).then(async (createRes) => {
         const fileId = createRes.file_id;
         const uploadId = createRes.upload_id;
 
@@ -176,7 +180,6 @@ export default function TransferWindow() {
 
     let uploadRes = await uploadPart(
       task.uploadId,
-      "",
       task.fileId,
       checksum,
       task.chunkIndex + 1,

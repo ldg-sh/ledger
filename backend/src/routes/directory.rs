@@ -2,6 +2,7 @@ use std::sync::Arc;
 use actix_web::{delete, patch, post, web, HttpResponse};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use crate::context::AppContext;
 use crate::middleware::authentication::AuthenticatedUser;
 use crate::types::file::TCreateFile;
@@ -23,9 +24,45 @@ pub async fn create(
     authenticated_user: AuthenticatedUser,
     path: web::Path<String>,
 ) -> HttpResponse {
-    // TODO: Implement directory creation
+    let postgres_service = &context.postgres_service;
+    let path = path.into_inner();
 
-    HttpResponse::Ok().finish()
+    let last_segment = path
+        .trim_end_matches('/')
+        .rsplit('/')
+        .next()
+        .unwrap_or("")
+        .to_string();
+
+    let without_last_segment = if let Some(pos) = path.rfind('/') {
+        &path[..pos]
+    } else {
+        ""
+    };
+
+    let id = uuid::Uuid::new_v4().to_string();
+
+    let new_file = TCreateFile {
+        id: id.clone(),
+        file_name: last_segment,
+        upload_id: "".to_string(),
+        owner_id: authenticated_user.id.clone(),
+        file_size: 0,
+        created_at: Utc::now(),
+        file_type: "directory".to_string(),
+        upload_completed: true,
+        path: without_last_segment.to_string(),
+    };
+
+    if let Err(e) = postgres_service.create_file(new_file).await {
+        log::error!("DB create directory failed: {:?}", e);
+
+        return HttpResponse::InternalServerError().body(
+            "Failed to create directory in database."
+        )
+    }
+
+    HttpResponse::Ok().json(json!({"folder_id": id}))
 }
 
 #[delete("/{path:.*}")]

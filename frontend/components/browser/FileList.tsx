@@ -8,7 +8,7 @@ import { extractPathFromUrl } from "@/lib/util/url";
 
 export default function FileList() {
   let pathname = usePathname();
-  const [data, setData] = useState<{ folders: Folder[]; files: File[] } | null>(
+  const [data, setData] = useState<{ folders: File[]; files: File[] } | null>(
     null
   );
 
@@ -111,7 +111,7 @@ export default function FileList() {
     if (data) {
       const allFileIds: string[] = [];
       data.folders.forEach((folder) => {
-        allFileIds.push(folder.folderName);
+        allFileIds.push(folder.fileId);
       });
       data.files.forEach((file) => {
         allFileIds.push(file.fileId);
@@ -124,7 +124,7 @@ export default function FileList() {
     if (data && lastDeliberateClick) {
       const allFileIds: string[] = [];
       data.folders.forEach((folder) => {
-        allFileIds.push(folder.folderName);
+        allFileIds.push(folder.fileId);
       });
       data.files.forEach((file) => {
         allFileIds.push(file.fileId);
@@ -144,7 +144,7 @@ export default function FileList() {
     if (data && lastDeliberateClick) {
       const allFileIds: string[] = [];
       data.folders.forEach((folder) => {
-        allFileIds.push(folder.folderName);
+        allFileIds.push(folder.fileId);
       });
       data.files.forEach((file) => {
         allFileIds.push(file.fileId);
@@ -219,7 +219,6 @@ export default function FileList() {
     const handler = async (event: Event) => {
       if (event instanceof CustomEvent && event.detail) {
         const fileId = event.detail.fileId;
-        console.log("Copying file ID from event detail:", fileId);
         copyFileIdToClipboard(fileId);
       } else {
         copyFileIdsToClipboard();
@@ -275,7 +274,7 @@ export default function FileList() {
         let allFileIds: string[] = [];
 
         data?.folders.forEach((folder) => {
-          allFileIds.push(folder.folderName);
+          allFileIds.push(folder.fileId);
         });
         data?.files.forEach((file) => {
           allFileIds.push(file.fileId);
@@ -342,13 +341,14 @@ export default function FileList() {
     <div>
       {data?.folders.map((folder) => (
         <Row
-          key={folder.folderName}
-          fileName={folder.folderName}
-          fileSize={folder.size}
+          key={folder.fileId}
+          fileId={folder.fileId}
+          fileName={folder.fileName}
+          fileSize={folder.fileSize}
           fileType="folder"
           folder={true}
           clickCallback={handleRowClick}
-          selected={selectedFiles.has(folder.folderName)}
+          selected={selectedFiles.has(folder.fileId)}
         />
       ))}
       {data?.files.map((file) => (

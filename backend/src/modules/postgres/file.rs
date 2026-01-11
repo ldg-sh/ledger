@@ -47,6 +47,17 @@ impl PostgresService {
 
         Ok(files)
     }
+
+    pub async fn list_files(&self, path: &str, user_id: &str) -> AResult<Vec<FileModel>> {
+        let files = File::find()
+            .filter(entity::file::Column::OwnerId.eq(user_id))
+            .filter(entity::file::Column::Path.eq(path))
+            .all(&self.database_connection)
+            .await?;
+
+        Ok(files)
+    }
+
     pub async fn create_file(&self, file: TCreateFile) -> Result<String, AppError> {
         let file_am = FileActiveModel {
             id: Set(file.id.clone()),

@@ -44,7 +44,7 @@ pub async fn list_files(
         p
     };
 
-    let files = postgres.list_related_files(
+    let files = postgres.list_files(
         &path_str,
         &authenticated_user.id
     ).await;

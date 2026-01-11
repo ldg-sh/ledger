@@ -2,14 +2,12 @@
 import { authenticatedFetch } from "./apiClient";
 
 export async function createFolder(path: string, folderName: string) {
-  console.log(`/create/directory${path}/${folderName}`);
   const res = await authenticatedFetch(
-    `/create/directory${path}/${folderName}`,
+    `/directory/create${path}/${folderName}`,
     {
       method: "POST",
     }
   );
-
 
   return res.ok;
 }

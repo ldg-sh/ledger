@@ -50,7 +50,7 @@ export default function Location() {
               router.push(fullPath);
             }}
           >
-            {array[index]}
+            {decodeURIComponent(array[index])}
           </span>
           <span
             key={index + "-sep"}
