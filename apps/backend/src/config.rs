@@ -8,6 +8,7 @@ pub struct EnvConfig {
     pub postgres: PostgresDetails,
     pub grpc: Grpc,
     pub redis: RedisDetails,
+    pub port: u16,
 }
 
 #[allow(dead_code)]
@@ -61,6 +62,7 @@ impl EnvConfig {
             redis: RedisDetails {
                 redis_url: Self::get_env("REDIS_URL"),
             },
+            port: Self::get_env("PORT").parse().expect("PORT must be a valid u16"),
         }
     }
 

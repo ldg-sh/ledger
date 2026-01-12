@@ -105,7 +105,7 @@ async fn main() -> std::io::Result<()> {
                 routes::configure_routes(cfg);
             })
     })
-    .bind(("::", 8080))?
+    .bind(("0.0.0.0", config.port))?
     .run()
     .await
 }
