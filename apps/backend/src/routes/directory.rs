@@ -29,39 +29,48 @@ pub async fn create(
     let postgres_service = &context.postgres_service;
     let path = path.into_inner();
 
-    let last_segment = path
-        .trim_end_matches('/')
-        .rsplit('/')
-        .next()
-        .unwrap_or("")
-        .to_string();
-
-    let without_last_segment = if let Some(pos) = path.rfind('/') {
-        &path[..pos]
+    let path = if path.starts_with('/') {
+        path.replacen('/', "", 1)
     } else {
-        ""
+        path
     };
 
-    let id = uuid::Uuid::new_v4().to_string();
-
-    if let Err(e) = postgres_service.create_directory(
-        TCreateDirectory {
-            id: id.clone(),
-            file_name: last_segment,
-            upload_id: String::new(),
-            owner_id: authenticated_user.id.clone(),
-            created_at: Utc::now(),
-            path: without_last_segment.to_string(),
-        }
-    ).await {
-        log::error!("DB create directory failed: {:?}", e);
-
-        return HttpResponse::InternalServerError().body(
-            "Failed to create directory in database."
-        )
+    let all_segments: Vec<&str> = path.split('/').collect();
+    if all_segments.is_empty() {
+        return HttpResponse::BadRequest().body("Invalid path.");
     }
 
-    HttpResponse::Ok().json(json!({"folder_id": id}))
+    let mut last_created_path = String::new();
+    for segment in &all_segments[..all_segments.len()] {
+        let creation_path = last_created_path.clone();
+
+        if !last_created_path.is_empty() {
+            last_created_path.push('/');
+        }
+
+        last_created_path.push_str(segment);
+
+        let id = uuid::Uuid::new_v4().to_string();
+
+        if let Err(e) = postgres_service.create_directory(
+            TCreateDirectory {
+                id: id.clone(),
+                file_name: segment.to_string(),
+                upload_id: String::new(),
+                owner_id: authenticated_user.id.clone(),
+                created_at: Utc::now(),
+                path: creation_path
+            }
+        ).await {
+            log::error!("DB create directory failed: {:?}", e);
+
+            return HttpResponse::InternalServerError().body(
+                "Failed to create directory in database."
+            )
+        }
+    }
+
+    HttpResponse::Ok().finish()
 }
 
 #[delete("/{path:.*}")]
