@@ -1,0 +1,27 @@
+{
+  "name": "ledger-auth",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun --hot src/index.ts",
+    "build": "bunx prisma generate",
+    "postinstall": "bunx prisma generate",
+    "start": "bunx prisma migrate deploy && bun src/index.ts",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "prisma": "^6.8.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.8.0",
+    "better-auth": "^1.4.7",
+    "hono": "^4.11.1",
+    "resend": "^6.6.0",
+    "zod": "^4.2.1"
+  }
+}
