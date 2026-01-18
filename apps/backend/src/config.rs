@@ -6,16 +6,8 @@ use std::sync::OnceLock;
 pub struct EnvConfig {
     pub bucket: BucketDetails,
     pub postgres: PostgresDetails,
-    pub grpc: Grpc,
     pub redis: RedisDetails,
     pub port: u16,
-}
-
-#[allow(dead_code)]
-#[derive(Clone, Debug)]
-pub struct Grpc {
-    pub url: String,
-    pub auth_key: String,
 }
 
 #[allow(dead_code)]
@@ -54,10 +46,6 @@ impl EnvConfig {
             },
             postgres: PostgresDetails {
                 postgres_uri: Self::get_env("POSTGRES_URI"),
-            },
-            grpc: Grpc {
-                url: Self::get_env("GRPC_URL"),
-                auth_key: Self::get_env("GRPC_AUTH_KEY"),
             },
             redis: RedisDetails {
                 redis_url: Self::get_env("REDIS_URL"),

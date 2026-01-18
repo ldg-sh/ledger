@@ -4,7 +4,7 @@ use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use crate::context::AppContext;
 use crate::middleware::authentication::AuthenticatedUser;
-use crate::util::file::{build_key};
+use crate::util::file::build_key;
 
 #[derive(Serialize, Deserialize)]
 pub struct CopyRequest {
@@ -44,8 +44,8 @@ pub async fn copy(
 
     for file in files {
         let new_id = uuid::Uuid::new_v4().to_string();
-        let src = build_key(&authenticated_user, &file.id);
-        let new_key = build_key(&authenticated_user, &new_id);
+        let src = build_key(&authenticated_user.id, &file.id);
+        let new_key = build_key(&authenticated_user.id, &new_id);
 
         new_db_entries.push(TCreateFile {
             id: new_id,
@@ -93,7 +93,7 @@ pub async fn delete(
 
     let keys: Vec<String> = file_ids
         .clone()
-        .into_iter().map(|f| build_key(&authenticated_user, &f))
+        .into_iter().map(|f| build_key(&authenticated_user.id, &f))
         .collect();
 
     if let Err(_) = s3.delete_multiple_files(keys).await {

@@ -1,5 +1,4 @@
 use crate::context::AppContext;
-use crate::modules::grpc::grpc_service::GrpcService;
 use crate::modules::postgres::postgres_service::PostgresService;
 use crate::modules::redis::redis_service::RedisService;
 use crate::modules::s3::s3_service::S3Service;
@@ -10,8 +9,6 @@ use env_logger::Env;
 use log::debug;
 use log::warn;
 use std::sync::Arc;
-use std::time::Duration;
-use tonic::transport::Endpoint;
 
 mod config;
 mod context;
@@ -21,10 +18,6 @@ mod routes;
 mod types;
 mod util;
 mod scheduler;
-
-pub mod ledger {
-    tonic::include_proto!("auth");
-}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -52,28 +45,6 @@ async fn main() -> std::io::Result<()> {
             .unwrap(),
     );
 
-    let grpc_channel = loop {
-        match Endpoint::from_shared(config.grpc.url.clone())
-            .expect("bad gRPC URL")
-            .connect()
-            .await
-        {
-            Ok(ch) => break ch,
-            Err(e) => {
-                warn!(
-                    "gRPC connection to {} failed: {}. Retrying in 2s...",
-                    config.grpc.url, e
-                );
-                tokio::time::sleep(Duration::from_secs(2)).await;
-            }
-        }
-    };
-
-    let grpc_service = Arc::new(
-        GrpcService::new(grpc_channel, &config.grpc.auth_key)
-            .expect("Failed to create gRPC service"),
-    );
-
     let redis_service = Arc::new(
         RedisService::new(&config.redis.redis_url)
             .await
@@ -83,7 +54,6 @@ async fn main() -> std::io::Result<()> {
     let context = Arc::new(AppContext::new(
         Arc::clone(&s3_service),
         Arc::clone(&postgres_service),
-        Arc::clone(&grpc_service),
         Arc::clone(&redis_service),
     ));
 

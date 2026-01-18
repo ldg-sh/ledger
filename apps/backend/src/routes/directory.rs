@@ -1,23 +1,17 @@
 use std::sync::Arc;
 use actix_web::{delete, patch, post, web, HttpResponse};
 use chrono::Utc;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::json;
 use crate::context::AppContext;
 use crate::middleware::authentication::AuthenticatedUser;
-use crate::types::file::{TCreateDirectory, TCreateFile};
-use crate::util::file::{build_key, is_directory};
+use crate::types::file::TCreateDirectory;
+use crate::util::file::build_key;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 struct RenameRequest {
     #[serde(rename = "newName")]
     pub new_name: String,
-}
-
-#[derive(Serialize, Deserialize)]
-struct CopyRequest {
-    #[serde(rename = "destinationPath")]
-    pub destination_path: String,
 }
 
 #[post("/create/{path:.*}")]
@@ -104,7 +98,7 @@ pub async fn delete(
 
     let keys: Vec<String> = files.iter().map(|f| {
         build_key(
-            &authenticated_user,
+            &authenticated_user.id,
             f.id.as_str(),
         )
     }).collect();

@@ -26,9 +26,6 @@ entity = { path = "entity" }
 anyhow = "1.0.100"
 serde_json = "1.0.148"
 thiserror = "2.0.17"
-tonic = "*"
-prost = "0.14"
-tonic-prost = "*"
 actix-web-httpauth = "0.8.2"
 futures-util = "0.3.31"
 async-trait = "0.1.89"
@@ -40,9 +37,6 @@ openssl = { version = "*", features = ["vendored"] }
 
 [workspace]
 members = ["tools/cargo-upload", "tools/cargo-download", "migration", "entity"]
-
-[build-dependencies]
-tonic-prost-build = "*"
 
 [dependencies.uuid]
 version = "1.19.0"

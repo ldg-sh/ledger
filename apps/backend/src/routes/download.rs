@@ -35,7 +35,7 @@ pub async fn download(
 
     let key = match file {
         Ok(Some(f)) => {
-            build_key(&authenticated_user, f.id.as_ref())
+            build_key(&authenticated_user.id, f.id.as_ref())
         },
         Ok(None) => return HttpResponse::NotFound().finish(),
         Err(_) => return HttpResponse::InternalServerError().body("Failed to retrieve file metadata."),
@@ -85,7 +85,7 @@ pub async fn download_full(
         return HttpResponse::NotFound().finish();
     }
 
-    let path = build_key(&authenticated_user, &file_id);
+    let path = build_key(&authenticated_user.id, &file_id);
 
     let object_output = match s3_service.download_file(&path).await {
         Ok(object) => object,

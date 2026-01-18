@@ -1,9 +1,3 @@
-use crate::middleware::authentication::AuthenticatedUser;
-
-pub fn build_key(user: &AuthenticatedUser, file_id: &str) -> String {
-    format!("{}/{}", user.id, file_id)
-}
-
-pub fn is_directory(file_type: &str) -> bool {
-    file_type == "directory"
+pub fn build_key(user_id: &str, file_id: &str) -> String {
+    format!("{}/{}", user_id, file_id)
 }

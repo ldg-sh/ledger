@@ -1,9 +1,0 @@
-[submodule "backend/proto"]
-	path = backend/proto
-	url = https://github.com/ldg-sh/ledger-protobuf
-	branch = main
-
-[submodule "auth/proto"]
-	path = auth/proto
-	url = https://github.com/ldg-sh/ledger-protobuf
-	branch = main

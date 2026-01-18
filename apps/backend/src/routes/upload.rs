@@ -10,7 +10,7 @@ use sea_orm::sqlx::types::{chrono::Utc, uuid};
 use std::io::Read;
 use std::sync::Arc;
 use crate::middleware::authentication::AuthenticatedUser;
-use crate::util::file::{build_key};
+use crate::util::file::build_key;
 
 #[derive(MultipartForm)]
 pub struct ChunkUploadForm {
@@ -52,8 +52,8 @@ pub async fn upload(
     }
 
     let upload_id = form.upload_id.as_ref().unwrap().0.clone();
-    let key = build_key(&authenticated_user, &file_id);
-    
+    let key = build_key(&authenticated_user.id, &file_id);
+
     let result = s3_service
         .upload_part(
             &upload_id,
@@ -115,9 +115,9 @@ pub async fn create_upload(
     let content_type = form.content_type.0.clone();
     let file_id = uuid::Uuid::new_v4().to_string();
     let path = path.into_inner();
-    
+
     let key = build_key(
-        &authenticated_user,
+        &authenticated_user.id,
         &file_id,
     );
 

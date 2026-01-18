@@ -3,7 +3,7 @@ use actix_web::{delete, patch, post, web, HttpResponse};
 use serde::{Deserialize, Serialize};
 use crate::context::AppContext;
 use crate::middleware::authentication::AuthenticatedUser;
-use crate::util::file::{build_key};
+use crate::util::file::build_key;
 
 #[derive(Serialize, Deserialize)]
 pub struct CopyRequest {
@@ -46,15 +46,15 @@ pub async fn copy(
     let new_file_id = uuid::Uuid::new_v4().to_string();
 
     let source_key = build_key(
-        &authenticated_user,
+        &authenticated_user.id,
         &file_id.clone(),
     );
 
     let destination_key = build_key(
-        &authenticated_user,
+        &authenticated_user.id,
         &new_file_id,
     );
-    
+
     let s3_copy = s3_service.copy_file(
         &source_key,
         &destination_key,
@@ -146,7 +146,7 @@ pub async fn delete(
     }
 
     let file = file.unwrap().unwrap();
-    let key = build_key(&authenticated_user, &file.id);
+    let key = build_key(&authenticated_user.id, &file.id);
 
     let s3_delete = s3_service.delete_file(&key).await;
 
