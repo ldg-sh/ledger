@@ -31,10 +31,9 @@ pub async fn refresh(
             token_record.token,
         ).await;
 
-        println!("Refresh token expired");
-
         return HttpResponse::Unauthorized().body("Session expired");
     }
 
+    let _ = context.postgres_service.delete_refresh_token(token_record.token).await;
     login_success(token_record.user_id, context.postgres_service.clone()).await
 }
