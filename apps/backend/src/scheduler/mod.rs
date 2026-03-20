@@ -16,5 +16,4 @@ pub fn configure_scheduler() -> Scheduler {
         .register(tasks::storage_health_check::StorageHealthCheck)
         .register(tasks::redis_health_check::RedisHealthCheck)
         .register(tasks::db_health_check::DatabaseHealthCheck)
-        .register(tasks::track_files::TrackFiles)
 }

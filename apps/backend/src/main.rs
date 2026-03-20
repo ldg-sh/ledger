@@ -18,6 +18,7 @@ mod routes;
 mod types;
 mod util;
 mod scheduler;
+pub mod authentication;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -34,7 +35,6 @@ async fn main() -> std::io::Result<()> {
         .expect("Failed to create S3 service"),
     );
 
-    // Ensure the bucket exists in dev (MinIO) environments
     if let Err(e) = s3_service.ensure_bucket().await {
         warn!("S3 bucket check/create failed: {}", e);
     }
@@ -73,6 +73,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(MultipartFormConfig::default().total_limit(1000 * 1024 * 1024))
             .configure(|cfg| {
                 routes::configure_routes(cfg);
+                authentication::routes::configure_routes(cfg);
             })
     })
     .bind(("0.0.0.0", config.port))?

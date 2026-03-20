@@ -7,6 +7,7 @@ pub struct EnvConfig {
     pub bucket: BucketDetails,
     pub postgres: PostgresDetails,
     pub redis: RedisDetails,
+    pub auth: AuthDetails,
     pub port: u16,
 }
 
@@ -32,6 +33,16 @@ pub struct RedisDetails {
     pub redis_url: String,
 }
 
+#[allow(dead_code)]
+#[derive(Clone, Debug)]
+pub struct AuthDetails {
+    pub jwt_secret: String,
+    pub google_client_id: String,
+    pub google_client_secret: String,
+    pub github_client_id: String,
+    pub github_client_secret: String,
+}
+
 impl EnvConfig {
     pub fn from_env() -> Self {
         dotenv::dotenv().ok();
@@ -49,6 +60,13 @@ impl EnvConfig {
             },
             redis: RedisDetails {
                 redis_url: Self::get_env("REDIS_URL"),
+            },
+            auth: AuthDetails {
+                jwt_secret: Self::get_env("JWT_SECRET"),
+                google_client_id: Self::get_env("GOOGLE_CLIENT_ID"),
+                google_client_secret: Self::get_env("GOOGLE_CLIENT_SECRET"),
+                github_client_id: Self::get_env("GITHUB_CLIENT_ID"),
+                github_client_secret: Self::get_env("GITHUB_CLIENT_SECRET"),
             },
             port: Self::get_env("PORT").parse().expect("PORT must be a valid u16"),
         }
