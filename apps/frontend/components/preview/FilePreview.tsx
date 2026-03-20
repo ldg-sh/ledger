@@ -1,7 +1,5 @@
 "use client";
 
-import { downloadFull } from "@/lib/api/file";
-import { useEffect, useState } from "react";
 import styles from "./FilePreview.module.scss";
 
 export default function FilePreview({ fileId, fileType }: { fileId: string; fileType?: string }) {

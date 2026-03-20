@@ -172,6 +172,15 @@ export default function Row({
                   }}
                 />
                 <ContextMenuItem
+                  label="Copy Link"
+                  glyph="link"
+                  onClick={() => {
+                    const link = `${window.location.origin}/api/download/${fileId}`;
+                    navigator.clipboard.writeText(link);
+                    hideMenu();
+                  }}
+                />
+                <ContextMenuItem
                   label="Download"
                   glyph="download"
                   onClick={() => {
@@ -179,6 +188,7 @@ export default function Row({
                     hideMenu();
                   }}
                 />
+
                 <ContextMenuItem
                   label="Delete"
                   glyph="trash-2"
