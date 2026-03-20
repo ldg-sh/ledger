@@ -6,7 +6,7 @@ import styles from "./page.module.scss";
 import TransferWindow from "@/components/transfer/TransferWindow";
 import Footer from "@/components/browser/Footer";
 
-export default function DashboardPage() {
+export default function MainPage() {
   return (
     <div className={styles.pageContainer}>
       <div className={styles.centerpiece}>

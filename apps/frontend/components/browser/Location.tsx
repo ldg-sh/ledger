@@ -11,9 +11,11 @@ export default function Location() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const array = pathname.split("/");
+  array.shift();
 
-  array.shift();
-  array.shift();
+  if (array.length == 1 && array[0] === "") {
+    array.pop();
+  }
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -27,7 +29,7 @@ export default function Location() {
       <span
         className={styles.pathSegment}
         onClick={(_) => {
-          const fullPath = "/dashboard";
+          const fullPath = "/";
 
           router.push(fullPath);
         }}
@@ -42,10 +44,7 @@ export default function Location() {
             className={styles.pathSegment}
             onClick={(_) => {
               const clickedPath = array.slice(0, index + 1).join("/") || "/";
-              const fullPath =
-                clickedPath === "/"
-                  ? "/dashboard"
-                  : "/dashboard/" + clickedPath;
+              const fullPath = clickedPath === "/" ? "/" : "/" + clickedPath;
 
               router.push(fullPath);
             }}
@@ -57,10 +56,7 @@ export default function Location() {
             className={styles.seperator}
             onClick={(_) => {
               const clickedPath = array.slice(0, index + 1).join("/") || "/";
-              const fullPath =
-                clickedPath === "/"
-                  ? "/dashboard"
-                  : "/dashboard/" + clickedPath;
+              const fullPath = clickedPath === "/" ? "" : "/" + clickedPath;
 
               router.push(fullPath);
             }}

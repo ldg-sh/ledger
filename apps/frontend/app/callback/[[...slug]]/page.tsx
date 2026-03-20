@@ -35,12 +35,12 @@ export default function CallbackPage() {
 
         if (!response.ok) {
           const errorText = await response.text();
-          
+
           throw new Error(errorText || "Failed to authenticate");
         }
 
         document.dispatchEvent(new CustomEvent("reloadUser"));
-        router.push("/dashboard");
+        router.push("/");
       } catch (err: any) {
         console.error("Authentication error:", err);
         setError(err.message);

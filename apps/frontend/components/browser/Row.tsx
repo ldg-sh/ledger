@@ -90,9 +90,7 @@ export default function Row({
 
           if (folder) {
             router.push(
-              `/dashboard/${
-                currentPath === "/" ? "" : currentPath + "/"
-              }${fileName}`,
+              `/${currentPath}/${fileName}`.replace(/\/+/g, "/")
             );
           } else {
             window.open(`/preview/${currentPath}/${fileId}`, "_blank");

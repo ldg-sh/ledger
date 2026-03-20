@@ -1,9 +1,6 @@
 export function extractPathFromUrl(endPath: string): string {
   try {
-    if (endPath.startsWith("/dashboard")) {
-      return endPath.slice("/dashboard".length) || ""
-    }
-
+    console.log("Extracting path from URL:", endPath);
     return endPath;
   } catch (error) {
     console.error("Invalid URL:", endPath);
