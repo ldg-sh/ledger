@@ -11,7 +11,6 @@ COPY Cargo.toml Cargo.lock ./
 COPY entity ./entity
 COPY migration ./migration
 COPY src ./src
-COPY build.rs ./build.rs
 COPY tools ./tools
 
 RUN cargo chef prepare --recipe-path recipe.json --bin ledger
@@ -31,7 +30,6 @@ COPY Cargo.toml Cargo.lock ./
 COPY entity ./entity
 COPY migration ./migration
 COPY src ./src
-COPY build.rs ./build.rs
 COPY tools ./tools
 
 RUN cargo chef cook --release --target x86_64-unknown-linux-musl --recipe-path recipe.json --bin ledger
