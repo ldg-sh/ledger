@@ -1,0 +1,60 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
+
+export default function CallbackPage() {
+  const searchParams = useSearchParams();
+  const params = useParams();
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const slug = params.slug;
+    const provider = Array.isArray(slug) ? slug[0] : slug;
+    const code = searchParams.get("code");
+
+    if (!code || !provider) {
+      setError("Missing authentication code or provider.");
+      return;
+    }
+
+    const exchangeCode = async () => {
+      console.log(
+        `http://localhost:8080/auth/callback/${provider}?code=${code}`,
+      );
+      try {
+        const response = await fetch(
+          `/auth/callback/${provider}?code=${code}`,
+          {
+            method: "GET",
+            credentials: "include",
+          },
+        );
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Authentication error:", errorText);
+          throw new Error(errorText || "Failed to authenticate");
+        }
+
+        router.push("/dashboard");
+      } catch (err: any) {
+        console.error("Authentication error:", err);
+        setError(err.message);
+      }
+    };
+
+    exchangeCode();
+  }, [searchParams, params, router]);
+
+  return (
+    <div className="">
+      {error ? (
+        <div className="">Error: {error}</div>
+      ) : (
+        <div>Authenticating...</div>
+      )}
+    </div>
+  );
+}

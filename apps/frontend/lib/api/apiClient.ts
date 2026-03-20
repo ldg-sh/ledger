@@ -4,7 +4,7 @@ const API_URL = process.env.API_URL || "http://localhost:8080";
 
 export async function authenticatedFetch(endpoint: string, options: RequestInit = {}) {
   const cookieStore = await cookies();
-  const token = cookieStore.get("auth_token")?.value;
+  const token = cookieStore.get("session")?.value;
 
   const headers = {
     ...options.headers,
@@ -12,7 +12,7 @@ export async function authenticatedFetch(endpoint: string, options: RequestInit 
     "Content-Type": "application/json",
   };
 
-  const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
+  const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers, credentials: "include" });
   
   if (response.status === 401) {
     // TODO
@@ -23,7 +23,7 @@ export async function authenticatedFetch(endpoint: string, options: RequestInit 
 
 export async function authenticatedMultipartFetch(endpoint: string, formData: FormData, options: RequestInit = {}) {
   const cookieStore = await cookies();
-  const token = cookieStore.get("auth_token")?.value;
+  const token = cookieStore.get("session")?.value;
 
   const headers = {
     ...options.headers,
@@ -34,6 +34,7 @@ export async function authenticatedMultipartFetch(endpoint: string, formData: Fo
     ...options, 
     method: "POST",
     headers,
+    credentials: "include",
     body: formData 
   });
   
