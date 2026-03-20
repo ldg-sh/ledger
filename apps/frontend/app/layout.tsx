@@ -20,8 +20,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     >
       <body className={styles.body}>
         <UserProvider>
-          <Logo />
-          <MenuProvider>{children}</MenuProvider>
+          <MenuProvider>
+            <Logo />
+            {children}
+          </MenuProvider>
         </UserProvider>
       </body>
     </html>

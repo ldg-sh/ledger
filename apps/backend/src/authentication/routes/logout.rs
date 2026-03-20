@@ -1,39 +1,31 @@
-use std::sync::Arc;
-use actix_web::{web, HttpResponse};
-use crate::authentication::success::login_success;
 use crate::context::AppContext;
+use actix_web::{web, HttpResponse};
+use serde_json::json;
+use std::sync::Arc;
 
-#[actix_web::post("refresh")]
-pub async fn refresh(
-    req: actix_web::HttpRequest,
-    context: web::Data<Arc<AppContext>>,
+#[actix_web::post("logout")]
+pub async fn logout(
+    _req: actix_web::HttpRequest,
+    _context: web::Data<Arc<AppContext>>,
 ) -> HttpResponse {
-    let refresh_token = match req.cookie("refresh_token") {
-        Some(c) => c.value().to_string(),
-        None => return HttpResponse::Unauthorized().body("No refresh token found"),
-    };
+    let access_cookie = actix_web::cookie::Cookie::build("session", "")
+        .path("/")
+        .max_age(actix_web::cookie::time::Duration::minutes(15))
+        .secure(true)
+        .finish();
 
-    println!("Received refresh token: {}", refresh_token);
+    let refresh_cookie = actix_web::cookie::Cookie::build("refresh_token", "")
+        .path("/auth/refresh")
+        .secure(true)
+        .max_age(actix_web::cookie::time::Duration::days(30))
+        .finish();
 
-    let token_record = match context.postgres_service
-        .get_refresh_token(refresh_token.trim().to_string())
-        .await
-    {
-        Ok(record) => record,
-        Err(error) => {
-            println!("Invalid refresh token: {}", error);
-            return HttpResponse::Unauthorized().body("Invalid or expired session")
-        },
-    };
-
-    if token_record.expires_at < chrono::Utc::now() {
-        let _ = context.postgres_service.delete_refresh_token(
-            token_record.token,
-        ).await;
-
-        return HttpResponse::Unauthorized().body("Session expired");
-    }
-
-    let _ = context.postgres_service.delete_refresh_token(token_record.token).await;
-    login_success(token_record.user_id, context.postgres_service.clone()).await
+    HttpResponse::Ok()
+        .cookie(access_cookie)
+        .cookie(refresh_cookie)
+        .json(
+            json!({
+                "message": "Logout successful",
+            })
+        )
 }

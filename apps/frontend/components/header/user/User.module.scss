@@ -1,7 +1,5 @@
 .container {
     display: flex;
-    align-items: center;
-    gap: 10px;
 }
 
 .info {
@@ -13,6 +11,8 @@
     justify-content: center;
     align-items: start;
     border-radius: 5px;
+    border: none;
+    background-color: transparent;
 
     transition: background-color 0.2s ease;
 }
@@ -46,4 +46,5 @@
     height: 48px;
     border-radius: 5px;
     object-fit: cover;
+    margin-right: 10px;
 }

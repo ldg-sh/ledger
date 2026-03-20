@@ -99,3 +99,12 @@ export const useUser = () => {
   if (!context) throw new Error("useUser must be used within a UserProvider");
   return context;
 };
+
+export const logout = async () => {
+  await fetch("/auth/logout", {
+    method: "POST",
+    credentials: "include",
+  });
+
+  document.dispatchEvent(new CustomEvent("reloadUser"));
+};
