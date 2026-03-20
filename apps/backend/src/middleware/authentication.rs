@@ -15,13 +15,16 @@ impl FromRequest for AuthenticatedUser {
     type Future = Ready<Result<Self, Self::Error>>;
 
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
-        let cookie = req.cookie("session");
+        let bearer_session = req.headers().get("Authorization")
+            .and_then(|h| h.to_str().ok())
+            .and_then(|s| s.strip_prefix("Bearer "))
+            .map(|s| s.to_string());
 
-        if let Some(c) = cookie {
+        if let Some(c) = bearer_session {
             let secret = &config().auth.jwt_secret;
 
             let token_data = decode::<UserClaims>(
-                c.value(),
+                c,
                 &DecodingKey::from_secret(secret.as_ref()),
                 &Validation::default(),
             );

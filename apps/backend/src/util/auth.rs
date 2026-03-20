@@ -8,12 +8,12 @@ pub struct UserClaims {
 }
 
 pub fn generate_access_token(
-    user_id: String
+    user_id: &str
 ) -> String {
     let expiration = chrono::Utc::now() + chrono::Duration::minutes(15);
 
     let user_claims = UserClaims {
-        user_id,
+        user_id: user_id.to_string(),
         exp: expiration.timestamp(),
     };
 

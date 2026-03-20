@@ -25,11 +25,11 @@ pub async fn refresh_access_token(
         let _ = context.postgres_service.delete_refresh_token(
             token_record.token,
         ).await;
-        
+
         return HttpResponse::Unauthorized().body("Session expired");
     }
 
-    let new_access_token = generate_access_token(token_record.user_id);
+    let new_access_token = generate_access_token(&token_record.user_id);
 
     HttpResponse::Ok().json(serde_json::json!({
         "access_token": new_access_token

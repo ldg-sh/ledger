@@ -1,11 +1,12 @@
 use actix_web::HttpResponse;
+use serde_json::json;
 use uuid::Uuid;
 use crate::util::auth::generate_access_token;
 
 pub async fn login_success(user_id: String) -> HttpResponse {
     let raw_refresh_token = Uuid::new_v4().to_string();
 
-    let access_cookie = actix_web::cookie::Cookie::build("session", generate_access_token(user_id))
+    let access_cookie = actix_web::cookie::Cookie::build("session", generate_access_token(&user_id))
         .path("/")
         .max_age(actix_web::cookie::time::Duration::minutes(15))
         .secure(true)
@@ -20,5 +21,10 @@ pub async fn login_success(user_id: String) -> HttpResponse {
     HttpResponse::Ok()
         .cookie(access_cookie)
         .cookie(refresh_cookie)
-        .body("Login successful")
+        .json(
+            json!({
+                "message": "Login successful",
+                "user_id": user_id,
+            })
+        )
 }
