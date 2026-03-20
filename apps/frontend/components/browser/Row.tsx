@@ -215,6 +215,7 @@ export default function Row({
         {isDeletePopupOpen && (
           <DeleteFile
             fileIds={[fileId]}
+            fileName={fileName}
             onClose={() => {
               setIsDeletePopupOpen(false);
             }}
