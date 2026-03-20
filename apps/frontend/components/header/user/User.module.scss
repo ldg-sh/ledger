@@ -1,0 +1,27 @@
+.container {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+}
+
+.title {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+    font-weight: 400;
+    margin-bottom: -0.1em;
+}
+
+.username {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin: 0;
+    color: var(--color-text-bold);
+}
+
+.avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 5px;
+    object-fit: cover;
+}

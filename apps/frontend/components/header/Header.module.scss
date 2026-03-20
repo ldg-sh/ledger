@@ -15,6 +15,7 @@
     height: 100%;
     display: flex;
     align-items: center;
+    justify-content: space-between;
 }
 
 .logo {
@@ -23,17 +24,20 @@
     margin: 0 30px;
 }
 
+.user {
+    margin: 0 30px;
+}
+
 .logoText {
     margin-left: 25px;
     display: flex;
     flex-direction: column;
-
 }
 
 .logoTitle {
     font-size: 1.6rem;
     color: var(--color-text-bold);
-    font-weight: 1000;
+    font-weight: 700;
     margin: 0;
     font-family: var(--font-overused-grotesk);
 }

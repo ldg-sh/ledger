@@ -32,7 +32,7 @@ pub async fn google_callback(
             ("code", &query.code),
             ("client_id", &config().auth.google_client_id),
             ("client_secret", &config().auth.google_client_secret),
-            ("redirect_uri", &"http://localhost:8080/auth/callback/google".to_string()), // TODO: Change this
+            ("redirect_uri", &"http://localhost:3000/callback/google".to_string()), // TODO: Change this
             ("grant_type", &"authorization_code".to_string()),
         ])
         .send()

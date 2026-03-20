@@ -19,10 +19,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       lang="en"
     >
       <body className={styles.body}>
-        <Logo />
-        <MenuProvider>
-          <UserProvider>{children}</UserProvider>
-        </MenuProvider>
+        <UserProvider>
+          <Logo />
+          <MenuProvider>{children}</MenuProvider>
+        </UserProvider>
       </body>
     </html>
   );

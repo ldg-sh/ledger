@@ -1,4 +1,5 @@
 import styles from "./Header.module.scss";
+import User from "./user/User";
 
 export default function Logo() {
   return (
@@ -23,6 +24,9 @@ export default function Logo() {
               Fast, efficient, lightweight file storage.
             </p>
           </div>
+        </div>
+        <div className={styles.user}>
+          <User />
         </div>
       </div>
     </div>
