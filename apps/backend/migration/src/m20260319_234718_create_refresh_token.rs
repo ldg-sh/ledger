@@ -12,7 +12,7 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(RefreshToken::Table)
                     .if_not_exists()
-                    .col(ColumnDef::new(RefreshToken::Id).string().not_null().primary_key())
+                    .col(ColumnDef::new(RefreshToken::Id).uuid().not_null().primary_key())
                     .col(ColumnDef::new(RefreshToken::UserId).string().not_null())
                     .col(ColumnDef::new(RefreshToken::Token).string().not_null())
                     .col(ColumnDef::new(RefreshToken::ExpiresAt).timestamp_with_time_zone().not_null())

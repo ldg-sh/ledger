@@ -66,5 +66,5 @@ pub async fn google_callback(
         .await
         .expect("Failed to sync Google user to database");
 
-    login_success(user_uuid).await
+    login_success(user_uuid, context.postgres_service.clone()).await
 }

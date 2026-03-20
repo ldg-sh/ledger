@@ -1,14 +1,36 @@
 .container {
     display: flex;
     align-items: center;
-    gap: .8rem;
+    gap: 10px;
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+    padding-left: 10px;
+    padding-right: 30px;
+    height: 48px;
+    justify-content: center;
+    align-items: start;
+    border-radius: 5px;
+
+    transition: background-color 0.2s ease;
+}
+
+.info:hover {
+    cursor: pointer;
+    background-color: var(--color-background-hover);
+}
+
+.info:active {
+    background-color: var(--color-background-selected);
 }
 
 .title {
     font-size: 0.8rem;
     color: var(--color-text-secondary);
     margin: 0;
-    font-weight: 400;
+    font-weight: 300;
     margin-bottom: -0.1em;
 }
 

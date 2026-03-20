@@ -15,5 +15,8 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             .service(
                 info::info
             )
+            .service(
+                refresh::refresh
+            )
     );
 }

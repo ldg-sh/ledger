@@ -5,6 +5,7 @@ import Row from "./Row";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { extractPathFromUrl } from "@/lib/util/url";
+import { useUser } from "@/context/UserContext";
 
 interface File {
   fileId: string;
@@ -25,8 +26,10 @@ export default function FileList() {
   const [data, setData] = useState<FileListData | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [lastDeliberateClick, setLastDeliberateClick] = useState<string | null>(
-    null
+    null,
   );
+
+  const { user, loading: authLoading } = useUser();
 
   const getAllFileIds = useCallback((): string[] => {
     if (!data) return [];
@@ -75,7 +78,7 @@ export default function FileList() {
       }
       await writeToClipboard(fileId);
     },
-    [selectedFiles]
+    [selectedFiles],
   );
 
   const pasteFileIdsFromClipboard = useCallback(
@@ -94,7 +97,7 @@ export default function FileList() {
 
       const fileIds = await copyMultipleFiles(
         fileIdsToCopy,
-        extractPathFromUrl(pathname)
+        extractPathFromUrl(pathname),
       );
 
       const event = new CustomEvent("refresh-file-list", {
@@ -104,7 +107,7 @@ export default function FileList() {
       });
       window.dispatchEvent(event);
     },
-    [pathname, data]
+    [pathname, data],
   );
 
   const pasteFileIdFromClipboard = useCallback(
@@ -124,7 +127,7 @@ export default function FileList() {
       });
       window.dispatchEvent(event);
     },
-    [data, pathname]
+    [data, pathname],
   );
 
   const handleSelectAll = useCallback(() => {
@@ -169,7 +172,7 @@ export default function FileList() {
       fileId: string,
       selected: boolean,
       isShiftKey: boolean,
-      isCommandKey: boolean
+      isCommandKey: boolean,
     ) => {
       setSelectedFiles((prevSelected) => {
         const newSelected = new Set(prevSelected);
@@ -201,13 +204,21 @@ export default function FileList() {
         return newSelected;
       });
     },
-    [lastDeliberateClick, getAllFileIds]
+    [lastDeliberateClick, getAllFileIds],
   );
 
   const loadData = useCallback(async () => {
+    if (authLoading) return;
+
     const res = await listFiles(extractPathFromUrl(pathname));
     setData(res);
-  }, [pathname]);
+  }, [pathname, authLoading]);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      loadData();
+    }
+  }, [loadData, authLoading, user]);
 
   const refreshFileList = useCallback(
     async (event: Event) => {
@@ -217,7 +228,7 @@ export default function FileList() {
         event.detail();
       }
     },
-    [loadData]
+    [loadData],
   );
 
   useEffect(() => {

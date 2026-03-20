@@ -20,6 +20,10 @@ impl ScheduledJob for DatabaseHealthCheck {
             .await
             .map_err(anyhow::Error::new)?;
 
+        data.postgres_service.expire_refresh_tokens()
+            .await
+            .map_err(anyhow::Error::new)?;
+
         tracing::info!(
             target: "scheduler",
             job = %self.name(),

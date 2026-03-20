@@ -24,19 +24,38 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+useEffect(() => {
+  const initAuth = async () => {
+    try {
+      let res = await fetch("/auth/info", { credentials: "include" });
 
-  useEffect(() => {
-    fetch("/auth/info", { credentials: "include" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
+      if (res.status === 401) {
+        const refreshRes = await fetch("/auth/refresh", {
+          credentials: "include",
+          method: "POST",
+        });
+
+        if (refreshRes.ok) {
+          res = await fetch("/auth/info", { credentials: "include" });
+        }
+      }
+
+      if (res.ok) {
+        const data = await res.json();
         setUser(data);
-        setLoading(false);
-      })
-      .catch(() => {
-        console.error("Failed to fetch user info");
-        setLoading(false);
-      });
-  }, []);
+      } else {
+        setUser(null);
+      }
+    } catch (err) {
+      console.error("Auth initialization failed", err);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  initAuth();
+}, []);
 
   return (
     <UserContext.Provider value={{ user, loading }}>

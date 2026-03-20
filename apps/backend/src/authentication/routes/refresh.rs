@@ -1,10 +1,10 @@
 use std::sync::Arc;
 use actix_web::{web, HttpResponse};
+use crate::authentication::success::login_success;
 use crate::context::AppContext;
-use crate::util::auth::generate_access_token;
 
 #[actix_web::post("refresh")]
-pub async fn refresh_access_token(
+pub async fn refresh(
     req: actix_web::HttpRequest,
     context: web::Data<Arc<AppContext>>,
 ) -> HttpResponse {
@@ -13,12 +13,17 @@ pub async fn refresh_access_token(
         None => return HttpResponse::Unauthorized().body("No refresh token found"),
     };
 
+    println!("Received refresh token: {}", refresh_token);
+
     let token_record = match context.postgres_service
-        .get_refresh_token(refresh_token)
+        .get_refresh_token(refresh_token.trim().to_string())
         .await
     {
         Ok(record) => record,
-        Err(_) => return HttpResponse::Unauthorized().body("Invalid or expired session"),
+        Err(error) => {
+            println!("Invalid refresh token: {}", error);
+            return HttpResponse::Unauthorized().body("Invalid or expired session")
+        },
     };
 
     if token_record.expires_at < chrono::Utc::now() {
@@ -26,12 +31,10 @@ pub async fn refresh_access_token(
             token_record.token,
         ).await;
 
+        println!("Refresh token expired");
+
         return HttpResponse::Unauthorized().body("Session expired");
     }
 
-    let new_access_token = generate_access_token(&token_record.user_id);
-
-    HttpResponse::Ok().json(serde_json::json!({
-        "access_token": new_access_token
-    }))
+    login_success(token_record.user_id, context.postgres_service.clone()).await
 }

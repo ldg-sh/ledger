@@ -6,7 +6,8 @@
 
 .transferWindow {
     position: fixed;
-    outline: var(--border-style);
+    border-left: var(--border-style);
+    border-top: var(--border-style);
     background-color: var(--color-background);
     bottom: 0px;
     right: calc((100% - var(--content-width)) / 2);
@@ -61,7 +62,6 @@
 }
 
 .header {
-    border-bottom: var(--border-style);
     padding: 15px;
     display: flex;
     align-items: center;

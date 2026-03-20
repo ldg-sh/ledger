@@ -1,9 +1,13 @@
+use std::sync::Arc;
 use actix_web::HttpResponse;
+use chrono::Duration;
+use sea_orm::prelude::DateTimeWithTimeZone;
 use serde_json::json;
 use uuid::Uuid;
+use crate::modules::postgres::postgres_service::PostgresService;
 use crate::util::auth::generate_access_token;
 
-pub async fn login_success(user_id: String) -> HttpResponse {
+pub async fn login_success(user_id: String, postgres_service: Arc<PostgresService>) -> HttpResponse {
     let raw_refresh_token = Uuid::new_v4().to_string();
 
     let access_cookie = actix_web::cookie::Cookie::build("session", generate_access_token(&user_id))
@@ -12,11 +16,17 @@ pub async fn login_success(user_id: String) -> HttpResponse {
         .secure(true)
         .finish();
 
-    let refresh_cookie = actix_web::cookie::Cookie::build("refresh_token", raw_refresh_token)
+    let refresh_cookie = actix_web::cookie::Cookie::build("refresh_token", raw_refresh_token.clone())
         .path("/auth/refresh")
         .secure(true)
         .max_age(actix_web::cookie::time::Duration::days(30))
         .finish();
+    
+    let _ = postgres_service.store_refresh_token(
+        user_id.clone(),
+        raw_refresh_token,
+        DateTimeWithTimeZone::from(chrono::Utc::now() + Duration::days(30)),
+    ).await;
 
     HttpResponse::Ok()
         .cookie(access_cookie)
@@ -24,7 +34,7 @@ pub async fn login_success(user_id: String) -> HttpResponse {
         .json(
             json!({
                 "message": "Login successful",
-                "user_id": user_id,
+                "user_id": user_id
             })
         )
 }

@@ -76,5 +76,5 @@ pub async fn github_callback(
         Provider::GitHub
     ).await;
 
-    login_success(res.unwrap_or_else(|_| uuid::Uuid::new_v4().to_string())).await
+    login_success(res.unwrap_or_else(|_| uuid::Uuid::new_v4().to_string()), context.postgres_service.clone()).await
 }

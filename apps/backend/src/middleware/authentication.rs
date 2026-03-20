@@ -16,7 +16,6 @@ impl FromRequest for AuthenticatedUser {
     type Future = Ready<Result<Self, Self::Error>>;
 
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
-        println!("{:?}", req.cookies());
         let session = req.cookie("session");
 
         if session.is_none() {

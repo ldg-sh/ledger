@@ -8,6 +8,7 @@ use sea_orm::prelude::DateTimeWithTimeZone;
 use sea_orm::{sea_query::OnConflict, EntityTrait, QueryFilter, Set};
 use std::io::Error;
 use std::io::ErrorKind;
+use entity::user::Relation::RefreshToken;
 use crate::types::user::User;
 
 impl PostgresService {
@@ -103,6 +104,18 @@ impl PostgresService {
             .map_err(|e| Error::new(ErrorKind::Other, format!("DB Query Error: {}", e)));
 
         Ok(res?.ok_or_else(|| Error::new(ErrorKind::NotFound, "Refresh token not found"))?)
+    }
+    
+    pub async fn expire_refresh_tokens(&self) -> Result<(), Error> {
+        use entity::refresh_token::Entity as RefreshToken;
+
+        RefreshToken::delete_many()
+            .filter(refresh_token::Column::ExpiresAt.lte(DateTimeWithTimeZone::from(Utc::now())))
+            .exec(&self.database_connection)
+            .await
+            .map_err(|e| Error::new(ErrorKind::Other, format!("DB Cleanup Error: {}", e)))?;
+        
+        Ok(())
     }
 
     pub async fn get_user_information(&self, user_id: String) -> Result<User, Error> {
