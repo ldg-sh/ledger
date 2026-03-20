@@ -89,9 +89,7 @@ export default function Row({
           let currentPath = extractPathFromUrl(pathname);
 
           if (folder) {
-            router.push(
-              `/${currentPath}/${fileName}`.replace(/\/+/g, "/")
-            );
+            router.push(`/${currentPath}/${fileName}`.replace(/\/+/g, "/"));
           } else {
             window.open(`/preview/${currentPath}/${fileId}`, "_blank");
           }
@@ -132,95 +130,95 @@ export default function Row({
         <span className={cn(styles.createdAt, styles.rowElement)}>
           {formattedDate !== "" ? formattedDate : "—"}
         </span>
-        <AnimatePresence>
-          {visible && (
-            <div>
-              <ContextMenu x={position.x} y={position.y}>
-                <ContextMenuItem
-                  label="Copy"
-                  glyph="copy"
-                  hotkey="CtrlC"
-                  onClick={() => {
-                    document.dispatchEvent(
-                      new CustomEvent("copy-file-ids", {
-                        detail: {
-                          fileId: fileId,
-                        },
-                      }),
-                    );
-                    hideMenu();
-                  }}
-                />
-                <ContextMenuItem
-                  label="Paste"
-                  glyph="clipboard-paste"
-                  hotkey="CtrlV"
-                  onClick={() => {
-                    document.dispatchEvent(new CustomEvent("paste-file-ids"));
-
-                    hideMenu();
-                  }}
-                />
-                <ContextMenuItem
-                  label="Rename"
-                  glyph="pencil-line"
-                  onClick={() => {
-                    setIsRenamePopupOpen(true);
-                    hideMenu();
-                  }}
-                />
-                <ContextMenuItem
-                  label="Copy Link"
-                  glyph="link"
-                  onClick={() => {
-                    const link = `${window.location.origin}/api/download/${fileId}`;
-                    navigator.clipboard.writeText(link);
-                    hideMenu();
-                  }}
-                />
-                <ContextMenuItem
-                  label="Download"
-                  glyph="download"
-                  onClick={() => {
-                    handleDownload();
-                    hideMenu();
-                  }}
-                />
-
-                <ContextMenuItem
-                  label="Delete"
-                  glyph="trash-2"
-                  destructive
-                  onClick={() => {
-                    setIsDeletePopupOpen(true);
-                    hideMenu();
-                  }}
-                />
-              </ContextMenu>
-            </div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {isRenamePopupOpen && (
-            <RenameFile
-              placeholder={fileName}
-              fileId={fileId}
-              onClose={() => {
-                setIsRenamePopupOpen(false);
-              }}
-            />
-          )}
-          {isDeletePopupOpen && (
-            <DeleteFile
-              fileId={fileId}
-              onClose={() => {
-                setIsDeletePopupOpen(false);
-              }}
-            />
-          )}
-        </AnimatePresence>
       </div>
+      <AnimatePresence>
+        {visible && (
+          <div>
+            <ContextMenu x={position.x} y={position.y}>
+              <ContextMenuItem
+                label="Copy"
+                glyph="copy"
+                hotkey="CtrlC"
+                onClick={() => {
+                  document.dispatchEvent(
+                    new CustomEvent("copy-file-ids", {
+                      detail: {
+                        fileId: fileId,
+                      },
+                    }),
+                  );
+                  hideMenu();
+                }}
+              />
+              <ContextMenuItem
+                label="Paste"
+                glyph="clipboard-paste"
+                hotkey="CtrlV"
+                onClick={() => {
+                  document.dispatchEvent(new CustomEvent("paste-file-ids"));
+
+                  hideMenu();
+                }}
+              />
+              <ContextMenuItem
+                label="Rename"
+                glyph="pencil-line"
+                onClick={() => {
+                  setIsRenamePopupOpen(true);
+                  hideMenu();
+                }}
+              />
+              <ContextMenuItem
+                label="Copy Link"
+                glyph="link"
+                onClick={() => {
+                  const link = `${window.location.origin}/api/download/${fileId}`;
+                  navigator.clipboard.writeText(link);
+                  hideMenu();
+                }}
+              />
+              <ContextMenuItem
+                label="Download"
+                glyph="download"
+                onClick={() => {
+                  handleDownload();
+                  hideMenu();
+                }}
+              />
+
+              <ContextMenuItem
+                label="Delete"
+                glyph="trash-2"
+                destructive
+                onClick={() => {
+                  setIsDeletePopupOpen(true);
+                  hideMenu();
+                }}
+              />
+            </ContextMenu>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isRenamePopupOpen && (
+          <RenameFile
+            placeholder={fileName}
+            fileId={fileId}
+            onClose={() => {
+              setIsRenamePopupOpen(false);
+            }}
+          />
+        )}
+        {isDeletePopupOpen && (
+          <DeleteFile
+            fileId={fileId}
+            onClose={() => {
+              setIsDeletePopupOpen(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

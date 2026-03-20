@@ -28,8 +28,9 @@ export default function Popup({ children, onClosePopup }: PopupProps) {
     <div>
       <motion.div
         className={styles.popupBackdrop}
-        onClick={() => {
+        onClick={(event) => {
           onClosePopup && onClosePopup();
+          event.stopPropagation();
         }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

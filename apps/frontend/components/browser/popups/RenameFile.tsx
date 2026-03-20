@@ -48,6 +48,7 @@ export default function RenameFile({ onClose, placeholder, fileId }: RenameFileP
           </div>
           <TextInput
             title="New File name"
+            originalValue={placeholder}
             onChange={(newValue) => {
               setValue(newValue);
             }}

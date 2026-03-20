@@ -235,6 +235,10 @@ export default function FileList() {
     const handleKeyDown = async (event: KeyboardEvent) => {
       const isMod = event.metaKey || event.ctrlKey;
 
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
       if (isMod && event.key === "a") {
         event.preventDefault();
         handleSelectAll();

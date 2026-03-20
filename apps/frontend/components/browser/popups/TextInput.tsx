@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import styles from "./TextInput.module.scss";
 
 interface TextInputProps {
@@ -6,6 +6,7 @@ interface TextInputProps {
   onChange: (newValue: string) => void;
   onSubmit: () => void;
   placeholder?: string;
+  originalValue?: string;
   disabled?: boolean;
   select?: boolean;
   hint?: string | ReactNode;
@@ -16,18 +17,27 @@ export default function TextInput({
   onChange,
   onSubmit,
   placeholder,
+  originalValue,
   disabled,
   select = false,
   hint,
 }: TextInputProps) {
-  let [value, setValue] = useState("");
+  let [value, setValue] = useState(originalValue || "");
+
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (select && inputRef.current) {
+      inputRef.current.select();
+    }
+  }, [select]);
 
   let isReactNodeHint = typeof hint !== "string";
 
   return (
     <div className={styles.textInputContainer}>
-      {/* <p className={styles.title}>{title}</p> */}
       <input
+        ref={inputRef}
         autoFocus={select}
         type="text"
         name="text"
