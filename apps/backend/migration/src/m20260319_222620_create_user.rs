@@ -16,6 +16,7 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(User::GithubId).string().unique_key())
                     .col(ColumnDef::new(User::GoogleId).string().unique_key())
                     .col(ColumnDef::new(User::Username).string().not_null())
+                    .col(ColumnDef::new(User::AvatarUrl).string())
                     .col(
                         ColumnDef::new(User::CreatedAt)
                             .timestamp_with_time_zone()
@@ -48,5 +49,6 @@ pub enum User {
     GoogleId,
     CreatedAt,
     UpdatedAt,
-    Username
+    Username,
+    AvatarUrl
 }

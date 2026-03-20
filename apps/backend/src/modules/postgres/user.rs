@@ -8,6 +8,7 @@ use sea_orm::prelude::DateTimeWithTimeZone;
 use sea_orm::{sea_query::OnConflict, EntityTrait, QueryFilter, Set};
 use std::io::Error;
 use std::io::ErrorKind;
+use crate::types::user::User;
 
 impl PostgresService {
     pub async fn upsert_oauth_user(
@@ -15,6 +16,7 @@ impl PostgresService {
         email: String,
         username: String,
         provider_id: String,
+        avatar: Option<String>,
         provider: Provider,
     ) -> Result<String, Error> {
         use entity::user::{ActiveModel, Column, Entity as User};
@@ -25,6 +27,7 @@ impl PostgresService {
             username: Set(username),
             created_at: Set(DateTimeWithTimeZone::from(Utc::now())),
             updated_at: Set(DateTimeWithTimeZone::from(Utc::now())),
+            avatar_url: Set(avatar),
             ..Default::default()
         };
 
@@ -48,6 +51,8 @@ impl PostgresService {
             .exec_with_returning(&self.database_connection)
             .await
             .map_err(|e| Error::new(ErrorKind::Other, format!("DB Upsert Error: {}", e)))?;
+
+        println!("{:?}", result);
 
         Ok(result.id)
     }
@@ -92,11 +97,24 @@ impl PostgresService {
         use entity::refresh_token::Entity as RefreshToken;
 
         let res = RefreshToken::find()
-        .filter(refresh_token::Column::Token.eq(refresh_token))
-        .one(&self.database_connection)
-        .await
-        .map_err(|e| Error::new(ErrorKind::Other, format!("DB Query Error: {}", e)));
+            .filter(refresh_token::Column::Token.eq(refresh_token))
+            .one(&self.database_connection)
+            .await
+            .map_err(|e| Error::new(ErrorKind::Other, format!("DB Query Error: {}", e)));
 
         Ok(res?.ok_or_else(|| Error::new(ErrorKind::NotFound, "Refresh token not found"))?)
+    }
+
+    pub async fn get_user_information(&self, user_id: String) -> Result<User, Error> {
+        use entity::user::Entity as User;
+
+        let user = User::find()
+            .filter(entity::user::Column::Id.eq(user_id))
+            .one(&self.database_connection)
+            .await
+            .map_err(|e| Error::new(ErrorKind::Other, format!("DB Query Error: {}", e)))?
+            .ok_or_else(|| Error::new(ErrorKind::NotFound, "User not found"))?;
+
+        Ok(crate::types::user::User::from(user))
     }
 }

@@ -72,6 +72,7 @@ pub async fn github_callback(
         user_info.email,
         user_info.login,
         user_info.id.to_string(),
+        Some(user_info.avatar_url),
         Provider::GitHub
     ).await;
 

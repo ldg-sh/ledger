@@ -60,6 +60,7 @@ pub async fn google_callback(
             google_user.email,
             google_user.name.unwrap_or("Unknown".to_string()),
             google_user.id,
+            google_user.picture,
             Provider::Google,
         )
         .await

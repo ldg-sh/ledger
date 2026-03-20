@@ -1,6 +1,7 @@
 use actix_web::{Error, FromRequest, HttpRequest};
 use actix_web::dev::Payload;
 use std::future::{Ready, ready};
+use actix_web::error::ErrorUnauthorized;
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use crate::config::config;
 use crate::util::auth::UserClaims;
@@ -15,16 +16,18 @@ impl FromRequest for AuthenticatedUser {
     type Future = Ready<Result<Self, Self::Error>>;
 
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
-        let bearer_session = req.headers().get("Authorization")
-            .and_then(|h| h.to_str().ok())
-            .and_then(|s| s.strip_prefix("Bearer "))
-            .map(|s| s.to_string());
+        println!("{:?}", req.cookies());
+        let session = req.cookie("session");
 
-        if let Some(c) = bearer_session {
+        if session.is_none() {
+            return ready(Err(ErrorUnauthorized("Unauthorized")));
+        }
+
+        if let Some(c) = session {
             let secret = &config().auth.jwt_secret;
 
             let token_data = decode::<UserClaims>(
-                c,
+                c.value(),
                 &DecodingKey::from_secret(secret.as_ref()),
                 &Validation::default(),
             );
@@ -34,12 +37,12 @@ impl FromRequest for AuthenticatedUser {
                     let user_id = data.claims.user_id.to_string();
                     ready(Ok(AuthenticatedUser { id: user_id }))
                 },
-                Err(_) => ready(Err(actix_web::error::ErrorUnauthorized("Invalid session token"))),
+                Err(_) => ready(Err(ErrorUnauthorized("Invalid session token"))),
             }
 
 
         } else {
-            ready(Err(actix_web::error::ErrorUnauthorized("No session token found")))
+            ready(Err(ErrorUnauthorized("No session token found")))
         }
     }
 }

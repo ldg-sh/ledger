@@ -1,3 +1,4 @@
+use actix_cors::Cors;
 use crate::context::AppContext;
 use crate::modules::postgres::postgres_service::PostgresService;
 use crate::modules::redis::redis_service::RedisService;
@@ -9,6 +10,7 @@ use env_logger::Env;
 use log::debug;
 use log::warn;
 use std::sync::Arc;
+use actix_web::http::header;
 
 mod config;
 mod context;
@@ -68,7 +70,15 @@ async fn main() -> std::io::Result<()> {
 
     let app_data = Data::new(Arc::clone(&context));
     HttpServer::new(move || {
+        let cors = Cors::default()
+            .allowed_origin("http://localhost:3000")
+            .allowed_methods(vec!["GET", "POST", "OPTIONS"])
+            .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT, header::CONTENT_TYPE])
+            .supports_credentials()
+            .max_age(3600);
+
         App::new()
+            .wrap(cors)
             .app_data(app_data.clone())
             .app_data(MultipartFormConfig::default().total_limit(1000 * 1024 * 1024))
             .configure(|cfg| {
