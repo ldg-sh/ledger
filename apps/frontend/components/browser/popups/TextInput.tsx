@@ -26,7 +26,7 @@ export default function TextInput({
 
   return (
     <div className={styles.textInputContainer}>
-      <p className={styles.title}>{title}</p>
+      {/* <p className={styles.title}>{title}</p> */}
       <input
         autoFocus={select}
         type="text"

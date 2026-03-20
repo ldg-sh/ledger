@@ -7,12 +7,14 @@
     --color-text-bold: #191919;
     --content-width: 80%;
     --color-background: #f9f9f9;
-    --color-background-selected: #ebebeb;
-    --color-background-hover: #f4f4f4;
-    --color-background-active: #f2f2f2;
+    --color-background-selected: #0000000a;
+    --color-background-hover: #00000006;
+    --color-background-active: #00000008;
     --color-background-bold-hover: #2a2a2a;
     --color-button-background-active: #343434;
     --box-shadow-standard: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    --color-row-background-selected: rgba(72, 148, 255, 0.065);
 
     --color-error-background: rgba(239, 68, 68, 0.05);
     --color-error-foreground: rgb(239, 68, 68);

@@ -22,10 +22,15 @@ const nextConfig = {
     },
   },
   async rewrites() {
+    const isLocal = process.env.NODE_ENV === 'development';
+    const apiBase = isLocal 
+      ? "http://localhost:8080" 
+      : process.env.API_URL;
+
     return [
       {
         source: "/auth/:path*",
-        destination: "http://localhost:8080/auth/:path*",
+        destination: `${apiBase}/auth/:path*`,
       },
     ];
   },
