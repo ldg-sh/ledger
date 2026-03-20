@@ -30,46 +30,46 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const router = useRouter();
 
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        let res = await fetch("/auth/info", { credentials: "include" });
+  const initAuth = async () => {
+    try {
+      let res = await fetch("/auth/info", { credentials: "include" });
 
-        if (res.status === 401) {
-          const refreshRes = await fetch("/auth/refresh", {
-            credentials: "include",
-            method: "POST",
-          });
+      if (res.status === 401) {
+        const refreshRes = await fetch("/auth/refresh", {
+          credentials: "include",
+          method: "POST",
+        });
 
-          if (refreshRes.ok) {
-            res = await fetch("/auth/info", { credentials: "include" });
-          }
+        if (refreshRes.ok) {
+          res = await fetch("/auth/info", { credentials: "include" });
         }
-
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data);
-        } else {
-          console.error(
-            "Auth initialization failed:",
-            window.location.pathname,
-          );
-
-          attemptRedirect();
-
-          setUser(null);
-        }
-      } catch (err) {
-        console.error("Auth initialization failed", err);
-        setUser(null);
-
-        attemptRedirect();
-      } finally {
-        setLoading(false);
       }
-    };
 
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data);
+      } else {
+        attemptRedirect();
+
+        setUser(null);
+      }
+    } catch (err) {
+      setUser(null);
+
+      attemptRedirect();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     initAuth();
+
+    document.addEventListener("reloadUser", initAuth);
+
+    return () => {
+      document.removeEventListener("reloadUser", initAuth);
+    };
   }, []);
 
   function attemptRedirect() {
