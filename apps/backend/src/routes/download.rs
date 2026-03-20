@@ -1,5 +1,6 @@
 extern crate sanitize_filename;
 
+use std::collections::HashMap;
 use crate::context::AppContext;
 use crate::middleware::authentication::AuthenticatedUser;
 use crate::util::file::build_key;
@@ -65,10 +66,12 @@ pub async fn download(
 pub async fn download_full(
     context: web::Data<Arc<AppContext>>,
     file_id: web::Path<String>,
-    authenticated_user: AuthenticatedUser
+    authenticated_user: AuthenticatedUser,
+    query: web::Query<HashMap<String, String>>,
 ) -> HttpResponse {
     let postgres_service = Arc::clone(&context.clone().into_inner().postgres_service);
     let s3_service = Arc::clone(&context.into_inner().s3_service);
+    let preview = query.get("preview").map(|v| v == "true").unwrap_or(false);
 
     let file = postgres_service.get_file(
         &file_id.clone(),
@@ -86,7 +89,7 @@ pub async fn download_full(
     }
 
     let path = build_key(&authenticated_user.id, &file_id);
-
+    
     let object_output = match s3_service.download_file(&path).await {
         Ok(object) => object,
         Err(e) => {
@@ -98,9 +101,16 @@ pub async fn download_full(
         .content_type()
         .unwrap_or("application/octet-stream");
 
+    let disposition = if preview {
+        println!("Previewing file with key: {}", path);
+        format!("inline; filename=\"{}\"", sanitize_filename::sanitize(&file.unwrap().unwrap().file_name))
+    } else {
+        format!("attachment; filename=\"{}\"", sanitize_filename::sanitize(&file.unwrap().unwrap().file_name))
+    };
+
     HttpResponse::Ok()
         .insert_header((ACCEPT_RANGES, "bytes"))
         .insert_header((CONTENT_TYPE, mime_type))
-        .insert_header((CONTENT_DISPOSITION, "inline"))
+        .insert_header((CONTENT_DISPOSITION, disposition))
         .streaming(ReaderStream::new(object_output.body.into_async_read()))
 }

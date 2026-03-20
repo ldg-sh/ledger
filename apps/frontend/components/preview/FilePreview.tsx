@@ -1,32 +1,27 @@
 "use client";
 
-import { downloadFull } from '@/lib/api/file';
-import { useState } from 'react';
+import { downloadFull } from "@/lib/api/file";
+import { useEffect, useState } from "react";
+import styles from "./FilePreview.module.scss";
 
-export default function FilePreview({ fileId, fileType }: { fileId: string, fileType?: string }) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-  const handlePreview = async () => {
-    const response = await downloadFull(fileId);
-
-    const blob = new Blob([response], { type: fileType || "application/octet-stream" });
-    const url = URL.createObjectURL(blob);
-    setPreviewUrl(url);
-  };
+export default function FilePreview({ fileId, fileType }: { fileId: string; fileType?: string }) {
+  const previewUrl = `/api/download/${fileId}?preview=true`;
+  const isImage = fileType?.startsWith("image/");
 
   return (
-    <div>
-      <button onClick={handlePreview}>Preview File</button>
-      
-      {previewUrl && (
-        <div className="preview-container">
-          <iframe 
-            src={previewUrl} 
-            width="100%" 
-            height="600px" 
-            title="File Preview"
-          />
-        </div>
+    <div className={styles.container}>
+      {isImage ? (
+        <img 
+          src={previewUrl} 
+          alt="Preview" 
+          className={styles.previewImage} 
+        />
+      ) : (
+        <iframe
+          src={previewUrl}
+          title="File Preview"
+          className={styles.iframe}
+        />
       )}
     </div>
   );

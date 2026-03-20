@@ -27,7 +27,7 @@ interface RowProps {
     fileId: string,
     selected: boolean,
     isShiftKey: boolean,
-    isCommandKey: boolean
+    isCommandKey: boolean,
   ) => void;
   selected?: boolean;
 }
@@ -60,6 +60,10 @@ export default function Row({
       })
     : "";
 
+  function handleDownload() {
+    window.location.assign(`/api/download/${fileId}`);
+  }
+
   return (
     <div className={styles.rowContainer}>
       <div className={styles.moreOptions} onClick={showMenu}>
@@ -88,7 +92,7 @@ export default function Row({
             router.push(
               `/dashboard/${
                 currentPath === "/" ? "" : currentPath + "/"
-              }${fileName}`
+              }${fileName}`,
             );
           } else {
             window.open(`/preview/${currentPath}/${fileId}`, "_blank");
@@ -116,7 +120,7 @@ export default function Row({
           className={cn(
             styles.fileName,
             styles.rowElement,
-            folder && styles.folderLink
+            folder && styles.folderLink,
           )}
         >
           {fileName}
@@ -135,6 +139,14 @@ export default function Row({
             <div>
               <ContextMenu x={position.x} y={position.y}>
                 <ContextMenuItem
+                  label="Download"
+                  glyph="download"
+                  onClick={() => {
+                    handleDownload();
+                    hideMenu();
+                  }}
+                />
+                <ContextMenuItem
                   label="Copy"
                   glyph="copy"
                   hotkey="CtrlC"
@@ -144,7 +156,7 @@ export default function Row({
                         detail: {
                           fileId: fileId,
                         },
-                      })
+                      }),
                     );
                     hideMenu();
                   }}
@@ -167,6 +179,7 @@ export default function Row({
                     hideMenu();
                   }}
                 />
+
                 <ContextMenuItem
                   label="Delete"
                   glyph="trash-2"

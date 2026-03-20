@@ -333,8 +333,8 @@ export default function TransferWindow() {
           <div
             className={styles.rows}
             style={{
-              maxHeight: isExpanded ? "300px" : "1px",
-              minHeight: isExpanded ? "300px" : "1px",
+              maxHeight: isExpanded ? "300px" : "2px",
+              minHeight: isExpanded ? "300px" : "2px",
               display: Object.keys(progress).length === 0 ? "flex" : "block",
             }}
           >

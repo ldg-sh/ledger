@@ -50,7 +50,7 @@ export async function downloadPart(
 }
 
 export async function downloadFull(fileId: string) {
-  const res = await authenticatedFetch(`/download/view/${fileId}`);
+  const res = await authenticatedFetch(`/download/${fileId}/view?preview=true`);
   
   if (!res.ok) throw new Error("Failed to download full file");
   const data = await res.arrayBuffer();
