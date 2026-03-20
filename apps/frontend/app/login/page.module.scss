@@ -1,0 +1,47 @@
+.loginPage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    gap: 5rem;
+}
+
+.title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--color-text-bold);
+    margin: 0;
+}
+
+.subtitle {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.logo {
+    width: 20px;
+    height: 20px;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    width: 400px;
+}
+
+.loginButtonContainer {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    width: 100%;
+
+}
+
+.top {
+    width: 100%;
+}

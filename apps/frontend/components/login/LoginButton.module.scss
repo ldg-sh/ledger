@@ -1,0 +1,25 @@
+.loginButton {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    padding: 12px 20px;
+    border-radius: 10px;
+    background-color: var(--color-background);
+    border: var(--border-style);
+    color: var(--color-text-primary);
+    font-weight: 400;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease
+}
+
+.loginButton:hover {
+    cursor: pointer;
+    background-color: var(--color-background-hover);
+}
+
+.loginButton:active {
+    background-color: var(--color-background-active);
+}

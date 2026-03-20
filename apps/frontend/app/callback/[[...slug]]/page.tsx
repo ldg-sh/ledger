@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
+import styles from "./page.module.scss";
 
 export default function CallbackPage() {
   const searchParams = useSearchParams();
@@ -49,11 +50,11 @@ export default function CallbackPage() {
   }, [searchParams, params, router]);
 
   return (
-    <div className="">
+    <div className={styles.container}>
       {error ? (
-        <div className="">Error: {error}</div>
+        <div className={styles.error}><strong>Failed to authenticate:</strong> {error}</div>
       ) : (
-        <div>Authenticating...</div>
+        <div className={styles.loading}>Authenticating...</div>
       )}
     </div>
   );

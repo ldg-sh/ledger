@@ -5,6 +5,10 @@
     justify-content: center;
     background-color: var(--header-background);
     border-bottom: var(--border-style);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
 }
 
 .headerCenter {
