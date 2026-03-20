@@ -58,7 +58,7 @@
 .text {
     font-size: 2rem;
     font-weight: 800;
-    color: var(--color-text-primary);
+    color: var(--color-text-bold);
 }
 
 .header {
@@ -79,7 +79,7 @@
 }
 
 .arrowPath {
-    stroke: var(--color-text-primary);
+    stroke: var(--color-text-bold);
     animation: pulse 1.5s infinite;
 }
 
