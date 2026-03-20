@@ -1,4 +1,4 @@
-import Logo from "@/components/header/Header";
+import Header from "@/components/header/Header";
 import styles from "./layout.module.scss";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
@@ -21,7 +21,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <body className={styles.body}>
         <UserProvider>
           <MenuProvider>
-            <Logo />
+            <Header />
             {children}
           </MenuProvider>
         </UserProvider>

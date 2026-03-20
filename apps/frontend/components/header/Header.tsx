@@ -1,7 +1,7 @@
 import styles from "./Header.module.scss";
 import User from "./user/User";
 
-export default function Logo() {
+export default function Header() {
   return (
     <div className={styles.header}>
       <div className={styles.headerCenter}>

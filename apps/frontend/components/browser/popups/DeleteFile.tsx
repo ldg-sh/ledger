@@ -8,26 +8,40 @@ import { deleteFile } from "@/lib/api/file";
 
 interface DeleteFileProps {
   onClose: () => void;
-  fileId: string;
+  fileIds: string[];
+  fileName?: string;
 }
 
-export default function DeleteFile({ onClose, fileId }: DeleteFileProps) {
+export default function DeleteFile({ onClose, fileIds, fileName }: DeleteFileProps) {
   const [value, setValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   function handleSubmit() {
     setIsLoading(true);
 
-    deleteFile(fileId).then(() => {
-      let event = new CustomEvent("refresh-file-list", {
-        detail: () => {
-          onClose();
-          setIsLoading(false);
-        },
+    if (fileIds.length == 1) {
+      deleteFile(fileIds[0]).then(() => {
+        let event = new CustomEvent("refresh-file-list", {
+          detail: () => {
+            onClose();
+            setIsLoading(false);
+          },
+        });
+
+        window.dispatchEvent(event);
       });
-      
-      window.dispatchEvent(event);
-    });
+    } else {
+      Promise.all(fileIds.map((fileId) => deleteFile(fileId))).then(() => {
+        let event = new CustomEvent("refresh-file-list", {
+          detail: () => {
+            onClose();
+            setIsLoading(false);
+          },
+        });
+
+        window.dispatchEvent(event);
+      });
+    }
   }
 
   return (
@@ -40,9 +54,15 @@ export default function DeleteFile({ onClose, fileId }: DeleteFileProps) {
         <div className={styles.renameFileContainer}>
           <div className={styles.text}>
             <h1 className={styles.title}>Confirm Deletion</h1>
+            {fileIds.length > 1 ? (
             <p className={styles.description}>
-              Are you sure you want to permanently delete this file?
-            </p>
+                Are you sure you want to permanently delete <strong>{fileIds.length}</strong> files?
+              </p>
+            ) : (
+              <p className={styles.description}>
+                Are you sure you want to permanently delete <strong>{fileName}</strong>?
+              </p>
+            )}
           </div>
           <div className={styles.actions}>
             <button
@@ -57,7 +77,7 @@ export default function DeleteFile({ onClose, fileId }: DeleteFileProps) {
               className={cn(
                 styles.submitButton,
                 styles.actionButton,
-                isLoading && styles.loading
+                isLoading && styles.loading,
               )}
               onClick={handleSubmit}
             >

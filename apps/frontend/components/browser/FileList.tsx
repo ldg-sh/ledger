@@ -6,6 +6,12 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { extractPathFromUrl } from "@/lib/util/url";
 import { useUser } from "@/context/UserContext";
+import { useCustomMenu } from "@/hooks/customMenu";
+import { AnimatePresence } from "motion/react";
+import { ContextMenu } from "../general/menu/ContextMenu";
+import ContextMenuItem from "../general/menu/ContextMenuItem";
+import RenameFile from "./popups/RenameFile";
+import DeleteFile from "./popups/DeleteFile";
 
 interface File {
   fileId: string;
@@ -28,6 +34,17 @@ export default function FileList() {
   const [lastDeliberateClick, setLastDeliberateClick] = useState<string | null>(
     null,
   );
+
+  const [rightClickedFile, setRightClickedFile] = useState<{
+    fileId: string;
+    fileName: string;
+  } | null>(null);
+
+  const [isRenamePopupOpen, setIsRenamePopupOpen] = useState(false);
+  const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
+
+  const { visible, position, showMenu, hideMenu } =
+    useCustomMenu("file-list-menu");
 
   const { user, loading: authLoading } = useUser();
 
@@ -71,11 +88,6 @@ export default function FileList() {
 
   const copyFileIdToClipboard = useCallback(
     async (fileId: string) => {
-      if (selectedFiles.size > 1) {
-        const fileIdsString = Array.from(selectedFiles).join("\n");
-        await writeToClipboard(fileIdsString);
-        return;
-      }
       await writeToClipboard(fileId);
     },
     [selectedFiles],
@@ -84,7 +96,6 @@ export default function FileList() {
   const pasteFileIdsFromClipboard = useCallback(
     async (ids: string[]) => {
       let fileIdsToCopy: string[] = [];
-      console.log("PASTE IDS", ids);
 
       ids.forEach((id) => {
         let file = data?.files.find((file) => file.fileId === id);
@@ -92,8 +103,6 @@ export default function FileList() {
           fileIdsToCopy.push(id);
         }
       });
-
-      console.log("FILE IDS TO COPY", fileIdsToCopy);
 
       const fileIds = await copyMultipleFiles(
         fileIdsToCopy,
@@ -235,7 +244,10 @@ export default function FileList() {
     const handleKeyDown = async (event: KeyboardEvent) => {
       const isMod = event.metaKey || event.ctrlKey;
 
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement
+      ) {
         return;
       }
 
@@ -318,32 +330,176 @@ export default function FileList() {
   }, [loadData, refreshFileList]);
 
   return (
-    <div>
-      {data?.folders.map((folder) => (
-        <Row
-          key={folder.fileId}
-          fileId={folder.fileId}
-          fileName={folder.fileName}
-          fileSize={folder.fileSize}
-          fileType="folder"
-          folder={true}
-          clickCallback={handleRowClick}
-          selected={selectedFiles.has(folder.fileId)}
-        />
-      ))}
-      {data?.files.map((file) => (
-        <Row
-          key={file.fileId}
-          fileName={file.fileName}
-          fileSize={file.fileSize}
-          fileType={file.fileType}
-          fileId={file.fileId}
-          createdAt={file.createdAt}
-          clickCallback={handleRowClick}
-          selected={selectedFiles.has(file.fileId)}
-        />
-      ))}
-      <div style={{ height: "100px", width: "100%" }} />
-    </div>
+    <>
+      <div
+        onContextMenu={(event) => {
+          const target = event.target as HTMLElement;
+
+          event.preventDefault();
+
+          const rowElement = target.closest("[data-context-boundary]");
+
+          const fileId = rowElement?.getAttribute("data-file-id");
+          const fileName = rowElement?.getAttribute("data-file-name");
+
+          if (fileId && fileName) {
+            setRightClickedFile({ fileId, fileName });
+            setLastDeliberateClick(fileId);
+          } else {
+            setLastDeliberateClick(null);
+          }
+
+          showMenu(event);
+        }}
+      >
+        {data?.folders.map((folder) => (
+          <Row
+            key={folder.fileId}
+            fileId={folder.fileId}
+            fileName={folder.fileName}
+            fileSize={folder.fileSize}
+            fileType="folder"
+            folder={true}
+            clickCallback={handleRowClick}
+            selected={selectedFiles.has(folder.fileId)}
+          />
+        ))}
+        {data?.files.map((file) => (
+          <Row
+            key={file.fileId}
+            fileName={file.fileName}
+            fileSize={file.fileSize}
+            fileType={file.fileType}
+            fileId={file.fileId}
+            createdAt={file.createdAt}
+            clickCallback={handleRowClick}
+            selected={selectedFiles.has(file.fileId)}
+          />
+        ))}
+        <div style={{ height: "100px", width: "100%" }} />
+      </div>
+      <AnimatePresence>
+        {visible && (
+          <div>
+            <ContextMenu x={position.x} y={position.y}>
+              <ContextMenuItem
+                label="Select All"
+                glyph="check-check"
+                hotkey="CtrlA"
+                onClick={() => {
+                  handleSelectAll();
+                  hideMenu();
+                }}
+              />
+              <ContextMenuItem
+                label="Copy"
+                glyph="copy"
+                hotkey="CtrlC"
+                onClick={() => {
+                  if (!Array.from(selectedFiles).includes(rightClickedFile?.fileId || "")) {
+                    copyFileIdToClipboard(rightClickedFile?.fileId || "");
+                  } else {
+                    copyFileIdsToClipboard();
+                  }
+
+                  hideMenu();
+                }}
+              />
+              <ContextMenuItem
+                label="Paste"
+                glyph="clipboard-paste"
+                hotkey="CtrlV"
+                onClick={() => {
+                  getClipboardData().then((clipboard) => {
+                    if (clipboard.length === 1) {
+                      pasteFileIdFromClipboard(clipboard[0]);
+                    } else if (clipboard.length > 1) {
+                      pasteFileIdsFromClipboard(clipboard);
+                    }
+                  });
+                  hideMenu();
+                }}
+              />
+              {selectedFiles.size === 1 && (
+                <ContextMenuItem
+                  label="Copy Link"
+                  glyph="link"
+                  onClick={() => {
+                    const fileId = Array.from(selectedFiles)[0];
+                    copyFileIdToClipboard(fileId);
+                    hideMenu();
+                  }}
+                />
+              )}
+              <ContextMenuItem
+                label="Download"
+                glyph="download"
+                onClick={() => {
+                  const fileIds = Array.from(selectedFiles);
+                  fileIds.forEach((fileId) => {
+                    const link = document.createElement("a");
+                    link.href = `/api/download/${fileId}`;
+                    link.download = "";
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  });
+                  hideMenu();
+                }}
+              />
+
+              {rightClickedFile?.fileId && selectedFiles.size <= 1 && (
+                <ContextMenuItem
+                  label="Rename"
+                  glyph="pencil-line"
+                  onClick={() => {
+                    setIsRenamePopupOpen(true);
+                    hideMenu();
+                  }}
+                />
+              )}
+              <ContextMenuItem
+                label="Delete"
+                glyph="trash-2"
+                destructive
+                onClick={() => {
+                  setIsDeletePopupOpen(true);
+                  hideMenu();
+                }}
+              />
+            </ContextMenu>
+          </div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isDeletePopupOpen && (
+          <DeleteFile
+            fileIds={
+              Array.from(selectedFiles).includes(
+                rightClickedFile?.fileId || "",
+              ) && rightClickedFile?.fileId
+                ? Array.from(selectedFiles)
+                : rightClickedFile
+                  ? [rightClickedFile.fileId]
+                  : []
+            }
+            fileName={rightClickedFile?.fileName}
+            onClose={() => {
+              setIsDeletePopupOpen(false);
+            }}
+          />
+        )}
+
+        {isRenamePopupOpen && rightClickedFile && (
+          <RenameFile
+            placeholder={rightClickedFile.fileName}
+            fileId={rightClickedFile.fileId}
+            onClose={() => {
+              setIsRenamePopupOpen(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
+    </>
   );
 }

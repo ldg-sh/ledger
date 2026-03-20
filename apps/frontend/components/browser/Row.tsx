@@ -76,7 +76,9 @@ export default function Row({
       </div>
       <div
         className={cn(styles.row, selected && styles.selected)}
-        onContextMenu={showMenu}
+        data-file-id={fileId}
+        data-file-name={fileName}
+        data-context-boundary="true"
         onClick={(event) => {
           if (clickCallback) {
             let isShiftKey = event.shiftKey;
@@ -212,7 +214,7 @@ export default function Row({
         )}
         {isDeletePopupOpen && (
           <DeleteFile
-            fileId={fileId}
+            fileIds={[fileId]}
             onClose={() => {
               setIsDeletePopupOpen(false);
             }}
