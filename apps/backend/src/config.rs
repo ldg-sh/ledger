@@ -39,6 +39,7 @@ pub struct AuthDetails {
     pub jwt_secret: String,
     pub google_client_id: String,
     pub google_client_secret: String,
+    pub google_callback_url: String,
     pub github_client_id: String,
     pub github_client_secret: String,
 }
@@ -65,6 +66,7 @@ impl EnvConfig {
                 jwt_secret: Self::get_env("JWT_SECRET"),
                 google_client_id: Self::get_env("GOOGLE_CLIENT_ID"),
                 google_client_secret: Self::get_env("GOOGLE_CLIENT_SECRET"),
+                google_callback_url: Self::get_env("GOOGLE_CALLBACK_URL"),
                 github_client_id: Self::get_env("GITHUB_CLIENT_ID"),
                 github_client_secret: Self::get_env("GITHUB_CLIENT_SECRET"),
             },
