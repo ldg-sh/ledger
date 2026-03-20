@@ -70,8 +70,8 @@ pub async fn github_callback(
 
     let res = context.postgres_service.upsert_oauth_user(
         user_info.email,
-        user_info.id.to_string(),
         user_info.login,
+        user_info.id.to_string(),
         Provider::GitHub
     ).await;
 
