@@ -139,14 +139,6 @@ export default function Row({
             <div>
               <ContextMenu x={position.x} y={position.y}>
                 <ContextMenuItem
-                  label="Download"
-                  glyph="download"
-                  onClick={() => {
-                    handleDownload();
-                    hideMenu();
-                  }}
-                />
-                <ContextMenuItem
                   label="Copy"
                   glyph="copy"
                   hotkey="CtrlC"
@@ -179,7 +171,14 @@ export default function Row({
                     hideMenu();
                   }}
                 />
-
+                <ContextMenuItem
+                  label="Download"
+                  glyph="download"
+                  onClick={() => {
+                    handleDownload();
+                    hideMenu();
+                  }}
+                />
                 <ContextMenuItem
                   label="Delete"
                   glyph="trash-2"

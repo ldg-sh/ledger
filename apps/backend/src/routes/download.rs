@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use crate::context::AppContext;
 use crate::middleware::authentication::AuthenticatedUser;
 use crate::util::file::build_key;
-use actix_web::http::header::{ACCEPT_RANGES, CONTENT_DISPOSITION, CONTENT_TYPE};
+use actix_web::http::header::{ACCEPT_RANGES, CONTENT_DISPOSITION, CONTENT_TYPE, CONTENT_LENGTH};
 use actix_web::http::StatusCode;
 use actix_web::{get, web, HttpResponse};
 use serde::{Deserialize, Serialize};
@@ -89,7 +89,7 @@ pub async fn download_full(
     }
 
     let path = build_key(&authenticated_user.id, &file_id);
-    
+
     let object_output = match s3_service.download_file(&path).await {
         Ok(object) => object,
         Err(e) => {
@@ -100,6 +100,8 @@ pub async fn download_full(
     let mime_type = object_output
         .content_type()
         .unwrap_or("application/octet-stream");
+
+    let content_length = object_output.content_length;
 
     let disposition = if preview {
         println!("Previewing file with key: {}", path);
@@ -112,5 +114,6 @@ pub async fn download_full(
         .insert_header((ACCEPT_RANGES, "bytes"))
         .insert_header((CONTENT_TYPE, mime_type))
         .insert_header((CONTENT_DISPOSITION, disposition))
+        .insert_header((CONTENT_LENGTH, content_length.unwrap_or(0)))
         .streaming(ReaderStream::new(object_output.body.into_async_read()))
 }
