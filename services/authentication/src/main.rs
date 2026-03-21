@@ -1,30 +1,30 @@
-use std::env;
+pub mod routes;
+
 use actix_web::{web, App, HttpServer};
-use aws_sdk_s3::Client;
-use aws_sdk_s3::config::{BehaviorVersion, Credentials, Region};
 use sea_orm::Database;
+use std::env;
+use storage::s3_manager::S3StorageManager;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     dotenv::dotenv().ok();
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+
     let account_id = env::var("R2_ACCOUNT_ID").expect("R2_ACCOUNT_ID must be set");
     let access_key = env::var("R2_ACCESS_KEY").expect("R2_ACCESS_KEY must be set");
     let secret_key = env::var("R2_SECRET_KEY").expect("R2_SECRET_KEY must be set");
+    let bucket = env::var("R2_BUCKET").expect("R2_BUCKET must be set");
 
-    let endpoint_url = format!("https://{}.r2.cloudflarestorage.com", account_id);
-
-    let config = aws_config::defaults(BehaviorVersion::latest())
-        .credentials_provider(Credentials::new(access_key, secret_key, None, None, "R2"))
-        .region(Region::new("auto"))
-        .endpoint_url(endpoint_url)
-        .load()
-        .await;
-
-    let s3_client = Client::new(&config);
+    let s3_manager = S3StorageManager::new(
+        access_key,
+        secret_key,
+        account_id,
+        bucket,
+    ).await;
+    
     let database_client = Database::connect(&database_url).await.unwrap();
 
-    let s3_data = web::Data::new(s3_client);
+    let s3_data = web::Data::new(s3_manager);
     let db_data = web::Data::new(database_client);
 
     HttpServer::new(move || {

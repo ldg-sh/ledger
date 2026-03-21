@@ -1,4 +1,5 @@
-mod s3_scoped_storage;
+pub mod s3_scoped_storage;
+pub mod s3_manager;
 
 use async_trait::async_trait;
 use anyhow::Result;

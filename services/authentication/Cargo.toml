@@ -10,3 +10,6 @@ dotenv = "0.15.0"
 aws-config = "1.8.15"
 sea-orm = { workspace = true }
 actix-web = "4.13.0"
+common = { path = "../../crates/common" }
+storage = { path = "../../crates/storage" }
+uuid = { version = "1.22.0", features = ["v4"] }
