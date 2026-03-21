@@ -1,14 +1,16 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+mod s3_scoped_storage;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+use async_trait::async_trait;
+use anyhow::Result;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+#[async_trait]
+pub trait StorageBackend {
+    async fn get_presigned_upload(&self, path: &str) -> Result<String>;
+    async fn get_presigned_download(&self, path: &str) -> Result<String>;
+    async fn delete(&self, path: &str) -> Result<()>;
+    async fn delete_many(&self, paths: Vec<&str>) -> Result<()>;
+    async fn move_object(&self, src: &str, dest: &str) -> Result<()>;
+    async fn move_many(&self, moves: Vec<(&str, &str)>) -> Result<()>;
+    async fn copy_object(&self, src: &str, dest: &str) -> Result<()>;
+    async fn list_objects(&self, prefix: &str) -> Result<Vec<String>>;
 }

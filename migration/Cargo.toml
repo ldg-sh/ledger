@@ -1,0 +1,9 @@
+[package]
+name = "migration"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+async-trait = "0.1.89"
+sea-orm-migration = "2.0.0-rc.37"
+tokio = { workspace = true }

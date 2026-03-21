@@ -4,3 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+tokio = { workspace = true }
+aws-sdk-s3 = { workspace = true }
+dotenv = "0.15.0"
+aws-config = "1.8.15"
+sea-orm = { workspace = true }
+actix-web = "4.13.0"
