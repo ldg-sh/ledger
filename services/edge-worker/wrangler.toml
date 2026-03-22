@@ -1,9 +1,18 @@
 name = "ledger-edge-worker"
-main = "src/lib.rs"
+main = "build/index.js"
 compatibility_date = "2026-03-01"
 
 [vars]
-AUTH_SERVER_URL = "http://localhost:8080"
+AUTH_SERVER_URI = "http://localhost:8080"
+R2_BUCKET = "ledger"
 
 [[kv_namespaces]]
 binding = "METADATA_CACHE"
+id = "acf6f93fc500499eab68e751b377f54a"
+
+[[kv_namespaces]]
+binding = "USER_CACHE"
+id = "423b2f30666c496a846a4782f0e00c5b"
+
+[build]
+command = "cargo install -q worker-build && worker-build --release"

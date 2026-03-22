@@ -1,17 +1,17 @@
+use crate::authentication::authentication::get_authenticated_user;
+use common::types::download_init::{InitDownloadRequest, InitDownloadResponse};
 use common::types::metadata::{MetadataRequest, MetadataResponse};
+use common::types::upload_complete::CompleteUploadRequest;
+use common::types::upload_init::{InitUploadRequest, InitUploadResponse};
+use common::types::user_info::{UserInfoRequest, UserInfoResponse};
 use rusty_s3::{Bucket, Credentials, S3Action, UrlStyle};
 use std::env;
 use std::str::FromStr;
 use std::time::Duration;
-use worker::{Context, Env, Fetch, Headers, Method, Request, RequestInit, Response, Router, event, Url};
-use common::types::download_init::{InitDownloadRequest, InitDownloadResponse};
-use common::types::upload_complete::CompleteUploadRequest;
-use common::types::upload_init::{InitUploadRequest, InitUploadResponse};
-use crate::authentication::authentication::get_authenticated_user;
+use worker::{event, Context, Env, Fetch, Headers, Method, Request, RequestInit, Response, Router, Url};
 
 pub mod authentication;
 pub mod types;
-pub mod util;
 
 #[derive(Clone)]
 pub struct AppConfig {
@@ -27,7 +27,13 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, wor
             let auth_server_uri = ctx.env.var("AUTH_SERVER_URI")?.to_string();
             let kv = ctx.env.kv("METADATA_CACHE")?;
 
-            let payload: MetadataRequest = req.json().await?;
+            let payload: MetadataRequest = match req.json().await {
+                Ok(payload) => payload,
+                Err(e) => {
+                    return Response::error(format!("Invalid request body: {}", e), 400);
+                }
+            };
+
             let cache_key = format!("file:{}", payload.file_id);
 
             if let Some(cached) = kv.get(&cache_key).json::<MetadataResponse>().await? {
@@ -63,7 +69,10 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, wor
             }
         })
         .post_async("/upload/create", |mut req, ctx| async move {
-            get_authenticated_user(&req, &ctx.env).await?;
+            match get_authenticated_user(&req, &ctx.env).await {
+                Ok(user) => user,
+                Err(e) => return Ok(e.into()),
+            };
 
             let account_id = env::var("R2_ACCOUNT_ID").expect("R2_ACCOUNT_ID must be set");
             let access_key = env::var("R2_ACCESS_KEY").expect("R2_ACCESS_KEY must be set");
@@ -91,7 +100,10 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, wor
             })
         })
         .post_async("/upload/complete", |mut req, ctx| async move {
-            get_authenticated_user(&req, &ctx.env).await?;
+            match get_authenticated_user(&req, &ctx.env).await {
+                Ok(user) => user,
+                Err(e) => return Ok(e.into()),
+            };
 
             let auth_server_uri = ctx.env.var("AUTH_SERVER_URI")?.to_string();
 
@@ -119,7 +131,10 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, wor
             }
         })
         .post_async("/download/create", |mut req, ctx| async move {
-            let authenticated_user = get_authenticated_user(&req, &ctx.env).await?;
+            let authenticated_user = match get_authenticated_user(&req, &ctx.env).await {
+                Ok(user) => user,
+                Err(e) => return Ok(e.into()),
+            };
 
             let account_id = env::var("R2_ACCOUNT_ID").expect("R2_ACCOUNT_ID must be set");
             let access_key = env::var("R2_ACCESS_KEY").expect("R2_ACCESS_KEY must be set");
@@ -143,6 +158,53 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, wor
             Response::from_json(&InitDownloadResponse {
                 download_url: presigned_url.to_string(),
             })
+        })
+        .get_async("/user/info", |req, ctx| async move {
+            let authenticated_user = match get_authenticated_user(&req, &ctx.env).await {
+                Ok(user) => user,
+                Err(e) => return Ok(e.into()),
+            };
+
+            let auth_server_uri = ctx.env.var("AUTH_SERVER_URI")?.to_string();
+            let kv = ctx.env.kv("USER_CACHE")?;
+
+            let cache_key = format!("user:{}", authenticated_user.id);
+
+            if let Some(cached) = kv.get(&cache_key).json::<UserInfoResponse>().await? {
+                return Response::from_json(&cached);
+            }
+
+            let user_request = UserInfoRequest {
+                account_id: authenticated_user.id.clone(),
+            };
+
+            let headers = Headers::new();
+            headers
+                .append("Content-Type", "application/json")
+                .expect("Failed to set header");
+
+            let request = Request::new_with_init(
+                format!("{}/internal/user/info", auth_server_uri).as_str(),
+                RequestInit::new()
+                    .with_body(Some(serde_json::to_string(&user_request)?.into()))
+                    .with_headers(headers)
+                    .with_method(Method::Post),
+            )?;
+
+            let mut response = Fetch::Request(request).send().await?;
+
+            if response.status_code() == 200 {
+                let metadata: UserInfoResponse = response.json().await?;
+
+                kv.put(&cache_key, &metadata)?
+                    .expiration_ttl(300)
+                    .execute()
+                    .await?;
+
+                Response::from_json(&metadata)
+            } else {
+                Response::error("Origin Error", response.status_code())
+            }
         })
         .run(req, env)
         .await

@@ -3,13 +3,19 @@ name = "authentication"
 version = "0.1.0"
 edition = "2024"
 
+[[bin]]
+name = "authentication"
+path = "src/main.rs"
+
 [dependencies]
-tokio = { workspace = true }
-aws-sdk-s3 = { workspace = true }
+tokio = { version = "1", features = ["full"] }
 dotenv = "0.15.0"
-aws-config = "1.8.15"
 sea-orm = { workspace = true }
 actix-web = "4.13.0"
-common = { path = "../../crates/common" }
+common = { path = "../../crates/common", features = ["ssr"] }
 storage = { path = "../../crates/storage" }
 uuid = { version = "1.22.0", features = ["v4"] }
+reqwest = { version = "0.13.2", features = ["form", "json"] }
+serde = { version = "1.0.228", features = ["derive"] }
+env_logger = { workspace = true }
+log = "0.4.29"

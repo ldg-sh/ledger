@@ -1,9 +1,18 @@
+use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "ssr")]
 use sea_orm::entity::prelude::*;
 
-#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
-#[sea_orm(table_name = "refresh_token")]
+#[cfg(not(feature = "ssr"))]
+type Uuid = uuid::Uuid;
+#[cfg(not(feature = "ssr"))]
+type DateTimeWithTimeZone = chrono::DateTime<chrono::FixedOffset>;
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ssr", derive(DeriveEntityModel))]
+#[cfg_attr(feature = "ssr", sea_orm(table_name = "refresh_token"))]
 pub struct Model {
-    #[sea_orm(primary_key, auto_increment = false)]
+    #[cfg_attr(feature = "ssr", sea_orm(primary_key, auto_increment = false))]
     pub id: Uuid,
     pub user_id: String,
     pub token: String,
@@ -11,6 +20,7 @@ pub struct Model {
     pub created_at: DateTimeWithTimeZone,
 }
 
+#[cfg(feature = "ssr")]
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
     #[sea_orm(
@@ -23,10 +33,12 @@ pub enum Relation {
     User,
 }
 
+#[cfg(feature = "ssr")]
 impl Related<super::user::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::User.def()
     }
 }
 
+#[cfg(feature = "ssr")]
 impl ActiveModelBehavior for ActiveModel {}

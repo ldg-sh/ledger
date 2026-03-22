@@ -1,11 +1,5 @@
-[package]
-name = "ledger"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-
 [workspace]
+resolver = "3"
 members = [
     "crates/*",
     "migration",
@@ -15,6 +9,7 @@ members = [
 [workspace.dependencies]
 serde = { version = "1.0", features = ["derive"] }
 anyhow = "1.0"
-tokio = { version = "1.0", features = ["full"] }
+tokio = { version = "1", features = ["sync", "macros"] }
 aws-sdk-s3 = "1.0"
-sea-orm = "2.0.0-rc.37"
+sea-orm = { version = "2.0.0-rc.37", features = ["sqlx-postgres", "runtime-tokio"] }
+env_logger = "0.11.9"
