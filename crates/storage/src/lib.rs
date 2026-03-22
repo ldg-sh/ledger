@@ -7,7 +7,7 @@ use anyhow::Result;
 #[async_trait]
 pub trait StorageBackend {
     async fn delete(&self, path: &str) -> Result<()>;
-    async fn delete_many(&self, paths: Vec<&str>) -> Result<()>;
+    async fn delete_many(&self, paths: Vec<String>) -> Result<()>;
     async fn move_object(&self, src: &str, dest: &str) -> Result<()>;
     async fn move_many(&self, moves: Vec<(&str, &str)>) -> Result<()>;
     async fn copy_object(&self, src: &str, dest: &str) -> Result<()>;

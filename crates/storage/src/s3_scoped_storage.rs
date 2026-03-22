@@ -27,7 +27,7 @@ impl StorageBackend for S3ScopedStorage {
         Ok(())
     }
 
-    async fn delete_many(&self, paths: Vec<&str>) -> anyhow::Result<()> {
+    async fn delete_many(&self, paths: Vec<String>) -> anyhow::Result<()> {
         let objects = paths.into_iter().map(|path| {
             aws_sdk_s3::types::ObjectIdentifier::builder()
                 .key(self.scoped_path(&path))
