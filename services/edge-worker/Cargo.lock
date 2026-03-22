@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "worker"
+name = "edge-worker"
 version = "0.1.0"

@@ -6,8 +6,6 @@ use anyhow::Result;
 
 #[async_trait]
 pub trait StorageBackend {
-    async fn get_presigned_upload(&self, path: &str) -> Result<String>;
-    async fn get_presigned_download(&self, path: &str) -> Result<String>;
     async fn delete(&self, path: &str) -> Result<()>;
     async fn delete_many(&self, paths: Vec<&str>) -> Result<()>;
     async fn move_object(&self, src: &str, dest: &str) -> Result<()>;

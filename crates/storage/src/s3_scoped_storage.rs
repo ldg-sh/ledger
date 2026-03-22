@@ -1,9 +1,7 @@
-use std::time::Duration;
+use crate::StorageBackend;
 use async_trait::async_trait;
 use aws_sdk_s3::Client;
-use aws_sdk_s3::presigning::PresigningConfig;
 use futures::future::join_all;
-use crate::StorageBackend;
 
 pub struct S3ScopedStorage {
     pub user_id: String,
@@ -19,38 +17,6 @@ impl S3ScopedStorage {
 
 #[async_trait]
 impl StorageBackend for S3ScopedStorage {
-    async fn get_presigned_upload(&self, path: &str) -> anyhow::Result<String> {
-        let config = PresigningConfig::builder()
-            .expires_in(Duration::from_mins(15))
-            .build()?;
-
-        let presigned_request = self
-            .client
-            .put_object()
-            .bucket(&self.bucket)
-            .key(self.scoped_path(path))
-            .presigned(config)
-            .await?;
-
-        Ok(presigned_request.uri().to_string())
-    }
-
-    async fn get_presigned_download(&self, path: &str) -> anyhow::Result<String> {
-        let config = PresigningConfig::builder()
-            .expires_in(Duration::from_mins(15))
-            .build()?;
-
-        let presigned_request = self
-            .client
-            .get_object()
-            .bucket(&self.bucket)
-            .key(self.scoped_path(path))
-            .presigned(config)
-            .await?;
-
-        Ok(presigned_request.uri().to_string())
-    }
-
     async fn delete(&self, path: &str) -> anyhow::Result<()> {
         self.client
             .delete_object()

@@ -1,0 +1,9 @@
+name = "ledger-edge-worker"
+main = "src/lib.rs"
+compatibility_date = "2026-03-01"
+
+[vars]
+AUTH_SERVER_URL = "http://localhost:8080"
+
+[[kv_namespaces]]
+binding = "METADATA_CACHE"
