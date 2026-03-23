@@ -194,7 +194,12 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, wor
             let mut response = Fetch::Request(request).send().await?;
 
             if response.status_code() == 200 {
-                let metadata: UserInfoResponse = response.json().await?;
+                let body_text = response.text().await?;
+
+                let metadata: UserInfoResponse = match serde_json::from_str(&body_text) {
+                    Ok(m) => m,
+                    Err(_) => return Response::error(format!("Failed to parse: {}", body_text), 500),
+                };
 
                 kv.put(&cache_key, &metadata)?
                     .expiration_ttl(300)
@@ -203,7 +208,8 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, wor
 
                 Response::from_json(&metadata)
             } else {
-                Response::error("Origin Error", response.status_code())
+                let error_body = response.text().await?;
+                Response::error(error_body, response.status_code())
             }
         })
         .run(req, env)
