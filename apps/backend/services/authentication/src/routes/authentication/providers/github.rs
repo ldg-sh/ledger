@@ -46,15 +46,25 @@ pub async fn github_callback(
         .send()
         .await;
 
-    let Ok(resp) = token_resp else {
-        return HttpResponse::InternalServerError().finish();
+    let resp = match token_resp {
+        Ok(r) => r,
+        Err(e) => {
+            error!("Request failed: {:?}", e);
+            return HttpResponse::InternalServerError().finish();
+        }
     };
+
+    if !resp.status().is_success() {
+        let error_text = resp.text().await.unwrap_or_else(|_| "Could not read body".to_string());
+        error!("GitHub returned an error status: {}", error_text);
+        return HttpResponse::BadRequest().body(format!("Provider Error: {}", error_text));
+    }
 
     let token: GitHubTokenResponse = match resp.json().await {
         Ok(t) => t,
-        Err(e) => return {
-            error!("{:?}", e);
-            HttpResponse::BadRequest().finish()
+        Err(e) => {
+            error!("Failed to parse GitHub response: {:?}", e);
+            return HttpResponse::InternalServerError().finish();
         },
     };
 
