@@ -1,4 +1,5 @@
 pub mod routes;
+pub mod middleware;
 
 use actix_web::{web, App, HttpServer};
 use sea_orm::Database;

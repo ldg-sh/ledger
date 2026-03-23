@@ -6,7 +6,6 @@ pub struct ListFilesRequest {
     pub path: String,
     pub limit: Option<u32>,
     pub offset: Option<u32>,
-    pub user_id: String
 }
 
 #[derive(Serialize, Deserialize)]

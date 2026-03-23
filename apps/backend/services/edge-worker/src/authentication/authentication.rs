@@ -1,8 +1,9 @@
 use crate::types::error::AuthError;
+use crate::AppState;
 use common::types::user_claims::UserClaims;
 use jsonwebtoken::{decode, DecodingKey, Validation};
+use std::sync::Arc;
 use worker::*;
-use crate::types::configuration::Configuration;
 
 #[derive(Debug, Clone)]
 pub struct AuthenticatedUser {
@@ -10,10 +11,10 @@ pub struct AuthenticatedUser {
 
 }
 
-pub async fn get_authenticated_user(req: &Request, ctx: &RouteContext<Configuration>) -> Result<AuthenticatedUser, AuthError> {
-    let config = &ctx.data;
+pub(crate) async fn get_authenticated_user(req: &Request, ctx: &RouteContext<Arc<AppState>>) -> Result<AuthenticatedUser, AuthError> {
+    let state = &ctx.data;
 
-    let jwt_secret = config.jwt_secret.clone();
+    let jwt_secret = state.config.jwt_secret.clone();
 
     let cookie_header = req.headers().get("Cookie")
         .map_err(AuthError::EnvError)?

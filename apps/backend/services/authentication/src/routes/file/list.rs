@@ -5,14 +5,16 @@ use sea_orm::ColumnTrait;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use sea_orm::{QueryFilter};
 use common::types::file::list::{ListFileElement, ListFilesRequest, ListFilesResponse};
+use crate::middleware::middleware::AuthenticatedUser;
 
 #[post("list")]
 pub async fn list(
     database: web::Data<DatabaseConnection>,
     payload: web::Json<ListFilesRequest>,
+    authenticated_user: AuthenticatedUser,
 ) -> impl Responder {
     let files = match File::find()
-        .filter(file::Column::OwnerId.eq(payload.user_id.clone()))
+        .filter(file::Column::OwnerId.eq(authenticated_user.id.clone()))
         .filter(file::Column::Path.eq(payload.path.clone()))
         .all(database.get_ref())
         .await

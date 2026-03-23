@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 pub struct CopyFilesRequest {
     pub file_ids: Vec<String>,
     pub destination_path: String,
-    pub user_id: String
 }
 
 #[derive(Serialize, Deserialize)]

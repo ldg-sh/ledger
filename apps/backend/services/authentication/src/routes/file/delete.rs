@@ -8,12 +8,14 @@ use common::types::file::delete::DeleteFilesRequest;
 use storage::s3_manager::S3StorageManager;
 use storage::s3_scoped_storage::S3ScopedStorage;
 use storage::StorageBackend;
+use crate::middleware::middleware::AuthenticatedUser;
 
 #[delete("delete")]
 pub async fn delete(
     database: web::Data<DatabaseConnection>,
     s3_manager: web::Data<S3StorageManager>,
     payload: web::Json<DeleteFilesRequest>,
+    authenticated_user: AuthenticatedUser
 ) -> impl Responder {
     let result = match File::delete_many()
         .filter(file::Column::Id.is_in(payload.file_ids.clone()))
@@ -33,7 +35,7 @@ pub async fn delete(
     }
 
     let storage = S3ScopedStorage {
-        user_id: payload.user_id.clone(),
+        user_id: authenticated_user.id.clone(),
         bucket: s3_manager.bucket.clone(),
         client: s3_manager.client.clone(),
     };

@@ -4,5 +4,4 @@ use serde::{Deserialize, Serialize};
 pub struct MoveFilesRequest {
     pub file_ids: Vec<String>,
     pub destination_path: String,
-    pub user_id: String
 }

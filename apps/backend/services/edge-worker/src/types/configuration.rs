@@ -1,5 +1,9 @@
+use serde::de::DeserializeOwned;
+use serde::Serialize;
 use std::env;
+use worker::{Fetch, Headers, Method, Request, RequestInit};
 
+#[derive(Debug, Clone)]
 pub struct Configuration {
     pub r2_account_id: String,
     pub r2_access_key: String,
@@ -21,5 +25,38 @@ impl Configuration {
         };
 
         config
+    }
+
+    pub async fn make_internal_request<T: Serialize, R: DeserializeOwned>(
+        &self,
+        path: &str,
+        user_id: &str,
+        payload: &T,
+    ) -> Result<R, worker::Error> {
+        let headers = Headers::new();
+        headers.set("Content-Type", "application/json")?;
+        headers.set("x-user-id", user_id)?;
+
+        let url = format!("{}{}", self.auth_server_uri, path);
+
+        let request = Request::new_with_init(
+            &url,
+            RequestInit::new()
+                .with_body(Some(serde_json::to_string(payload)?.into()))
+                .with_headers(headers)
+                .with_method(Method::Post),
+        )?;
+
+        let mut response = Fetch::Request(request).send().await?;
+
+        if response.status_code() == 200 {
+            response.json::<R>().await
+        } else {
+            Err(worker::Error::from(format!(
+                "Internal Request Failed: {} - {}",
+                response.status_code(),
+                response.text().await.unwrap_or_default()
+            )))
+        }
     }
 }

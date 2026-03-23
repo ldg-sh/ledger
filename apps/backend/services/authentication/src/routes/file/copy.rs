@@ -9,12 +9,14 @@ use common::types::file::copy::CopyFilesRequest;
 use storage::s3_manager::S3StorageManager;
 use storage::s3_scoped_storage::S3ScopedStorage;
 use storage::StorageBackend;
+use crate::middleware::middleware::AuthenticatedUser;
 
 #[post("copy")]
 pub async fn copy(
     database: web::Data<DatabaseConnection>,
     s3storage_manager: web::Data<S3StorageManager>,
     payload: web::Json<CopyFilesRequest>,
+    authenticated_user: AuthenticatedUser
 ) -> impl Responder {
     let files = match File::find()
         .filter(file::Column::Id.is_in(payload.file_ids.clone()))
@@ -29,7 +31,7 @@ pub async fn copy(
     };
 
     let s3_manager = S3ScopedStorage {
-        user_id: payload.user_id.clone(),
+        user_id: authenticated_user.id.clone(),
         bucket: s3storage_manager.bucket.clone(),
         client: s3storage_manager.client.clone(),
     };

@@ -1,0 +1,19 @@
+use crate::{authenticate, AppState};
+use common::types::file::copy::{CopyFilesRequest, CopyFilesResponse};
+use std::sync::Arc;
+use worker::{Request, Response, RouteContext};
+
+pub async fn handle_copy(mut req: Request, ctx: RouteContext<Arc<AppState>>) -> worker::Result<Response> {
+    let user = authenticate!(&req, &ctx);
+    let state = &ctx.data;
+
+    let payload: CopyFilesRequest = req.json().await?;
+
+    let response = state.config.make_internal_request::<_, CopyFilesResponse>(
+        "/internal/file/copy",
+        &user.id,
+        &payload
+    ).await?;
+
+    Ok(Response::from_json(&response)?)
+}

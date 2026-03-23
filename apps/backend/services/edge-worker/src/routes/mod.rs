@@ -1,4 +1,10 @@
-pub mod metadata;
-pub mod upload;
-pub mod download;
-pub mod user;
+pub(crate) mod metadata;
+pub(crate) mod upload;
+pub(crate) mod download;
+pub(crate) mod user;
+pub(crate) mod rename;
+pub(crate) mod copy;
+pub(crate) mod delete;
+pub(crate) mod r#move;
+pub(crate) mod directory;
+pub(crate) mod list;
