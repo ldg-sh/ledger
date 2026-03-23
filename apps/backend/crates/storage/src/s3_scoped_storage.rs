@@ -3,6 +3,7 @@ use async_trait::async_trait;
 use aws_sdk_s3::Client;
 use futures::future::join_all;
 
+#[derive(Clone)]
 pub struct S3ScopedStorage {
     pub user_id: String,
     pub bucket: String,

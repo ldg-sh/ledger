@@ -563,6 +563,7 @@ dependencies = [
  "common",
  "dotenv",
  "env_logger",
+ "futures",
  "log",
  "migration",
  "reqwest",

@@ -61,7 +61,7 @@ async fn main() -> std::io::Result<()> {
     let db_data = web::Data::new(database_client);
     let provider_data = web::Data::new(provider_configuration);
 
-    info!("Starting authentication server on port 8080");
+    info!("Starting user server on port 8080");
 
     HttpServer::new(move || {
         App::new()
@@ -69,7 +69,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(db_data.clone())
             .app_data(provider_data.clone())
             .configure(routes::routes)
-            .configure(routes::authentication::routes)
+            .configure(routes::user::routes)
     })
         .bind(("0.0.0.0", 8080))?
         .run()

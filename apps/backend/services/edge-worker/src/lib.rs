@@ -1,11 +1,11 @@
 use crate::authentication::authentication::get_authenticated_user;
-use common::types::download_init::{InitDownloadRequest, InitDownloadResponse};
-use common::types::metadata::{MetadataRequest, MetadataResponse};
-use common::types::upload_complete::CompleteUploadRequest;
-use common::types::upload_init::{InitUploadRequest, InitUploadResponse};
+use crate::types::configuration::Configuration;
+use common::types::file::download_init::{InitDownloadRequest, InitDownloadResponse};
+use common::types::file::metadata::{MetadataRequest, MetadataResponse};
+use common::types::file::upload_complete::CompleteUploadRequest;
+use common::types::file::upload_init::{InitUploadRequest, InitUploadResponse};
 use common::types::user_info::{UserInfoRequest, UserInfoResponse};
 use rusty_s3::{Bucket, Credentials, S3Action, UrlStyle};
-use std::env;
 use std::str::FromStr;
 use std::time::Duration;
 use worker::{event, Context, Env, Fetch, Headers, Method, Request, RequestInit, Response, Router, Url};
@@ -13,18 +13,16 @@ use worker::{event, Context, Env, Fetch, Headers, Method, Request, RequestInit, 
 pub mod authentication;
 pub mod types;
 
-#[derive(Clone)]
-pub struct AppConfig {
-    pub jwt_secret: String,
-}
-
 #[event(fetch)]
 pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, worker::Error> {
-    let router = Router::new();
+    let config = Configuration::gather_configuration();
+    let router = Router::with_data(config);
 
     router
         .get_async("/metadata", |mut req, ctx| async move {
-            let auth_server_uri = ctx.env.var("AUTH_SERVER_URI")?.to_string();
+            let config = &ctx.data;
+
+            let auth_server_uri = config.auth_server_uri.clone();
             let kv = ctx.env.kv("METADATA_CACHE")?;
 
             let payload: MetadataRequest = match req.json().await {
@@ -69,15 +67,17 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, wor
             }
         })
         .post_async("/upload/create", |mut req, ctx| async move {
-            match get_authenticated_user(&req, &ctx.env).await {
+            match get_authenticated_user(&req, &ctx).await {
                 Ok(user) => user,
                 Err(e) => return Ok(e.into()),
             };
 
-            let account_id = env::var("R2_ACCOUNT_ID").expect("R2_ACCOUNT_ID must be set");
-            let access_key = env::var("R2_ACCESS_KEY").expect("R2_ACCESS_KEY must be set");
-            let secret_key = env::var("R2_SECRET_KEY").expect("R2_SECRET_KEY must be set");
-            let bucket_name = env::var("R2_BUCKET").expect("R2_BUCKET must be set");
+            let config = &ctx.data;
+
+            let account_id = config.r2_account_id.clone();
+            let access_key = config.r2_access_key.clone();
+            let secret_key = config.r2_secret_key.clone();
+            let bucket_name = config.r2_bucket.clone();
             let url = format!("https://{}.r2.cloudflarestorage.com", account_id);
 
             let req_body = req.json::<InitUploadRequest>().await?;
@@ -100,12 +100,12 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, wor
             })
         })
         .post_async("/upload/complete", |mut req, ctx| async move {
-            match get_authenticated_user(&req, &ctx.env).await {
+            match get_authenticated_user(&req, &ctx).await {
                 Ok(user) => user,
                 Err(e) => return Ok(e.into()),
             };
 
-            let auth_server_uri = ctx.env.var("AUTH_SERVER_URI")?.to_string();
+            let auth_server_uri = ctx.data.auth_server_uri;
 
             let req_body = req.json::<CompleteUploadRequest>().await?;
 
@@ -131,15 +131,16 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, wor
             }
         })
         .post_async("/download/create", |mut req, ctx| async move {
-            let authenticated_user = match get_authenticated_user(&req, &ctx.env).await {
+            let authenticated_user = match get_authenticated_user(&req, &ctx).await {
                 Ok(user) => user,
                 Err(e) => return Ok(e.into()),
             };
 
-            let account_id = env::var("R2_ACCOUNT_ID").expect("R2_ACCOUNT_ID must be set");
-            let access_key = env::var("R2_ACCESS_KEY").expect("R2_ACCESS_KEY must be set");
-            let secret_key = env::var("R2_SECRET_KEY").expect("R2_SECRET_KEY must be set");
-            let bucket_name = env::var("R2_BUCKET").expect("R2_BUCKET must be set");
+            let account_id = ctx.data.r2_account_id;
+            let access_key = ctx.data.r2_access_key;
+            let secret_key = ctx.data.r2_secret_key;
+            let bucket_name = ctx.data.r2_bucket;
+
             let url = format!("https://{}.r2.cloudflarestorage.com", account_id);
 
             let req_body = req.json::<InitDownloadRequest>().await?;
@@ -160,12 +161,12 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, wor
             })
         })
         .get_async("/user/info", |req, ctx| async move {
-            let authenticated_user = match get_authenticated_user(&req, &ctx.env).await {
+            let authenticated_user = match get_authenticated_user(&req, &ctx).await {
                 Ok(user) => user,
                 Err(e) => return Ok(e.into()),
             };
 
-            let auth_server_uri = ctx.env.var("AUTH_SERVER_URI")?.to_string();
+            let auth_server_uri = ctx.data.auth_server_uri;
             let kv = ctx.env.kv("USER_CACHE")?;
 
             let cache_key = format!("user:{}", authenticated_user.id);

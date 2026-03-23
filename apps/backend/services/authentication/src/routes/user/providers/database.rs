@@ -1,4 +1,4 @@
-use crate::routes::authentication::providers::Provider;
+use crate::routes::user::providers::Provider;
 use common::entities::prelude::{RefreshToken, User};
 use common::entities::user::{ActiveModel, Column};
 use common::entities::{refresh_token, user};

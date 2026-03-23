@@ -1,4 +1,4 @@
-use crate::routes::authentication::providers::database::ProviderExtension;
+use crate::routes::user::providers::database::ProviderExtension;
 use actix_web::HttpResponse;
 use chrono::Duration;
 use common::util::authentication::generate_access_token;

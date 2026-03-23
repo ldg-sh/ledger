@@ -1,9 +1,9 @@
 use actix_web::{get, web, HttpResponse};
 use common::entities::file;
 use common::entities::prelude::File;
-use common::types::metadata::{MetadataRequest, MetadataResponse};
 use sea_orm::ColumnTrait;
 use sea_orm::{DatabaseConnection, EntityTrait, QueryFilter};
+use common::types::file::metadata::{MetadataRequest, MetadataResponse};
 
 #[get("metadata")]
 pub async fn metadata(database: web::Data<DatabaseConnection>, payload: web::Json<MetadataRequest>) -> HttpResponse {

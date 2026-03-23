@@ -1,5 +1,5 @@
-use crate::routes::authentication::providers::database::ProviderExtension;
-use crate::routes::authentication::providers::success::login_success;
+use crate::routes::user::providers::database::ProviderExtension;
+use crate::routes::user::providers::success::login_success;
 use crate::ProviderConfiguration;
 use actix_web::{web, HttpResponse};
 use sea_orm::sea_query::prelude::chrono;

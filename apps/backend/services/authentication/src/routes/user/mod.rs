@@ -1,5 +1,5 @@
 use actix_web::web;
-use crate::routes::authentication::providers::{github, google};
+use crate::routes::user::providers::{github, google};
 
 pub mod providers;
 pub mod refresh;

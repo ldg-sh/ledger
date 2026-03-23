@@ -1,13 +1,13 @@
 use actix_web::{HttpResponse, Responder, post, web};
 use common::entities::file;
 use common::entities::prelude::File;
-use common::types::list::{ListFileElement, ListFilesRequest, ListFilesResponse};
 use sea_orm::ColumnTrait;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use sea_orm::{QueryFilter};
+use common::types::file::list::{ListFileElement, ListFilesRequest, ListFilesResponse};
 
 #[post("list")]
-pub async fn list_files(
+pub async fn list(
     database: web::Data<DatabaseConnection>,
     payload: web::Json<ListFilesRequest>,
 ) -> impl Responder {
@@ -17,7 +17,7 @@ pub async fn list_files(
         .all(database.get_ref())
         .await
     {
-        Ok(list_files) => list_files,
+        Ok(list) => list,
         Err(e) => {
             log::error!("Error fetching files: {:?}", e);
             return HttpResponse::InternalServerError().body("Failed to fetch files");

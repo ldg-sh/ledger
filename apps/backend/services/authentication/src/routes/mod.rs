@@ -1,10 +1,8 @@
-use crate::routes::authentication::info;
+use crate::routes::user::*;
+use crate::routes::file::*;
 use actix_web::web;
-use file::list;
 
-pub mod authentication;
-pub mod metadata;
-pub mod upload;
+pub mod user;
 pub mod file;
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
@@ -17,7 +15,13 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
             )
             .service(
                 web::scope("/file")
-                    .service(list::list_files)
+                    .service(list::list)
+                    .service(copy::copy)
+                    .service(delete::delete)
+                    .service(directory::directory)
+                    .service(metadata::metadata)
+                    .service(r#move::r#move)
+                    .service(rename::rename),
             )
             .service(web::scope("/user").service(info::info)),
     );

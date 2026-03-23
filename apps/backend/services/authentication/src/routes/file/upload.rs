@@ -1,13 +1,13 @@
 use actix_web::{post, web, HttpResponse};
 use common::entities::file;
 use common::entities::prelude::File;
-use common::types::upload_complete::CompleteUploadRequest;
-use common::types::upload_init::InitUploadInternalRequest;
 use sea_orm::prelude::DateTimeWithTimeZone;
 use sea_orm::sea_query::prelude::chrono;
 use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
 use sea_orm::{DatabaseConnection, EntityTrait, Set};
+use common::types::file::upload_complete::CompleteUploadRequest;
+use common::types::file::upload_init::InitUploadInternalRequest;
 use storage::s3_manager::S3StorageManager;
 
 #[post("init")]

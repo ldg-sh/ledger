@@ -1,10 +1,10 @@
 use actix_web::{HttpResponse, Responder, delete, web};
 use common::entities::file;
 use common::entities::prelude::File;
-use common::types::delete::DeleteFilesRequest;
 use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
 use sea_orm::{DatabaseConnection, EntityTrait};
+use common::types::file::delete::DeleteFilesRequest;
 use storage::s3_manager::S3StorageManager;
 use storage::s3_scoped_storage::S3ScopedStorage;
 use storage::StorageBackend;

@@ -1,4 +1,4 @@
-use crate::routes::authentication::providers::database::ProviderExtension;
+use crate::routes::user::providers::database::ProviderExtension;
 use actix_web::{web, HttpResponse};
 use common::types::user_info::UserInfoRequest;
 use sea_orm::DatabaseConnection;
