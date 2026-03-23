@@ -1,0 +1,50 @@
+.container {
+    display: flex;
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+    padding-left: 10px;
+    padding-right: 30px;
+    height: 48px;
+    justify-content: center;
+    align-items: start;
+    border-radius: 5px;
+    border: none;
+    background-color: transparent;
+
+    transition: background-color 0.2s ease;
+}
+
+.info:hover {
+    cursor: pointer;
+    background-color: var(--color-background-hover);
+}
+
+.info:active {
+    background-color: var(--color-background-selected);
+}
+
+.title {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+    font-weight: 300;
+    margin-bottom: -0.1em;
+}
+
+.username {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin: 0;
+    color: var(--color-text-bold);
+}
+
+.avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 5px;
+    object-fit: cover;
+    margin-right: 10px;
+}

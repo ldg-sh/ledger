@@ -1,0 +1,53 @@
+.header {
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--header-background);
+    border-bottom: var(--border-style);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+.headerCenter {
+    width: var(--content-width);
+    max-width: 1500px;
+    border-left: var(--border-style);
+    border-right: var(--border-style);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    margin: 0 30px;
+}
+
+.user {
+    margin: 0 30px;
+}
+
+.logoText {
+    margin-left: 25px;
+    display: flex;
+    flex-direction: column;
+}
+
+.logoTitle {
+    font-size: 1.6rem;
+    color: var(--color-text-bold);
+    font-weight: 800;
+    margin: 0;
+}
+
+.logoSubtitle {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+    font-weight: 300;
+}

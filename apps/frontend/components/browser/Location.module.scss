@@ -1,0 +1,34 @@
+.locationBar {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: var(--color-background-secondary);
+    border-bottom: var(--border-style);
+    font-size: 0.9rem;
+    font-weight: 300;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+}
+
+.pathSegment {
+    display: inline-block;
+    margin-left: 8px;
+    height: 20px;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+}
+
+.pathSegment:hover {
+    text-decoration: underline;
+}
+
+.seperator {
+    margin-left: 8px;
+    height: 20px;
+    color: var(--color-text-secondary);
+    display: inline-block;
+}
+
+.pathGrouping {
+    display: flex;
+}
