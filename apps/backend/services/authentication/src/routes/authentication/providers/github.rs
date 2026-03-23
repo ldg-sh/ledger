@@ -5,6 +5,7 @@ use crate::ProviderConfiguration;
 use actix_web::{web, HttpResponse};
 use log::error;
 use sea_orm::DatabaseConnection;
+use sea_orm::sea_query::prelude::serde_json;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -49,23 +50,19 @@ pub async fn github_callback(
     let resp = match token_resp {
         Ok(r) => r,
         Err(e) => {
-            error!("Request failed: {:?}", e);
+            error!("Network/Request error: {:?}", e);
             return HttpResponse::InternalServerError().finish();
         }
     };
 
-    if !resp.status().is_success() {
-        let error_text = resp.text().await.unwrap_or_else(|_| "Could not read body".to_string());
-        error!("GitHub returned an error status: {}", error_text);
-        return HttpResponse::BadRequest().body(format!("Provider Error: {}", error_text));
-    }
+    let body_text = resp.text().await.unwrap_or_else(|_| "Empty body".to_string());
 
-    let token: GitHubTokenResponse = match resp.json().await {
+    let token: GitHubTokenResponse = match serde_json::from_str(&body_text) {
         Ok(t) => t,
         Err(e) => {
-            error!("Failed to parse GitHub response: {:?}", e);
-            return HttpResponse::InternalServerError().finish();
-        },
+            error!("JSON Parse Error: {:?}. Raw body was: {}", e, body_text);
+            return HttpResponse::BadRequest().body(format!("Failed to parse GitHub response: {}", body_text));
+        }
     };
 
     let user_info = client
