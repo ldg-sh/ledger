@@ -3,7 +3,7 @@ main = "build/index.js"
 compatibility_date = "2026-03-01"
 
 [vars]
-AUTH_SERVER_URI = "http://localhost:8080"
+AUTH_SERVER_URI = "https://ledger-v2.up.railway.app"
 R2_BUCKET = "ledger"
 
 [[kv_namespaces]]
@@ -16,3 +16,6 @@ id = "423b2f30666c496a846a4782f0e00c5b"
 
 [build]
 command = "cargo install -q worker-build && worker-build --release"
+
+[observability]
+logs = { enabled = true }

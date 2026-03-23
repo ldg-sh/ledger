@@ -5,6 +5,7 @@ use sea_orm::Database;
 use std::env;
 use env_logger::Env;
 use log::info;
+use migration::{Migrator, MigratorTrait};
 use storage::s3_manager::S3StorageManager;
 
 pub struct ProviderConfiguration {
@@ -54,6 +55,7 @@ async fn main() -> std::io::Result<()> {
     ).await;
     
     let database_client = Database::connect(&database_url).await.unwrap();
+    Migrator::up(&database_client, None).await.unwrap();
 
     let s3_data = web::Data::new(s3_manager);
     let db_data = web::Data::new(database_client);

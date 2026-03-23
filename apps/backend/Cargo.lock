@@ -564,6 +564,7 @@ dependencies = [
  "dotenv",
  "env_logger",
  "log",
+ "migration",
  "reqwest",
  "sea-orm",
  "serde",
