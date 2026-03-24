@@ -9,6 +9,8 @@ type DateTimeWithTimeZone = chrono::DateTime<chrono::FixedOffset>;
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ssr", derive(DeriveEntityModel))]
 #[cfg_attr(feature = "ssr", sea_orm(table_name = "user"))]
+#[derive(ts_rs::TS)]
+#[ts(export, rename = "User", export_to = "User.ts")]
 pub struct Model {
     #[cfg_attr(feature = "ssr", sea_orm(primary_key, auto_increment = false))]
     pub id: String,
@@ -20,7 +22,9 @@ pub struct Model {
     pub google_id: Option<String>,
     pub username: String,
     pub avatar_url: Option<String>,
+    #[ts(type = "string")]
     pub created_at: DateTimeWithTimeZone,
+    #[ts(type = "string")]
     pub updated_at: Option<DateTimeWithTimeZone>,
 }
 

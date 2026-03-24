@@ -2,6 +2,8 @@ use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
+#[derive(ts_rs::TS)]
+#[ts(export)]
 pub struct ListFilesRequest {
     pub path: String,
     pub limit: Option<u32>,
@@ -9,10 +11,13 @@ pub struct ListFilesRequest {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(ts_rs::TS)]
+#[ts(export)]
 pub struct ListFileElement {
     pub id: String,
     pub file_name: String,
     pub file_size: i64,
+    #[ts(type = "string")]
     pub created_at: DateTime<FixedOffset>,
     pub upload_completed: bool,
     pub file_type: String,
@@ -20,6 +25,8 @@ pub struct ListFileElement {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(ts_rs::TS)]
+#[ts(export)]
 pub struct ListFilesResponse {
     pub files: Vec<ListFileElement>
 }

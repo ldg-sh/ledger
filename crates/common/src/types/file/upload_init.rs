@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(ts_rs::TS)]
+#[ts(export)]
 pub struct InitUploadRequest {
     pub filename: String,
     pub size: u64,
@@ -10,13 +11,16 @@ pub struct InitUploadRequest {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-
+#[derive(ts_rs::TS)]
+#[ts(export)]
 pub struct InitUploadResponse {
     pub file_id: String,
     pub upload_url: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[derive(ts_rs::TS)]
+#[ts(export)]
 pub struct InitUploadInternalRequest {
     pub filename: String,
     pub size: u64,
