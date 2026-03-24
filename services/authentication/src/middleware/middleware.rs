@@ -1,5 +1,5 @@
 use actix_web::dev::Payload;
-use actix_web::{Error, FromRequest, HttpMessage, HttpRequest};
+use actix_web::{Error, FromRequest, HttpRequest};
 use std::future::{ready, Ready};
 
 #[derive(Debug, Clone)]
