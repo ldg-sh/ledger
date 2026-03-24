@@ -6,3 +6,4 @@ pub mod copy;
 pub mod metadata;
 pub mod upload;
 pub mod directory;
+pub mod delete_directory;

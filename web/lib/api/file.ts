@@ -1,203 +1,190 @@
 "use server";
-import { authenticatedFetch, authenticatedMultipartFetch } from "./apiClient";
+import { authenticatedFetch } from "./apiClient";
+import { ListFilesRequest } from "../types/generated/ListFilesRequest";
+import { ListFilesResponse } from "../types/generated/ListFilesResponse";
+import { ListFileElement } from "../types/generated/ListFileElement";
+import { InitDownloadRequest } from "../types/generated/InitDownloadRequest";
+import { InitDownloadResponse } from "../types/generated/InitDownloadResponse";
+import { InitUploadRequest } from "../types/generated/InitUploadRequest";
+import { InitUploadResponse } from "../types/generated/InitUploadResponse";
+import { RenameFileRequest } from "../types/generated/RenameFileRequest";
+import { DeleteFilesRequest } from "../types/generated/DeleteFilesRequest";
+import { DeleteDirectoryRequest } from "../types/generated/DeleteDirectoryRequest";
+import { CopyFilesRequest } from "../types/generated/CopyFilesRequest";
+import { CopyFilesResponse } from "../types/generated/CopyFilesResponse";
 
 export async function listFiles(directoryPath: string) {
-  let request = {
+  let request: ListFilesRequest = {
     path: directoryPath,
     limit: 1000,
     offset: 0,
   };
-  const res = await authenticatedFetch(`/file/list/${directoryPath}`, {
+
+  const res = await authenticatedFetch(`/api/file/list/`, {
     method: "POST",
     body: JSON.stringify(request),
   });
 
   if (!res.ok) throw new Error("Failed to fetch file list");
-  let json = await res.json();
+  let json: ListFilesResponse = await res.json();
 
   let files = json.files;
+  let folders: ListFileElement[] = [];
+  let fileList: ListFileElement[] = [];
 
-  let fileList: File[] = files.map((file: any) => ({
-    file_id: file.file_id,
-    file_name: file.file_name,
-    file_size: file.file_size,
-    file_type: file.file_type,
-    created_at: file.created_at,
-    path: file.path,
-  }));
+  folders = files.filter((file) => file.file_type === "directory");
+  folders.sort((a, b) => a.file_name.localeCompare(b.file_name));
 
-  let folders: any[];
-
-  folders = fileList.filter(file => file.fileType === 'directory');
-  folders.sort((a, b) => a.fileName.localeCompare(b.fileName));
-
-  fileList = fileList.filter(file => file.fileType !== 'directory');
-  fileList.sort((a, b) => a.fileName.localeCompare(b.fileName));
+  files = files.filter((file) => file.file_type !== "directory");
+  files.sort((a, b) => a.file_name.localeCompare(b.file_name));
 
   return { files: fileList, folders: folders };
 }
 
 export async function fetchUrl(fileId: string) {
-  let request = {
+  let request: InitDownloadRequest = {
     file_id: fileId,
   };
-  const res = await authenticatedFetch(`/download/${fileId}/view?preview=true`, {
+
+  const res = await authenticatedFetch(`/api/download/create`, {
     method: "POST",
     body: JSON.stringify(request),
   });
 
-  if (!res.ok) throw new Error("Failed to download full file");
-  const data = await res.arrayBuffer();
+  let json: InitDownloadResponse = await res.json();
 
-  return new Uint8Array(data);
+  if (!res.ok) throw new Error("Failed to fetch download URL");
+
+  return json.download_url;
 }
 
 export async function createUpload(
   fileName: string,
   fileSize: number,
   contentType: string,
-  path: string
-) {
-  let request = {
-    file_name: fileName,
-    file_size: fileSize,
+  path: string,
+): Promise<InitUploadResponse> {
+  let request: InitUploadRequest = {
+    filename: fileName,
+    size: BigInt(fileSize),
     content_type: contentType,
     path: path,
-  }
+  };
 
-  const res = await authenticatedFetch(
-    `/upload/create`,
-    {
-      method: "POST",
-      body: JSON.stringify(request),
-    }
-  );
+  const res = await authenticatedFetch(`/api/upload/create`, {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
 
-  console.log("Create Upload Response:", res);
+  let json: InitUploadResponse = await res.json();
 
-  if (!res.ok) throw new Error("Failed to create upload: " + JSON.stringify(res));
+  if (!res.ok)
+    throw new Error("Failed to create upload: " + JSON.stringify(res));
 
-  return res.json();
+  return json;
 }
 
 export async function uploadPart(
-  uploadId: string,
-  fileId: string,
-  checksum: string,
-  chunkNumber: number,
-  totalChunks: number,
-  chunkData: Uint8Array
+  signedUrl: string,
+  partNumber: number,
+  body: Uint8Array,
+  checksum: string
 ) {
-  let formData = new FormData();
-  formData.append("uploadId", uploadId);
-  formData.append("checksum", checksum);
-  formData.append("chunkNumber", chunkNumber.toString());
-  formData.append("totalChunks", totalChunks.toString());
-  formData.append(
-    "chunk",
-    new Blob([chunkData] as BlobPart[], { type: "application/octet-stream" })
-  );
+  const urlWithParams = new URL(signedUrl);
+  urlWithParams.searchParams.append("partNumber", partNumber.toString());
 
-  const res = await authenticatedMultipartFetch(
-    `/upload/${fileId}`,
-    formData
-  );
+  const response = await fetch(urlWithParams.toString(), {
+    method: "PUT",
+    body: body.buffer as ArrayBuffer,
+    headers: {
+      "Content-Type": "application/octet-stream",
+      "x-amz-checksum-sha256": checksum,
+    },
+  });
 
-  return res.ok;
+  if (!response.ok) {
+    throw new Error(
+      `Upload failed for part ${partNumber}: ${response.statusText}`,
+    );
+  }
+
+  return response;
+};
+
+export async function completeUpload(uploadId: string, fileId: string) {
+  const response = await authenticatedFetch(`/api/upload/complete`, {
+    method: "POST",
+    body: JSON.stringify({
+      upload_id: uploadId,
+      file_id: fileId,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to complete upload: ${response.statusText}`);
+  }
+
+  return response;
 }
 
-export async function renameFile(
-  fileId: string,
-  newFileName: string,
-) {
-  let jsonData = {
-    newName: newFileName,
+export async function renameFile(fileId: string, newFileName: string) {
+  let request: RenameFileRequest = {
+    file_id: fileId,
+    file_name: newFileName,
   };
 
-  const res = await authenticatedFetch(
-    `/file/${fileId}`,
-    {
-      method: "PATCH",
-      body: JSON.stringify(jsonData),
-    }
-  );
+  const res = await authenticatedFetch(`/api/file/rename`, {
+    method: "PATCH",
+    body: JSON.stringify(request),
+  });
 
   return res.ok;
 }
 
-export async function deleteFile(
-  fileId: string,
-) {
-  const res = await authenticatedFetch(
-    `/file/${fileId}`,
-    {
-      method: "DELETE",
-    }
-  );
+export async function deleteFiles(fileIds: string[]) {
+  let request: DeleteFilesRequest = {
+    file_ids: fileIds,
+  };
+
+  const res = await authenticatedFetch(`/api/file/delete`, {
+    method: "DELETE",
+    body: JSON.stringify(request),
+  });
 
   return res.ok;
 }
 
-export async function deleteDirectory(
-  directoryPath: string,
-) {
-  const res = await authenticatedFetch(
-    `/directory/${directoryPath}`,
-    {
-      method: "DELETE",
-    }
-  );
+export async function deleteDirectory(directoryPath: string) {
+  let request: DeleteDirectoryRequest = {
+    path: directoryPath,
+  };
+
+  const res = await authenticatedFetch(`/api/directory/delete`, {
+    method: "DELETE",
+    body: JSON.stringify(request),
+  });
 
   return res.ok;
 }
 
-export async function copyFile(
-  fileId: string,
-  destinationPath: string,
-) {
+export async function copyFiles(fileIds: string[], destinationPath: string) {
   let destPath = destinationPath.startsWith("/")
     ? destinationPath.slice(1)
     : destinationPath;
 
-  let jsonData = {
-    destinationPath: destPath,
+  let request: CopyFilesRequest = {
+    file_ids: fileIds,
+    destination_path: destPath,
   };
 
-  const res = await authenticatedFetch(
-    `/file/${fileId}/copy`,
-    {
-      method: "POST",
-      body: JSON.stringify(jsonData),
-    }
-  );
+  const res = await authenticatedFetch(`/api/file/copy`, {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
 
-  let json = await res.json();
+  let json: CopyFilesResponse = await res.json();
 
   if (!res.ok) throw new Error("Failed to copy file");
-
-  return json.file_id;
-}
-
-export async function copyMultipleFiles(
-  fileIds: string[],
-  destinationPath: string,
-) {  
-  let jsonData = {
-    fileIds: fileIds,
-    destinationPath: destinationPath,
-  };
-
-  const res = await authenticatedFetch(
-    `/bulk/copy`,
-    {
-      method: "POST",
-      body: JSON.stringify(jsonData),
-    }
-  );
-
-  let json = await res.json();
-
-  if (!res.ok) throw new Error("Failed to copy files");
 
   return json.file_ids;
 }

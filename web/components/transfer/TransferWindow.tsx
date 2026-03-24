@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import styles from "./TransferWindow.module.scss";
-import { createUpload, uploadPart } from "@/lib/api/file";
+import { completeUpload, createUpload, uploadPart } from "@/lib/api/file";
 import { sha256_bytes } from "@/lib/util/hash";
 import { pretifyFileSize } from "@/lib/util/file";
 import GlyphButton from "../general/GlyphButton";
 import { cn } from "@/lib/util/class";
 import { usePathname } from "next/navigation";
 import { extractPathFromUrl } from "@/lib/util/url";
+import { InitUploadResponse } from "@/lib/types/generated/InitUploadResponse";
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB
 const MAX_CONCURRENT_UPLOADS = 3;
@@ -40,22 +41,15 @@ export default function TransferWindow() {
     return () =>
       window.removeEventListener("trigger-upload", handleExternalUpload);
   }, []);
-
   const handleDrop = async (e: React.DragEvent<HTMLDivElement> | FileList) => {
-    let files: FileList;
-    if (e instanceof FileList) {
-      files = e as unknown as FileList;
-    } else {
-      let event = e as React.DragEvent<HTMLDivElement>;
-      files = Array.from(event.dataTransfer.files) as unknown as FileList;
-    }
+    const files: File[] =
+      e instanceof FileList ? Array.from(e) : Array.from(e.dataTransfer.files);
 
     for (const file of files) {
       setTargetSize((prev) => prev + file.size);
 
       const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
       const stateKey = Math.random().toString(36).substring(2, 15);
-      const fakeUploadId = "upload-" + stateKey;
 
       setProgress((prev) => ({
         ...prev,
@@ -64,128 +58,121 @@ export default function TransferWindow() {
           percent: 0,
           done: 0,
           total: totalChunks,
-          fileId: stateKey,
-          uploadId: fakeUploadId,
+          fileId: "",
+          uploadUrl: "",
           fileName: file.name,
           bytesUploaded: 0,
           totalBytes: file.size,
           status: "Waiting...",
           stateKey,
-        },
+        } as FileProgress,
       }));
 
-      createUpload(file.name, file.type, extractPathFromUrl(path)).then(async (createRes) => {
-        const fileId = createRes.file_id;
-        const uploadId = createRes.upload_id;
+      try {
+        const createRes: InitUploadResponse = await createUpload(
+          file.name,
+          file.size,
+          file.type,
+          extractPathFromUrl(path),
+        );
 
-        setProgress((prev) => {
-          const newProgress = { ...prev };
-          newProgress[stateKey] = {
-            ...newProgress[stateKey],
-            fileId,
-            status: undefined,
-          };
-
-          return newProgress;
-        });
+        setProgress((prev) => ({
+          ...prev,
+          [stateKey]: {
+            ...prev[stateKey],
+            fileId: createRes.file_id,
+            uploadUrl: createRes.upload_url,
+            uploadId: createRes.upload_id,
+            status: "Uploading...",
+          },
+        }));
 
         for (let i = 0; i < totalChunks; i++) {
-          const chunk = file.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
-
           taskQueue.current.push({
             fileId,
-            uploadId,
+            uploadUrl: uploadUrl,
             fileName: file.name,
             chunkIndex: i,
             totalChunks,
-            chunk,
+            chunk: file.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE),
             stateKey,
           });
         }
 
         if (!uploading) {
-          await launchWorkers();
-        } else {
-          console.log(
-            "Upload already in progress, workers will pick up new tasks"
-          );
+          launchWorkers();
         }
-      });
+      } catch (err) {
+        setProgress((prev) => ({
+          ...prev,
+          [stateKey]: { ...prev[stateKey], status: "Error" },
+        }));
+      }
     }
   };
 
   const launchWorkers = async () => {
-    setUploading(true);
-    const workers = Array.from({ length: MAX_CONCURRENT_UPLOADS }, runWorker);
-    await Promise.all(workers);
-    setUploading(false);
-  };
-  const runWorker = async () => {
-    while (taskQueue.current.length > 0) {
-      const task = taskQueue.current.shift();
-      if (!task) break;
+  if (uploading) return;
+  setUploading(true);
+  
+  const workerCount = Math.min(MAX_CONCURRENT_UPLOADS, taskQueue.current.length);
+  
+  const workers = Array.from({ length: workerCount }, runWorker);
+  
+  await Promise.all(workers);
+  setUploading(false);
+};
 
+const runWorker = async () => {
+  while (taskQueue.current.length > 0) {
+    const task = taskQueue.current.shift();
+    if (!task) break;
+
+    try {
       const uploadedAmount = await upload(task);
 
-      setProgress((prev) => {
+      setProgress(async (prev) => {
         const fileProg = prev[task.stateKey];
         if (!fileProg) return prev;
-        const done = fileProg.done + 1;
+
+        const newDone = fileProg.done + 1;
+        const isComplete = newDone >= fileProg.total;
+
+        if (isComplete) {
+          await completeUpload(task.stateKey);
+        }
+
         return {
           ...prev,
           [task.stateKey]: {
             ...fileProg,
-            done,
-            percent: Math.floor((done / fileProg.total) * 100),
+            done: newDone,
+            percent: Math.floor((newDone / fileProg.total) * 100),
             bytesUploaded: fileProg.bytesUploaded + uploadedAmount,
+            status: isComplete ? "Completed" : "Uploading...",
           },
         };
       });
 
-      setTotalUploadedSize((prevSize) => prevSize + uploadedAmount);
-
-      setProgress((currentProgress) => {
-        const fileProg = currentProgress[task.stateKey];
-
-        if (fileProg && fileProg.done >= fileProg.total) {
-          setTimeout(() => {
-            setProgress((prevCleanup) => {
-              const nextProgress = { ...prevCleanup };
-              delete nextProgress[task.stateKey];
-
-              if (Object.keys(nextProgress).length === 0) {
-                setTargetSize(0);
-                setTotalUploadedSize(0);
-                setIsExpanded(false);
-              }
-              return nextProgress;
-            });
-          }, 2000);
-
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent("refresh-file-list"));
-          });
-        }
-        return currentProgress;
-      });
+      setTotalUploadedSize((prev) => prev + uploadedAmount);
+    } catch (error) {
+      console.error("Worker task failed:", error);
     }
-  };
+  }
+};
 
   const upload = async (task: UploadTask) => {
-    let data = task.chunk;
-    let arrayBuffer = await data.arrayBuffer();
-    let uint8Array = new Uint8Array(arrayBuffer);
+    const uint8Array = new Uint8Array(await task.chunk.arrayBuffer());
+    const checksum = await sha256_bytes(uint8Array);
 
-    let checksum = await sha256_bytes(uint8Array);
     await uploadPart(
-        task.uploadId,
-        task.fileId,
-        checksum,
-        task.chunkIndex + 1,
-        task.totalChunks,
-        uint8Array
+      task.uploadUrl,
+      task.chunkIndex + 1,
+      uint8Array,
+      checksum,
     );
-    return data.size;
+
+    return task.chunk.size;
   };
 
   const onDragOver = (e: React.DragEvent<HTMLDocument>) => {
@@ -212,21 +199,21 @@ export default function TransferWindow() {
 
     const dragOverHandler = (e: DragEvent) => {
       onDragOver(e as unknown as React.DragEvent<HTMLDocument>);
-    }
+    };
 
     const onDragEnterHandler = (e: DragEvent) => {
       onDragEnter(e as unknown as React.DragEvent<HTMLDocument>);
-    }
+    };
 
     const onDragLeaveHandler = (e: DragEvent) => {
       onDragLeave(e as unknown as React.DragEvent<HTMLDocument>);
-    }
+    };
 
     const onDropHandler = (e: DragEvent) => {
       handleDrop(e as unknown as React.DragEvent<HTMLDivElement>);
       onDragLeave(e as unknown as React.DragEvent<HTMLDocument>);
-    }
-    
+    };
+
     document.addEventListener("dragover", dragOverHandler);
     document.addEventListener("dragenter", onDragEnterHandler);
     document.addEventListener("dragleave", onDragLeaveHandler);
@@ -243,7 +230,7 @@ export default function TransferWindow() {
         setIsDragOver(false);
       });
       document.removeEventListener("drop", onDropHandler);
-    }
+    };
   }, []);
 
   return (
@@ -292,7 +279,7 @@ export default function TransferWindow() {
                     progress{" "}
                     {Object.values(progress).length > 0
                       ? `- ${pretifyFileSize(
-                          totalUploadedSize
+                          totalUploadedSize,
                         )} / ${pretifyFileSize(targetSize)}`
                       : ""}
                   </div>
@@ -320,11 +307,7 @@ export default function TransferWindow() {
                 setIsExpanded(!isExpanded);
               }}
             >
-              <GlyphButton
-                glyph="chevron-down"
-                size={24}
-                rotate
-              ></GlyphButton>
+              <GlyphButton glyph="chevron-down" size={24} rotate></GlyphButton>
             </div>
           </div>
 

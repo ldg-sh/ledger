@@ -16,6 +16,7 @@ pub struct InitUploadRequest {
 pub struct InitUploadResponse {
     pub file_id: String,
     pub upload_url: String,
+    pub upload_id: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -28,4 +29,11 @@ pub struct InitUploadInternalRequest {
     pub user_id: String,
     pub path: String,
     pub file_id: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[derive(ts_rs::TS)]
+#[ts(export)]
+pub struct InitUploadInternalResponse {
+    pub upload_id: String,
 }

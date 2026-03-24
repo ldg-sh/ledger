@@ -7,7 +7,7 @@ use sea_orm::{DatabaseConnection, EntityTrait, Set};
 use storage::s3_manager::S3StorageManager;
 use crate::middleware::middleware::AuthenticatedUser;
 
-#[post("directory")]
+#[post("create")]
 pub async fn directory(
     database: web::Data<DatabaseConnection>,
     _s3_client: web::Data<S3StorageManager>,
