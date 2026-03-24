@@ -1,7 +1,0 @@
-target/
-.idea/
-*.env
-node_modules/
-.wrangler/
-.DS_Store
-*.dev.vars

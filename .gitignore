@@ -1,0 +1,6 @@
+.idea/
+target/
+node_modules/
+.env
+.dev.vars
+.wrangler/
