@@ -27,31 +27,3 @@ export async function authenticatedFetch(
 
   return response;
 }
-
-export async function authenticatedMultipartFetch(
-  endpoint: string,
-  formData: FormData,
-  options: RequestInit = {},
-) {
-  const cookieStore = await cookies();
-
-  const headers = {
-    Cookie: cookieStore.get("session")
-      ? `session=${cookieStore.get("session")?.value}`
-      : "",
-    ...options.headers,
-  };
-
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    method: "POST",
-    headers,
-    body: formData,
-  });
-
-  if (response.status === 401) {
-    // TODO
-  }
-
-  return response;
-}

@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct InitUploadRequest {
     pub filename: String,
     pub size: u64,
@@ -9,6 +10,7 @@ pub struct InitUploadRequest {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+
 pub struct InitUploadResponse {
     pub file_id: String,
     pub upload_url: String,

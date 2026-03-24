@@ -2,7 +2,15 @@
 import { authenticatedFetch, authenticatedMultipartFetch } from "./apiClient";
 
 export async function listFiles(directoryPath: string) {
-  const res = await authenticatedFetch(`/list/${directoryPath}`);
+  let request = {
+    path: directoryPath,
+    limit: 1000,
+    offset: 0,
+  };
+  const res = await authenticatedFetch(`/file/list/${directoryPath}`, {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
 
   if (!res.ok) throw new Error("Failed to fetch file list");
   let json = await res.json();
@@ -10,11 +18,11 @@ export async function listFiles(directoryPath: string) {
   let files = json.files;
 
   let fileList: File[] = files.map((file: any) => ({
-    fileId: file.file_id,
-    fileName: file.file_name,
-    fileSize: file.file_size,
-    fileType: file.file_type,
-    createdAt: file.created_at,
+    file_id: file.file_id,
+    file_name: file.file_name,
+    file_size: file.file_size,
+    file_type: file.file_type,
+    created_at: file.created_at,
     path: file.path,
   }));
 
@@ -29,29 +37,15 @@ export async function listFiles(directoryPath: string) {
   return { files: fileList, folders: folders };
 }
 
-export async function downloadPart(
-  rangeStart: number,
-  rangeEnd: number,
-  fileId: string
-) {
-  let formData = new FormData();
-  formData.append("rangeStart", rangeStart.toString());
-  formData.append("rangeEnd", rangeEnd.toString());
+export async function fetchUrl(fileId: string) {
+  let request = {
+    file_id: fileId,
+  };
+  const res = await authenticatedFetch(`/download/${fileId}/view?preview=true`, {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
 
-  const res = await authenticatedMultipartFetch(
-    `/download/${fileId}`,
-    formData
-  );
-
-  if (!res.ok) throw new Error("Failed to download file part");
-  const data = await res.arrayBuffer();
-
-  return new Uint8Array(data);
-}
-
-export async function downloadFull(fileId: string) {
-  const res = await authenticatedFetch(`/download/${fileId}/view?preview=true`);
-  
   if (!res.ok) throw new Error("Failed to download full file");
   const data = await res.arrayBuffer();
 
@@ -60,20 +54,23 @@ export async function downloadFull(fileId: string) {
 
 export async function createUpload(
   fileName: string,
+  fileSize: number,
   contentType: string,
   path: string
 ) {
-  let formData = new FormData();
-  formData.append("fileName", fileName);
-  formData.append("contentType", contentType);
-
-  if (path === "") {
-    path = "/";
+  let request = {
+    file_name: fileName,
+    file_size: fileSize,
+    content_type: contentType,
+    path: path,
   }
 
-  const res = await authenticatedMultipartFetch(
-    `/upload/create${path}`,
-    formData
+  const res = await authenticatedFetch(
+    `/upload/create`,
+    {
+      method: "POST",
+      body: JSON.stringify(request),
+    }
   );
 
   console.log("Create Upload Response:", res);

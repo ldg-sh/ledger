@@ -1,7 +1,6 @@
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use std::env;
-use worker::{Fetch, Headers, Method, Request, RequestInit};
+use worker::{Env, Fetch, Headers, Method, Request, RequestInit};
 
 #[derive(Debug, Clone)]
 pub struct Configuration {
@@ -14,14 +13,14 @@ pub struct Configuration {
 }
 
 impl Configuration {
-    pub fn gather_configuration() -> Configuration {
+    pub fn gather_configuration(env: Env) -> Configuration {
         let config = Configuration {
-            r2_account_id: env::var("R2_ACCOUNT_ID").unwrap().to_string(),
-            r2_access_key: env::var("R2_ACCESS_KEY").unwrap().to_string(),
-            r2_secret_key: env::var("R2_SECRET_KEY").unwrap().to_string(),
-            r2_bucket: env::var("R2_BUCKET").unwrap().to_string(),
-            jwt_secret: env::var("JWT_SECRET").unwrap().to_string(),
-            auth_server_uri: env::var("AUTH_SERVER_URI").unwrap().to_string(),
+            r2_account_id: env.var("R2_ACCOUNT_ID").unwrap().to_string(),
+            r2_access_key: env.var("R2_ACCESS_KEY").unwrap().to_string(),
+            r2_secret_key: env.var("R2_SECRET_KEY").unwrap().to_string(),
+            r2_bucket: env.var("R2_BUCKET").unwrap().to_string(),
+            jwt_secret: env.var("JWT_SECRET").unwrap().to_string(),
+            auth_server_uri: env.var("AUTH_SERVER_URI").unwrap().to_string(),
         };
 
         config
