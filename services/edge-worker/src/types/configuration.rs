@@ -1,5 +1,5 @@
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 use worker::{Env, Fetch, Headers, Method, Request, RequestInit};
 
 #[derive(Debug, Clone)]
@@ -48,8 +48,15 @@ impl Configuration {
 
         let mut response = Fetch::Request(request).send().await?;
 
-        if response.status_code() == 200 {
-            response.json::<R>().await
+        if response.status_code() >= 200 && response.status_code() < 300 {
+            let text = response.text().await?;
+
+            if text.is_empty() {
+                return serde_json::from_str::<R>("null")
+                    .map_err(|e| worker::Error::from(e.to_string()));
+            }
+
+            serde_json::from_str::<R>(&text).map_err(|e| worker::Error::from(e.to_string()))
         } else {
             Err(worker::Error::from(format!(
                 "Internal Request Failed: {} - {}",

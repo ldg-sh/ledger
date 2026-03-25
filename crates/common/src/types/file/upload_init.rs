@@ -8,6 +8,7 @@ pub struct InitUploadRequest {
     pub size: u64,
     pub content_type: String,
     pub path: String,
+    pub part_count: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -15,7 +16,7 @@ pub struct InitUploadRequest {
 #[ts(export)]
 pub struct InitUploadResponse {
     pub file_id: String,
-    pub upload_url: String,
+    pub upload_urls: Vec<String>,
     pub upload_id: String,
 }
 

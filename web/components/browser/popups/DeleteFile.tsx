@@ -4,7 +4,7 @@ import Popup from "./Popup";
 import styles from "./DeleteFile.module.scss";
 import { cn } from "@/lib/util/class";
 import { useState } from "react";
-import { deleteFile } from "@/lib/api/file";
+import { deleteFiles } from "@/lib/api/file";
 
 interface DeleteFileProps {
   onClose: () => void;
@@ -19,7 +19,7 @@ export default function DeleteFile({ onClose, fileIds, fileName }: DeleteFilePro
     setIsLoading(true);
 
     if (fileIds.length == 1) {
-      deleteFile(fileIds[0]).then(() => {
+      deleteFiles([fileIds[0]]).then(() => {
         let event = new CustomEvent("refresh-file-list", {
           detail: () => {
             onClose();
@@ -30,7 +30,7 @@ export default function DeleteFile({ onClose, fileIds, fileName }: DeleteFilePro
         window.dispatchEvent(event);
       });
     } else {
-      Promise.all(fileIds.map((fileId) => deleteFile(fileId))).then(() => {
+      Promise.all(fileIds.map((fileId) => deleteFiles([fileId]))).then(() => {
         let event = new CustomEvent("refresh-file-list", {
           detail: () => {
             onClose();

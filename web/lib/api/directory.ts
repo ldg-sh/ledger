@@ -45,8 +45,6 @@ export async function copyDirectory(
     }
   );
 
-  console.log("RES", res);
-
   let json = await res.json();
 
   return json.directory_id;

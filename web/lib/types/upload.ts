@@ -1,26 +1,27 @@
-interface UploadTask {
+export interface UploadTask {
   fileId: string;
-  fileName: string;
   uploadUrl: string;
   chunkIndex: number;
-  totalChunks: number;
+  uploadId: string;
   chunk: Blob;
-  stateKey: string;
 }
 
-interface FileProgress {
+export interface FileUpload {
   name: string;
-  percent: number;
-  done: number;
   total: number;
   fileId: string;
-  uploadUrl: string;
+  uploadUrls: string[];
   uploadId: string;
   fileName: string;
   bytesUploaded: number;
   totalBytes: number;
-  status?: "Waiting..." | "Uploading..." | "Completed" | "Error";
-  stateKey: string;
+  status: UploadStatus | null;
+  etags: Map<number, string>;
 }
 
-type ProgressMap = Record<string, FileProgress>;
+export type UploadStatus = 
+  | "Waiting..." 
+  | "Finalizing..." 
+  | "Uploading..." 
+  | "Completed" 
+  | "Error";

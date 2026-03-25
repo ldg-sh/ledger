@@ -1,7 +1,6 @@
 use crate::types::configuration::Configuration;
-use common::types::file::upload_init::{InitUploadInternalRequest, InitUploadRequest};
 use std::sync::Arc;
-use worker::{Context, Env, Request, Response, Router, console_error, console_log, event};
+use worker::{event, Context, Env, Request, Response, Router};
 
 pub mod authentication;
 pub mod routes;
@@ -9,14 +8,12 @@ pub mod types;
 
 struct AppState {
     config: Configuration,
-    ctx: Context,
 }
 
 #[event(fetch)]
-pub async fn main(req: Request, env: Env, ctx: Context) -> Result<Response, worker::Error> {
+pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, worker::Error> {
     let state = Arc::new(AppState {
         config: Configuration::gather_configuration(env.clone()),
-        ctx,
     });
     let router = Router::with_data(state.clone());
 

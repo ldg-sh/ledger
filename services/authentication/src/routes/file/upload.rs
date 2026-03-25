@@ -9,16 +9,16 @@ use sea_orm::QueryFilter;
 use sea_orm::prelude::DateTimeWithTimeZone;
 use sea_orm::sea_query::prelude::chrono;
 use sea_orm::{DatabaseConnection, EntityTrait, Set};
+use migration::prelude::serde_json::json;
+use storage::StorageBackend;
 use storage::s3_manager::S3StorageManager;
 use storage::s3_scoped_storage::S3ScopedStorage;
-use storage::StorageBackend;
 
 #[post("init")]
 pub async fn init(
     database: web::Data<DatabaseConnection>,
-    _s3_client: web::Data<S3StorageManager>,
     payload: web::Json<InitUploadInternalRequest>,
-    s3_scoped_storage: web::Data<S3ScopedStorage>,
+    s3_scoped_storage: web::Data<S3StorageManager>,
     authenticated_user: AuthenticatedUser,
 ) -> HttpResponse {
     let insert = File::insert(file::ActiveModel {
@@ -31,8 +31,8 @@ pub async fn init(
         file_size: Set(payload.size as i64),
         path: Set(payload.path.clone()),
     })
-        .exec(database.get_ref())
-        .await;
+    .exec(database.get_ref())
+    .await;
 
     if insert.is_err() {
         return HttpResponse::InternalServerError().body(format!(
@@ -48,7 +48,7 @@ pub async fn init(
     };
 
     let id = match storage.create_upload(&payload.file_id).await {
-        Ok(res) => { res }
+        Ok(res) => res,
         Err(err) => {
             return HttpResponse::InternalServerError().body(format!(
                 "Failed to create upload session: {}",
@@ -57,47 +57,54 @@ pub async fn init(
         }
     };
 
-    HttpResponse::Ok().json(InitUploadInternalResponse {
-        upload_id: id,
-    })
+    HttpResponse::Ok().json(InitUploadInternalResponse { upload_id: id })
 }
 
 #[post("complete")]
 pub async fn complete(
     database: web::Data<DatabaseConnection>,
     payload: web::Json<CompleteUploadRequest>,
-    s3_scoped_storage: web::Data<S3ScopedStorage>,
+    s3_scoped_storage: web::Data<S3StorageManager>,
     authenticated_user: AuthenticatedUser,
 ) -> HttpResponse {
-    let update = File::update_many()
-        .col_expr(file::Column::UploadCompleted, true.into())
-        .filter(file::Column::Id.eq(payload.file_id.clone()))
-        .exec(database.get_ref())
-        .await;
-
     let storage = S3ScopedStorage {
         user_id: authenticated_user.id.clone(),
         bucket: s3_scoped_storage.bucket.clone(),
         client: s3_scoped_storage.client.clone(),
     };
 
-    match storage.complete_upload(
-        &payload.file_id,
-        &payload.upload_id,
-        payload.parts.iter().map(
-            |part| {
-                (part.part_number, part.etag.clone())
-            }
-        ).collect::<Vec<(u32, String)>>(),
-    ).await {
+    match storage
+        .complete_upload(
+            &payload.file_id,
+            &payload.upload_id,
+            payload
+                .parts
+                .iter()
+                .map(|part| (part.part_number, part.etag.clone()))
+                .collect::<Vec<(u32, String)>>(),
+        )
+        .await
+    {
         Ok(_) => {}
         Err(err) => {
+            if let Some(s3_err) = err.downcast_ref::<aws_sdk_s3::Error>() {
+                println!("S3 Error: {:?}", s3_err);
+            } else {
+                println!("S3 Error: {:?}", err);
+            }
             return HttpResponse::InternalServerError().body(format!(
-                "Failed to complete upload session: {}",
-                err.to_string()
-            ))
+                "S3 Error: {}", err
+            ));
         }
     }
+
+    let update = File::update_many()
+        .col_expr(file::Column::UploadCompleted, true.into())
+        .filter(file::Column::Id.eq(payload.file_id.clone()))
+        .exec(database.get_ref())
+        .await;
+
+    println!("{:?}", update);
 
     if update.is_err() {
         HttpResponse::InternalServerError().body(format!(
@@ -106,5 +113,5 @@ pub async fn complete(
         ));
     }
 
-    HttpResponse::Ok().finish()
+    HttpResponse::Ok().json(json!({}))
 }

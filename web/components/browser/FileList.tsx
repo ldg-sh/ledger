@@ -1,6 +1,6 @@
 "use client";
 
-import { copyFile, copyMultipleFiles, listFiles } from "@/lib/api/file";
+import { copyFiles, listFiles } from "@/lib/api/file";
 import Row from "./Row";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
@@ -12,19 +12,11 @@ import { ContextMenu } from "../general/menu/ContextMenu";
 import ContextMenuItem from "../general/menu/ContextMenuItem";
 import RenameFile from "./popups/RenameFile";
 import DeleteFile from "./popups/DeleteFile";
-
-interface File {
-  fileId: string;
-  fileName: string;
-  fileSize: number;
-  fileType: string;
-  createdAt?: string;
-  path: string;
-}
+import { ListFileElement } from "@/lib/types/generated/ListFileElement";
 
 interface FileListData {
-  folders: File[];
-  files: File[];
+  folders: ListFileElement[];
+  files: ListFileElement[];
 }
 
 export default function FileList() {
@@ -50,10 +42,7 @@ export default function FileList() {
 
   const getAllFileIds = useCallback((): string[] => {
     if (!data) return [];
-    return [
-      ...data.folders.map((f) => f.fileId),
-      ...data.files.map((f) => f.fileId),
-    ];
+    return [...data.folders.map((f) => f.id), ...data.files.map((f) => f.id)];
   }, [data]);
 
   const getClipboardData = async (): Promise<string[]> => {
@@ -98,13 +87,13 @@ export default function FileList() {
       let fileIdsToCopy: string[] = [];
 
       ids.forEach((id) => {
-        let file = data?.files.find((file) => file.fileId === id);
+        let file = data?.files.find((file) => file.id === id);
         if (file) {
           fileIdsToCopy.push(id);
         }
       });
 
-      const fileIds = await copyMultipleFiles(
+      const fileIds = await copyFiles(
         fileIdsToCopy,
         extractPathFromUrl(pathname),
       );
@@ -121,12 +110,12 @@ export default function FileList() {
 
   const pasteFileIdFromClipboard = useCallback(
     async (id: string) => {
-      let file = data?.files.find((file) => file.fileId === id);
+      let file = data?.files.find((file) => file.id === id);
 
       let newId = "";
 
       if (file) {
-        newId = await copyFile(id.trim(), extractPathFromUrl(pathname));
+        newId = (await copyFiles([id.trim()], extractPathFromUrl(pathname)))[0];
       }
 
       const event = new CustomEvent("refresh-file-list", {
@@ -235,6 +224,11 @@ export default function FileList() {
 
       if (event instanceof CustomEvent && typeof event.detail === "function") {
         event.detail();
+      } else if (
+        event instanceof CustomEvent &&
+        typeof event.detail === "string"
+      ) {
+        setSelectedFiles(new Set([event.detail]));
       }
     },
     [loadData],
@@ -354,26 +348,26 @@ export default function FileList() {
       >
         {data?.folders.map((folder) => (
           <Row
-            key={folder.fileId}
-            fileId={folder.fileId}
-            fileName={folder.fileName}
-            fileSize={folder.fileSize}
+            key={folder.id}
+            fileId={folder.id}
+            fileName={folder.file_name}
+            fileSize={folder.file_size as unknown as number}
             fileType="folder"
             folder={true}
             clickCallback={handleRowClick}
-            selected={selectedFiles.has(folder.fileId)}
+            selected={selectedFiles.has(folder.id)}
           />
         ))}
         {data?.files.map((file) => (
           <Row
-            key={file.fileId}
-            fileName={file.fileName}
-            fileSize={file.fileSize}
-            fileType={file.fileType}
-            fileId={file.fileId}
-            createdAt={file.createdAt}
+            key={file.id}
+            fileName={file.file_name}
+            fileSize={file.file_size as unknown as number}
+            fileType={file.file_type}
+            fileId={file.id}
+            createdAt={file.created_at}
             clickCallback={handleRowClick}
-            selected={selectedFiles.has(file.fileId)}
+            selected={selectedFiles.has(file.id)}
           />
         ))}
         <div style={{ height: "100px", width: "100%" }} />
@@ -396,7 +390,11 @@ export default function FileList() {
                 glyph="copy"
                 hotkey="CtrlC"
                 onClick={() => {
-                  if (!Array.from(selectedFiles).includes(rightClickedFile?.fileId || "")) {
+                  if (
+                    !Array.from(selectedFiles).includes(
+                      rightClickedFile?.fileId || "",
+                    )
+                  ) {
                     copyFileIdToClipboard(rightClickedFile?.fileId || "");
                   } else {
                     copyFileIdsToClipboard();

@@ -1,5 +1,4 @@
-use crate::authentication::authentication::AuthenticatedUser;
-use crate::{AppState, authenticate, routes};
+use crate::{AppState, authenticate};
 use common::types::file::upload_complete::CompleteUploadRequest;
 use common::types::file::upload_init::{
     InitUploadInternalRequest, InitUploadInternalResponse, InitUploadRequest, InitUploadResponse,
@@ -11,10 +10,7 @@ use std::time::Duration;
 use uuid::Uuid;
 use worker::*;
 
-pub async fn handle_create(
-    mut req: Request,
-    ctx: RouteContext<Arc<AppState>>,
-) -> Result<Response> {
+pub async fn handle_create(mut req: Request, ctx: RouteContext<Arc<AppState>>) -> Result<Response> {
     let user = authenticate!(&req, &ctx);
 
     let state = ctx.data;
@@ -52,15 +48,23 @@ pub async fn handle_create(
     let credentials = Credentials::new(access_key.as_str(), secret_key.as_str());
 
     let presigned_url_duration = Duration::from_secs(60 * 60);
-
     let url = format!("{}/{}", user.id, file_id);
 
-    let action = bucket.put_object(Some(&credentials), url.as_str());
-    let presigned_url = action.sign(presigned_url_duration);
+    let mut urls = vec![];
+    for i in 1..=req_body.part_count {
+        let action = bucket.upload_part(
+            Some(&credentials),
+            url.as_str(),
+            i as u16,
+            result.upload_id.as_str(),
+        );
+        let presigned_url = action.sign(presigned_url_duration);
+        urls.push(presigned_url.to_string());
+    }
 
     Response::from_json(&InitUploadResponse {
         file_id: file_id.to_string(),
-        upload_url: presigned_url.to_string(),
+        upload_urls: urls,
         upload_id: result.upload_id,
     })
 }
@@ -72,11 +76,18 @@ pub async fn handle_complete(
     let user = authenticate!(&req, &ctx);
 
     let state = ctx.data;
-    let req_body = req.json::<CompleteUploadRequest>().await?;
+    let body = req.text().await?;
+
+    let req_body = match serde_json::from_str::<CompleteUploadRequest>(&body) {
+        Ok(data) => data,
+        Err(error) => {
+            return Response::error("Invalid request body", 400);
+        }
+    };
 
     match state
         .config
-        .make_internal_request::<_, serde_json::Value>(
+        .make_internal_request::<_, ()>(
             "/internal/upload/complete",
             &user.id,
             &req_body,
@@ -84,6 +95,8 @@ pub async fn handle_complete(
         .await
     {
         Ok(_) => Response::ok(""),
-        Err(e) => Response::error(e.to_string(), 500),
+        Err(error) => {
+            Response::error(error.to_string(), 500)
+        }
     }
 }

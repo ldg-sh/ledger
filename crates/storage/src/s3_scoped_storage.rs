@@ -42,7 +42,7 @@ impl StorageBackend for S3ScopedStorage {
             .map(|p| {
                 CompletedPart::builder()
                     .part_number(p.clone().0 as i32)
-                    .e_tag(p.clone().1)
+                    .e_tag(p.1.trim_matches(|c| c == '"' || c == '\\').to_string())
                     .build()
             })
             .collect();

@@ -22,3 +22,4 @@ env_logger = { workspace = true }
 log = "0.4.29"
 futures = "0.3.32"
 chrono = "0.4.44"
+aws-sdk-s3 = "1.127.0"

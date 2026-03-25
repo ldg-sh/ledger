@@ -12,6 +12,7 @@ import { DeleteFilesRequest } from "../types/generated/DeleteFilesRequest";
 import { DeleteDirectoryRequest } from "../types/generated/DeleteDirectoryRequest";
 import { CopyFilesRequest } from "../types/generated/CopyFilesRequest";
 import { CopyFilesResponse } from "../types/generated/CopyFilesResponse";
+import { CompleteUploadRequest } from "../types/generated/CompleteUploadRequest";
 
 export async function listFiles(directoryPath: string) {
   let request: ListFilesRequest = {
@@ -20,7 +21,7 @@ export async function listFiles(directoryPath: string) {
     offset: 0,
   };
 
-  const res = await authenticatedFetch(`/api/file/list/`, {
+  const res = await authenticatedFetch(`/file/list`, {
     method: "POST",
     body: JSON.stringify(request),
   });
@@ -35,8 +36,8 @@ export async function listFiles(directoryPath: string) {
   folders = files.filter((file) => file.file_type === "directory");
   folders.sort((a, b) => a.file_name.localeCompare(b.file_name));
 
-  files = files.filter((file) => file.file_type !== "directory");
-  files.sort((a, b) => a.file_name.localeCompare(b.file_name));
+  fileList = files.filter((file) => file.file_type !== "directory");
+  fileList.sort((a, b) => a.file_name.localeCompare(b.file_name));
 
   return { files: fileList, folders: folders };
 }
@@ -46,7 +47,7 @@ export async function fetchUrl(fileId: string) {
     file_id: fileId,
   };
 
-  const res = await authenticatedFetch(`/api/download/create`, {
+  const res = await authenticatedFetch(`/download/create`, {
     method: "POST",
     body: JSON.stringify(request),
   });
@@ -63,20 +64,24 @@ export async function createUpload(
   fileSize: number,
   contentType: string,
   path: string,
+  chunk_size: number,
 ): Promise<InitUploadResponse> {
   let request: InitUploadRequest = {
     filename: fileName,
-    size: BigInt(fileSize),
+    size: fileSize,
     content_type: contentType,
+    part_count: Math.ceil(fileSize / chunk_size),
     path: path,
   };
 
-  const res = await authenticatedFetch(`/api/upload/create`, {
+  const res = await authenticatedFetch(`/upload/create`, {
     method: "POST",
     body: JSON.stringify(request),
   });
 
-  let json: InitUploadResponse = await res.json();
+  let body = await res.text();
+
+  let json: InitUploadResponse = JSON.parse(body);
 
   if (!res.ok)
     throw new Error("Failed to create upload: " + JSON.stringify(res));
@@ -88,18 +93,12 @@ export async function uploadPart(
   signedUrl: string,
   partNumber: number,
   body: Uint8Array,
-  checksum: string
 ) {
   const urlWithParams = new URL(signedUrl);
-  urlWithParams.searchParams.append("partNumber", partNumber.toString());
 
   const response = await fetch(urlWithParams.toString(), {
     method: "PUT",
-    body: body.buffer as ArrayBuffer,
-    headers: {
-      "Content-Type": "application/octet-stream",
-      "x-amz-checksum-sha256": checksum,
-    },
+    body: body as BodyInit,
   });
 
   if (!response.ok) {
@@ -108,23 +107,39 @@ export async function uploadPart(
     );
   }
 
-  return response;
-};
+  const etag = response.headers.get("ETag")?.replace(/"/g, "");
 
-export async function completeUpload(uploadId: string, fileId: string) {
-  const response = await authenticatedFetch(`/api/upload/complete`, {
+  if (!etag) {
+    throw new Error(`No ETag returned for part ${partNumber}`);
+  }
+
+  return etag;
+}
+
+export async function completeUpload(
+  uploadId: string,
+  fileId: string,
+  etags: Map<number, string>,
+) {
+  let request: CompleteUploadRequest = {
+    upload_id: uploadId,
+    file_id: fileId,
+    parts: Array.from(etags.entries())
+      .map(([partNumber, etag]) => ({
+        part_number: partNumber,
+        etag: etag,
+      }))
+      .sort((a, b) => a.part_number - b.part_number),
+  };
+
+  const response = await authenticatedFetch(`/upload/complete`, {
     method: "POST",
-    body: JSON.stringify({
-      upload_id: uploadId,
-      file_id: fileId,
-    }),
+    body: JSON.stringify(request),
   });
 
   if (!response.ok) {
     throw new Error(`Failed to complete upload: ${response.statusText}`);
   }
-
-  return response;
 }
 
 export async function renameFile(fileId: string, newFileName: string) {
@@ -133,7 +148,7 @@ export async function renameFile(fileId: string, newFileName: string) {
     file_name: newFileName,
   };
 
-  const res = await authenticatedFetch(`/api/file/rename`, {
+  const res = await authenticatedFetch(`/file/rename`, {
     method: "PATCH",
     body: JSON.stringify(request),
   });
@@ -146,7 +161,7 @@ export async function deleteFiles(fileIds: string[]) {
     file_ids: fileIds,
   };
 
-  const res = await authenticatedFetch(`/api/file/delete`, {
+  const res = await authenticatedFetch(`/file/delete`, {
     method: "DELETE",
     body: JSON.stringify(request),
   });
@@ -159,7 +174,7 @@ export async function deleteDirectory(directoryPath: string) {
     path: directoryPath,
   };
 
-  const res = await authenticatedFetch(`/api/directory/delete`, {
+  const res = await authenticatedFetch(`/directory/delete`, {
     method: "DELETE",
     body: JSON.stringify(request),
   });
@@ -177,7 +192,7 @@ export async function copyFiles(fileIds: string[], destinationPath: string) {
     destination_path: destPath,
   };
 
-  const res = await authenticatedFetch(`/api/file/copy`, {
+  const res = await authenticatedFetch(`/file/copy`, {
     method: "POST",
     body: JSON.stringify(request),
   });

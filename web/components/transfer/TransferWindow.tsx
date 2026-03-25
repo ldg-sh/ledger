@@ -10,12 +10,12 @@ import { cn } from "@/lib/util/class";
 import { usePathname } from "next/navigation";
 import { extractPathFromUrl } from "@/lib/util/url";
 import { InitUploadResponse } from "@/lib/types/generated/InitUploadResponse";
+import { FileUpload, UploadTask } from "@/lib/types/upload";
 
-const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB
+const CHUNK_SIZE = 5 * 1024 * 1024;
 const MAX_CONCURRENT_UPLOADS = 3;
 
 export default function TransferWindow() {
-  const [progress, setProgress] = useState<ProgressMap>({});
   const [uploading, setUploading] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -25,154 +25,165 @@ export default function TransferWindow() {
   const path = usePathname();
 
   const overlayRef = useRef<HTMLDivElement>(null);
+
   const taskQueue = useRef<UploadTask[]>([]);
+  const fileUploads = useRef<FileUpload[]>([]);
 
   useEffect(() => {
     const handleExternalUpload = async (e: Event) => {
       const files = (e as CustomEvent).detail as FileList;
-
-      if (files.length > 0) {
-        await handleDrop(files);
-      }
+      if (files.length > 0) await handleDrop(files);
     };
 
     window.addEventListener("trigger-upload", handleExternalUpload);
-
     return () =>
       window.removeEventListener("trigger-upload", handleExternalUpload);
   }, []);
+
   const handleDrop = async (e: React.DragEvent<HTMLDivElement> | FileList) => {
     const files: File[] =
       e instanceof FileList ? Array.from(e) : Array.from(e.dataTransfer.files);
 
     for (const file of files) {
-      setTargetSize((prev) => prev + file.size);
+      let size = file.size;
+      let totalChunks = Math.ceil(size / CHUNK_SIZE);
 
-      const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-      const stateKey = Math.random().toString(36).substring(2, 15);
+      fileUploads.current.push({
+        name: file.name,
+        total: totalChunks,
+        fileId: "",
+        uploadUrls: [],
+        uploadId: "",
+        fileName: file.name,
+        bytesUploaded: 0,
+        totalBytes: size,
+        status: "Waiting...",
+        etags: new Map<number, string>(),
+      });
 
-      setProgress((prev) => ({
-        ...prev,
-        [stateKey]: {
-          name: file.name,
-          percent: 0,
-          done: 0,
-          total: totalChunks,
-          fileId: "",
-          uploadUrl: "",
-          fileName: file.name,
-          bytesUploaded: 0,
-          totalBytes: file.size,
-          status: "Waiting...",
-          stateKey,
-        } as FileProgress,
-      }));
+      createNewUpload(file).then((uploadResponse) => {
+        const fileId = uploadResponse.file_id;
+        const uploadUrls = uploadResponse.upload_urls;
 
-      try {
-        const createRes: InitUploadResponse = await createUpload(
-          file.name,
-          file.size,
-          file.type,
-          extractPathFromUrl(path),
-        );
+        fileUploads.current = fileUploads.current.map((upload) => {
+          if (upload.fileName === file.name && upload.total === totalChunks) {
+            return {
+              ...upload,
+              fileId: fileId,
+              uploadUrls: uploadUrls,
+              uploadId: uploadResponse.upload_id,
+              status: "Uploading...",
+            };
+          }
+          return upload;
+        });
 
-        setProgress((prev) => ({
-          ...prev,
-          [stateKey]: {
-            ...prev[stateKey],
-            fileId: createRes.file_id,
-            uploadUrl: createRes.upload_url,
-            uploadId: createRes.upload_id,
-            status: "Uploading...",
-          },
-        }));
+        for (let i = 1; i <= totalChunks; i++) {
+          const chunk = file.slice((i - 1) * CHUNK_SIZE, i * CHUNK_SIZE);
 
-        for (let i = 0; i < totalChunks; i++) {
           taskQueue.current.push({
-            fileId,
-            uploadUrl: uploadUrl,
-            fileName: file.name,
+            fileId: fileId,
+            uploadUrl: uploadUrls[i - 1],
             chunkIndex: i,
-            totalChunks,
-            chunk: file.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE),
-            stateKey,
+            uploadId: uploadResponse.upload_id,
+            chunk: chunk,
           });
         }
 
-        if (!uploading) {
-          launchWorkers();
-        }
-      } catch (err) {
-        setProgress((prev) => ({
-          ...prev,
-          [stateKey]: { ...prev[stateKey], status: "Error" },
-        }));
-      }
+        setTargetSize((prev) => prev + size);
+        launchWorkers();
+      });
     }
   };
 
   const launchWorkers = async () => {
-  if (uploading) return;
-  setUploading(true);
-  
-  const workerCount = Math.min(MAX_CONCURRENT_UPLOADS, taskQueue.current.length);
-  
-  const workers = Array.from({ length: workerCount }, runWorker);
-  
-  await Promise.all(workers);
-  setUploading(false);
-};
+    setUploading(true);
 
-const runWorker = async () => {
-  while (taskQueue.current.length > 0) {
-    const task = taskQueue.current.shift();
-    if (!task) break;
+    const workerCount = Math.min(
+      MAX_CONCURRENT_UPLOADS,
+      taskQueue.current.length,
+    );
+    await Promise.all(Array.from({ length: workerCount }, runWorker));
 
-    try {
-      const uploadedAmount = await upload(task);
+    setUploading(false);
+  };
 
-      setProgress(async (prev) => {
-        const fileProg = prev[task.stateKey];
-        if (!fileProg) return prev;
+  const runWorker = async () => {
+    while (taskQueue.current.length > 0) {
+      const task = taskQueue.current.shift();
+      if (!task) break;
 
-        const newDone = fileProg.done + 1;
-        const isComplete = newDone >= fileProg.total;
+      const fileUpload = fileUploads.current.find(
+        (upload) => upload.fileId === task.fileId,
+      );
+      if (!fileUpload) return;
 
-        if (isComplete) {
-          await completeUpload(task.stateKey);
-        }
+      fileUpload.status = null;
 
-        return {
-          ...prev,
-          [task.stateKey]: {
-            ...fileProg,
-            done: newDone,
-            percent: Math.floor((newDone / fileProg.total) * 100),
-            bytesUploaded: fileProg.bytesUploaded + uploadedAmount,
-            status: isComplete ? "Completed" : "Uploading...",
-          },
-        };
-      });
+      upload(task)
+        .then((etag) => {
+          fileUpload.etags.set(task.chunkIndex, etag);
+          fileUpload.bytesUploaded += task.chunk.size;
+          setTotalUploadedSize((prev) => prev + task.chunk.size);
 
-      setTotalUploadedSize((prev) => prev + uploadedAmount);
-    } catch (error) {
-      console.error("Worker task failed:", error);
+          if (fileUpload.etags.size === fileUpload.total) {
+            fileUpload.status = "Completed";
+
+            completeUpload(
+              fileUpload.uploadId,
+              fileUpload.fileId,
+              fileUpload.etags,
+            )
+              .then(() => {
+                setTimeout(() => {
+                  window.dispatchEvent(
+                    new CustomEvent("refresh-file-list", {
+                      detail: fileUpload.fileId,
+                    }),
+                  );
+                });
+                setTimeout(() => {
+                  fileUploads.current = fileUploads.current.filter(
+                    (upload) => upload.fileId !== fileUpload.fileId,
+                  );
+
+                  setTargetSize((prev) => prev - fileUpload.totalBytes);
+                  setTotalUploadedSize((prev) => prev - fileUpload.totalBytes);
+                }, 2000);
+              })
+              .catch((error) => {
+                fileUpload.status = "Error";
+                setTotalUploadedSize((prev) => prev - fileUpload.totalBytes);
+              });
+          }
+        })
+        .catch(() => {
+          const fileUpload = fileUploads.current.find(
+            (upload) => upload.fileId === task.fileId,
+          );
+          if (fileUpload) {
+            fileUpload.status = "Error";
+          }
+        });
     }
-  }
-};
+  };
+
+  const createNewUpload = async (file: File) => {
+    const uploadResponse: InitUploadResponse = await createUpload(
+      file.name,
+      file.size,
+      file.type,
+      extractPathFromUrl(path),
+      CHUNK_SIZE,
+    );
+
+    return uploadResponse;
+  };
 
   const upload = async (task: UploadTask) => {
     const uint8Array = new Uint8Array(await task.chunk.arrayBuffer());
-    const checksum = await sha256_bytes(uint8Array);
 
-    await uploadPart(
-      task.uploadUrl,
-      task.chunkIndex + 1,
-      uint8Array,
-      checksum,
-    );
-
-    return task.chunk.size;
+    return uploadPart(task.uploadUrl, task.chunkIndex + 1, uint8Array);
   };
 
   const onDragOver = (e: React.DragEvent<HTMLDocument>) => {
@@ -270,14 +281,13 @@ const runWorker = async () => {
             <div className={styles.left}>
               <h1 className={styles.title}>Active Transfers</h1>
               <div className={styles.subtitle}>
-                {Object.values(progress).length === 0 ? (
+                {fileUploads.current.length === 0 ? (
                   "No active transfers"
                 ) : (
                   <div>
-                    {Object.values(progress).length} upload
-                    {Object.values(progress).length !== 1 ? "s" : ""} in
-                    progress{" "}
-                    {Object.values(progress).length > 0
+                    {fileUploads.current.length} upload
+                    {fileUploads.current.length !== 1 ? "s" : ""} in progress{" "}
+                    {fileUploads.current.length > 0
                       ? `- ${pretifyFileSize(
                           totalUploadedSize,
                         )} / ${pretifyFileSize(targetSize)}`
@@ -316,10 +326,10 @@ const runWorker = async () => {
             style={{
               maxHeight: isExpanded ? "300px" : "2px",
               minHeight: isExpanded ? "300px" : "2px",
-              display: Object.keys(progress).length === 0 ? "flex" : "block",
+              display: fileUploads.current.length === 0 ? "flex" : "block",
             }}
           >
-            {Object.keys(progress).length === 0 && (
+            {fileUploads.current.length === 0 && (
               <div
                 className={styles.subtitle}
                 style={{ opacity: isExpanded ? 1 : 0 }}
@@ -327,21 +337,26 @@ const runWorker = async () => {
                 <p>No active transfers</p>
               </div>
             )}
-            {Object.values(progress).map((fileProg) => (
+            {fileUploads.current.map((fileProg) => (
               <div className={styles.fileProgress} key={fileProg.uploadId}>
                 <div className={styles.fileInfo}>
                   <div className={styles.fileName}>{fileProg.fileName}</div>
                   <div className={styles.progressBar}>
-                    <p className={styles.progressText}>{fileProg.percent}%</p>
+                    <p className={styles.progressText}>
+                      {(
+                        (fileProg.bytesUploaded / fileProg.totalBytes) *
+                        100
+                      ).toFixed(0)}
+                      %
+                    </p>
                     <div className={styles.progressBars}>
                       <div className={styles.progressBackground}></div>
                       <div
                         className={styles.progressFill}
                         style={{
                           width: `${
-                            progress[fileProg.stateKey].bytesUploaded > 0
-                              ? (progress[fileProg.stateKey].bytesUploaded /
-                                  progress[fileProg.stateKey].totalBytes) *
+                            fileProg.bytesUploaded > 0
+                              ? (fileProg.bytesUploaded / fileProg.totalBytes) *
                                 100
                               : 0
                           }%`,
@@ -360,7 +375,8 @@ const runWorker = async () => {
                         {pretifyFileSize(fileProg.totalBytes)}
                       </p>
                       <p className={styles.chunksUploaded}>
-                        {fileProg.done} / {fileProg.total}
+                        {Math.ceil(fileProg.bytesUploaded / CHUNK_SIZE)} /{" "}
+                        {fileProg.total}
                       </p>
                     </>
                   )}
