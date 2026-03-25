@@ -1,29 +1,19 @@
-import { cookies } from "next/headers";
+"use client";
 
-const API_URL = process.env.EDGE_URL || "http://localhost:8787";
+const API_URL = process.env.NEXT_PUBLIC_EDGE_URL || "http://localhost:8787";
 
 export async function authenticatedFetch(
   endpoint: string,
   options: RequestInit = {},
 ) {
-  const cookieStore = await cookies();
-
-  const headers = {
-    ...options.headers,
-    "Content-Type": "application/json",
-    Cookie: cookieStore.get("session")
-      ? `session=${cookieStore.get("session")?.value}`
-      : "",
-  };
-
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
-    headers,
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
   });
-
-  if (response.status === 401) {
-    // TODO
-  }
 
   return response;
 }

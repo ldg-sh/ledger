@@ -1,4 +1,4 @@
-"use server";
+"use client";
 import { authenticatedFetch } from "./apiClient";
 import { ListFilesRequest } from "../types/generated/ListFilesRequest";
 import { ListFilesResponse } from "../types/generated/ListFilesResponse";

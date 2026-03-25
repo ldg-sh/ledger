@@ -228,7 +228,9 @@ export default function FileList() {
         event instanceof CustomEvent &&
         typeof event.detail === "string"
       ) {
-        setSelectedFiles(new Set([event.detail]));
+        if (selectedFiles.size === 0) {
+          setSelectedFiles(new Set([event.detail]));
+        }
       }
     },
     [loadData],

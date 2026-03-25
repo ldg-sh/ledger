@@ -12,12 +12,34 @@ struct AppState {
 
 #[event(fetch)]
 pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, worker::Error> {
+    let allowed_origins = [
+        env.var("ALLOWED_ORIGIN")?.to_string(),
+        "http://localhost:3000".to_string(),
+    ];
+    let allowed_origins_ref: Vec<&str> = allowed_origins.iter().map(|s| s.as_str()).collect();
+
+    let is_preflight = req.headers().get("Access-Control-Request-Method").ok().flatten().is_some();
+    let origin = req.headers().get("Origin").ok().flatten();
+
+    if is_preflight {
+        let response = Response::empty()?;
+        let mut headers = response.headers().clone();
+        if let Some(o) = &origin {
+            if allowed_origins_ref.contains(&o.as_str()) {
+                headers.set("Access-Control-Allow-Origin", o)?;
+                headers.set("Access-Control-Allow-Credentials", "true")?;
+                headers.set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")?;
+                headers.set("Access-Control-Allow-Headers", "Content-Type")?;
+            }
+        }
+        return Ok(response.with_headers(headers));
+    }
+
     let state = Arc::new(AppState {
         config: Configuration::gather_configuration(env.clone()),
     });
-    let router = Router::with_data(state.clone());
 
-    router
+    let response = Router::with_data(state.clone())
         .post_async("/upload/create", routes::upload::handle_create)
         .post_async("/upload/complete", routes::upload::handle_complete)
         .post_async("/download/create", routes::download::handle_create)
@@ -31,5 +53,16 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, wor
         .post_async("/file/list", routes::list::handle_list)
         .get_async("/user/info", routes::user::handle_info)
         .run(req, env)
-        .await
+        .await?;
+
+    let mut headers = response.headers().clone();
+    if let Some(o) = &origin {
+        if allowed_origins_ref.contains(&o.as_str()) {
+            headers.set("Access-Control-Allow-Origin", o)?;
+            headers.set("Access-Control-Allow-Credentials", "true")?;
+            headers.set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")?;
+            headers.set("Access-Control-Allow-Headers", "Content-Type")?;
+        }
+    }
+    Ok(response.with_headers(headers))
 }
