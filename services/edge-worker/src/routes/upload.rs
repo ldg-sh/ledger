@@ -80,7 +80,7 @@ pub async fn handle_complete(
 
     let req_body = match serde_json::from_str::<CompleteUploadRequest>(&body) {
         Ok(data) => data,
-        Err(error) => {
+        Err(_) => {
             return Response::error("Invalid request body", 400);
         }
     };

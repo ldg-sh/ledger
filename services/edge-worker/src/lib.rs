@@ -23,7 +23,7 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, wor
 
     if is_preflight {
         let response = Response::empty()?;
-        let mut headers = response.headers().clone();
+        let headers = response.headers().clone();
         if let Some(o) = &origin {
             if allowed_origins_ref.contains(&o.as_str()) {
                 headers.set("Access-Control-Allow-Origin", o)?;
@@ -55,7 +55,7 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, wor
         .run(req, env)
         .await?;
 
-    let mut headers = response.headers().clone();
+    let headers = response.headers().clone();
     if let Some(o) = &origin {
         if allowed_origins_ref.contains(&o.as_str()) {
             headers.set("Access-Control-Allow-Origin", o)?;
