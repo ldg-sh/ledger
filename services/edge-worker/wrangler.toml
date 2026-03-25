@@ -1,4 +1,4 @@
-name = "ledger-edge-worker"
+name = 'ledger-edge-worker'
 main = "build/index.js"
 compatibility_date = "2026-03-01"
 
@@ -18,4 +18,16 @@ id = "423b2f30666c496a846a4782f0e00c5b"
 command = "cargo install -q worker-build && worker-build --release"
 
 [observability]
-logs = { enabled = true }
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1
