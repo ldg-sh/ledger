@@ -4,7 +4,7 @@ export async function authenticatedFetch(
   endpoint: string,
   options: RequestInit = {},
 ) {
-  const response = await fetch(`/api/${endpoint}`, {
+  const response = await fetch(`/api${endpoint}`, {
     ...options,
     credentials: "include",
     headers: {
