@@ -2,10 +2,6 @@ name = 'ledger-edge-worker'
 main = "build/index.js"
 compatibility_date = "2026-03-01"
 
-[vars]
-AUTH_SERVER_URI = "https://ledger-v2.up.railway.app"
-R2_BUCKET = "ledger"
-
 [[kv_namespaces]]
 binding = "METADATA_CACHE"
 id = "acf6f93fc500499eab68e751b377f54a"
