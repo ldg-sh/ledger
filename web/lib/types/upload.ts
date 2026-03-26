@@ -15,13 +15,7 @@ export interface FileUpload {
   fileName: string;
   bytesUploaded: number;
   totalBytes: number;
-  status: UploadStatus | null;
+  status: string;
+  startTime: number;
   etags: Map<number, string>;
 }
-
-export type UploadStatus = 
-  | "Waiting..." 
-  | "Finalizing..." 
-  | "Uploading..." 
-  | "Completed" 
-  | "Error";

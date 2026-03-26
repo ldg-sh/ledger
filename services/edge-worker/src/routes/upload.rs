@@ -15,11 +15,10 @@ pub async fn handle_create(mut req: Request, ctx: RouteContext<Arc<AppState>>) -
 
     let state = ctx.data;
 
-    let account_id = state.config.r2_account_id.clone();
-    let access_key = state.config.r2_access_key.clone();
-    let secret_key = state.config.r2_secret_key.clone();
-    let bucket_name = state.config.r2_bucket.clone();
-    let url = format!("https://{}.r2.cloudflarestorage.com", account_id);
+    let access_key = state.config.access_key.clone();
+    let secret_key = state.config.secret_key.clone();
+    let bucket_name = state.config.bucket.clone();
+    let url = state.config.endpoint.clone();
 
     let bucket = Bucket::new(Url::from_str(&url)?, UrlStyle::Path, bucket_name, "auto").unwrap();
 

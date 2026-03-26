@@ -10,6 +10,7 @@ import { usePathname } from "next/navigation";
 import { extractPathFromUrl } from "@/lib/util/url";
 import { InitUploadResponse } from "@/lib/types/generated/InitUploadResponse";
 import { FileUpload, UploadTask } from "@/lib/types/upload";
+import formatDuration from "@/lib/util/time";
 
 const CHUNK_SIZE = 5 * 1024 * 1024;
 const MAX_CONCURRENT_UPLOADS = 3;
@@ -56,6 +57,7 @@ export default function TransferWindow() {
         uploadId: "",
         fileName: file.name,
         bytesUploaded: 0,
+        startTime: Date.now(),
         totalBytes: size,
         status: "Waiting...",
         etags: new Map<number, string>(),
@@ -129,7 +131,7 @@ export default function TransferWindow() {
             fileUpload.etags.set(task.chunkIndex, etag);
 
             if (fileUpload.etags.size == fileUpload.total) {
-              fileUpload.status = "Completed";
+              fileUpload.status = "Completed in " + formatDuration(Date.now() - fileUpload.startTime);
 
               completeUpload(
                 fileUpload.uploadId,
@@ -145,10 +147,6 @@ export default function TransferWindow() {
                     );
                   });
                   setTimeout(() => {
-                    console.log(
-                      "Removing upload from list:",
-                      fileUpload.fileName,
-                    );
                     setFileUploads((prev) =>
                       prev.filter(
                         (upload) => upload.fileId != fileUpload.fileId,

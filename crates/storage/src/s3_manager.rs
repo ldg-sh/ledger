@@ -6,18 +6,15 @@ pub struct S3StorageManager {
 }
 
 impl S3StorageManager {
-    pub async fn new(access_key: String, secret_key: String, account_id: String, bucket: String) -> Self {
-        let endpoint_url = format!("https://{}.r2.cloudflarestorage.com", account_id);
-
+    pub async fn new_s3(access_key: String, secret_key: String, bucket: String, endpoint: String) -> Self {
         let config = aws_config::defaults(BehaviorVersion::latest())
-            .credentials_provider(Credentials::new(access_key, secret_key, None, None, "R2"))
+            .credentials_provider(Credentials::new(access_key, secret_key, None, None, "S3"))
             .region(Region::new("auto"))
-            .endpoint_url(endpoint_url)
+            .endpoint_url(endpoint)
             .load()
             .await;
 
         let s3_config = aws_sdk_s3::config::Builder::from(&config)
-            .force_path_style(true)
             .build();
 
         let client = aws_sdk_s3::Client::from_conf(s3_config);

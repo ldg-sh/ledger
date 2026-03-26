@@ -2,7 +2,7 @@ pub mod routes;
 pub mod middleware;
 
 use actix_web::{web, App, HttpServer};
-use sea_orm::Database;
+use sea_orm::{Database};
 use std::env;
 use env_logger::Env;
 use log::info;
@@ -26,10 +26,10 @@ async fn main() -> std::io::Result<()> {
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set").trim().to_owned();
 
-    let account_id = env::var("R2_ACCOUNT_ID").expect("R2_ACCOUNT_ID must be set").trim().to_owned();
-    let access_key = env::var("R2_ACCESS_KEY").expect("R2_ACCESS_KEY must be set").trim().to_owned();
-    let secret_key = env::var("R2_SECRET_KEY").expect("R2_SECRET_KEY must be set").trim().to_owned();
-    let bucket = env::var("R2_BUCKET").expect("R2_BUCKET must be set").trim().to_owned();
+    let access_key = env::var("ACCESS_KEY").expect("ACCESS_KEY must be set").trim().to_owned();
+    let secret_key = env::var("SECRET_KEY").expect("SECRET_KEY must be set").trim().to_owned();
+    let bucket = env::var("BUCKET").expect("BUCKET must be set").trim().to_owned();
+    let endpoint = env::var("ENDPOINT").expect("ENDPOINT must be set").trim().to_owned();
 
     let google_client_id = env::var("GOOGLE_CLIENT_ID").expect("GOOGLE_CLIENT_ID must be set").trim().to_owned();
     let google_client_secret = env::var("GOOGLE_CLIENT_SECRET").expect("GOOGLE_CLIENT_SECRET must be set").trim().to_owned();
@@ -50,12 +50,12 @@ async fn main() -> std::io::Result<()> {
         jwt_secret,
         domain_root,
     };
-
-    let s3_manager = S3StorageManager::new(
+    
+    let s3_manager = S3StorageManager::new_s3(
         access_key,
         secret_key,
-        account_id,
         bucket,
+        endpoint,
     ).await;
     
     let database_client = Database::connect(&database_url).await.unwrap();
