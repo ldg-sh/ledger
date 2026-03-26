@@ -70,7 +70,7 @@ export default function Row({
         <GlyphButton
           glyph="ellipsis-vertical"
           size={16}
-          fullSize={30}
+          fullSize={"30px"}
           color="var(--color-text-secondary)"
         />
       </div>

@@ -122,11 +122,6 @@ export default function TransferWindow() {
               (upload) => upload.fileId === task.fileId,
             );
 
-            console.log("Chunk upload completed for fileId:", task.fileId, {
-              etag,
-              chunkIndex: task.chunkIndex,
-            });
-
             if (!fileUpload) return prev;
             fileUpload.etags.set(task.chunkIndex, etag);
 
@@ -340,7 +335,7 @@ export default function TransferWindow() {
                 setIsExpanded(!isExpanded);
               }}
             >
-              <GlyphButton glyph="chevron-up" size={24} rotate></GlyphButton>
+              <GlyphButton glyph="chevron-up" rotate size={26} fullSize="48.5px"></GlyphButton>
             </div>
           </div>
 

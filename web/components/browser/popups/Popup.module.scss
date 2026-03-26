@@ -13,7 +13,7 @@
     border-radius: 12px;
     padding: 25px;
     box-shadow: var(--box-shadow-standard);
-    min-width: 400px;
+    min-width: 500px;
     max-width: 90%;
     position: relative;
     z-index: 4;
@@ -22,8 +22,8 @@
 .close {
     cursor: pointer;
     position: absolute;
-    top: 15px;
-    right: 15px;
+    top: 25px;
+    right: 25px;
     z-index: 4;
 }
 

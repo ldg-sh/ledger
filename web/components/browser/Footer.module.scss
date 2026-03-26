@@ -41,10 +41,15 @@
     transition: background-color 0.2s ease;
 }
 
+.nonPrimaryElement {
+    background-color: var(--color-button-background);
+    border: var(--border-style)
+}
+
 .nonPrimaryElement:hover {
-    background-color: var(--color-background-active);
+    background-color: var(--color-background-hover);
 }
 
 .nonPrimaryElement:active {
-    background-color: var(--color-background-selected);
+    background-color: var(--color-background-active);
 }

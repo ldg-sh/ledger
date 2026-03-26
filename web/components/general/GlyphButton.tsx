@@ -9,7 +9,7 @@ interface GlyphButtonProps {
   size: number;
   danger?: boolean;
   color?: string;
-  fullSize?: number;
+  fullSize?: string;
 }
 
 export default function GlyphButton({
@@ -18,7 +18,7 @@ export default function GlyphButton({
   size,
   danger,
   color,
-  fullSize = 40,
+  fullSize,
 }: GlyphButtonProps) {
   const [rotated, setRotated] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);

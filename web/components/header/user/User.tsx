@@ -41,7 +41,7 @@ export default function User() {
       <AnimatePresence>
         {visible && (
           <div>
-            <ContextMenu x={(container.current?.offsetLeft || 0)} y={(container.current?.offsetTop || 0) + (container.current?.offsetHeight || 0) + 5}>
+            <ContextMenu x={((container.current?.offsetLeft || 0) + 5)} y={(container.current?.offsetTop || 0) + (container.current?.offsetHeight || 0) + 5}>
               <ContextMenuItem
                 label="Log Out"
                 glyph="log-out"

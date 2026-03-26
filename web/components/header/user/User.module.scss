@@ -1,5 +1,9 @@
 .container {
     display: flex;
+    height: 52px;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
 }
 
 .info {
@@ -7,23 +11,29 @@
     flex-direction: column;
     padding-left: 10px;
     padding-right: 30px;
-    height: 48px;
     justify-content: center;
     align-items: start;
-    border-radius: 5px;
-    border: none;
+    border-radius: 8px;
     background-color: transparent;
+    border: none;
+    height: 100%;
 
+    background-color: var(--color-button-background);
+    border: var(--border-style);
+    border-radius: 8px;
     transition: background-color 0.2s ease;
+
+    cursor: pointer;
 }
 
-.info:hover {
-    cursor: pointer;
+.container:hover .info,
+.container:hover .avatar {
     background-color: var(--color-background-hover);
 }
 
-.info:active {
-    background-color: var(--color-background-selected);
+.container:active .info,
+.container:active .avatar {
+    background-color: var(--color-background-active);
 }
 
 .title {
@@ -46,5 +56,11 @@
     height: 48px;
     border-radius: 5px;
     object-fit: cover;
-    margin-right: 10px;
+    margin: 0 10px;
+
+    background-color: var(--color-button-background);
+    border: var(--border-style);
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
 }
