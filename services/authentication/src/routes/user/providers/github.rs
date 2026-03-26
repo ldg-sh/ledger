@@ -84,5 +84,5 @@ pub async fn github_callback(
         Provider::GitHub
     ).await;
 
-    login_success(res.unwrap_or_else(|_| uuid::Uuid::new_v4().to_string()), provider_config.jwt_secret.clone(), database.get_ref().clone()).await
+    login_success(res.unwrap_or_else(|_| uuid::Uuid::new_v4().to_string()), provider_config.jwt_secret.clone(), provider_config.domain_root.clone(), database.get_ref().clone()).await
 }

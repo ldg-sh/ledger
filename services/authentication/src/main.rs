@@ -16,6 +16,7 @@ pub struct ProviderConfiguration {
     pub github_client_id: String,
     pub github_client_secret: String,
     pub jwt_secret: String,
+    pub domain_root: String,
 }
 
 #[tokio::main]
@@ -38,6 +39,7 @@ async fn main() -> std::io::Result<()> {
     let github_client_secret = env::var("GITHUB_CLIENT_SECRET").expect("GITHUB_CLIENT_SECRET must be set").trim().to_owned();
 
     let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set").trim().to_owned();
+    let domain_root = env::var("DOMAIN_ROOT").expect("DOMAIN_ROOT must be set").to_owned();
 
     let provider_configuration = ProviderConfiguration {
         google_client_id,
@@ -46,6 +48,7 @@ async fn main() -> std::io::Result<()> {
         github_client_id,
         github_client_secret,
         jwt_secret,
+        domain_root,
     };
 
     let s3_manager = S3StorageManager::new(

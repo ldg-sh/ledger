@@ -38,5 +38,5 @@ pub async fn refresh(
     }
 
     let _ = database.delete_refresh_token(token_record.token).await;
-    login_success(token_record.user_id, provider_configuration.jwt_secret.clone(), database.get_ref().clone()).await
+    login_success(token_record.user_id, provider_configuration.jwt_secret.clone(), provider_configuration.domain_root.clone(), database.get_ref().clone()).await
 }

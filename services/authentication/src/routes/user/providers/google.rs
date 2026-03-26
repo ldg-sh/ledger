@@ -68,5 +68,5 @@ pub async fn google_callback(
         .await
         .expect("Failed to sync Google user to database");
 
-    login_success(user_uuid, provider_config.jwt_secret.clone(), database.as_ref().clone()).await
+    login_success(user_uuid, provider_config.jwt_secret.clone(), provider_config.domain_root.clone(), database.as_ref().clone()).await
 }
