@@ -14,13 +14,16 @@ pub async fn login_success(user_id: String, jwt_secret: String, database: Databa
     let access_cookie = actix_web::cookie::Cookie::build("session", generate_access_token(&user_id, &jwt_secret))
         .path("/")
         .max_age(actix_web::cookie::time::Duration::minutes(15))
+        .http_only(true)
         .secure(true)
         .finish();
 
     let refresh_cookie = actix_web::cookie::Cookie::build("refresh_token", raw_refresh_token.clone())
         .path("/auth/refresh")
         .secure(true)
+        .http_only(true)
         .max_age(actix_web::cookie::time::Duration::days(30))
+        .same_site(actix_web::cookie::SameSite::None)
         .finish();
     
     let _ = database.store_refresh_token(

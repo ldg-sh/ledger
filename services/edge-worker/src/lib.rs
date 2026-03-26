@@ -18,13 +18,13 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, wor
     let is_allowed = origin == allowed_origin || origin == "http://localhost:3000";
 
     if req.method() == worker::Method::Options {
-        let headers = worker::Headers::new();
+        let mut headers = worker::Headers::new();
         if is_allowed {
             headers.set("Access-Control-Allow-Origin", &origin)?;
             headers.set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")?;
             headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization")?;
             headers.set("Access-Control-Allow-Credentials", "true")?;
-            headers.set("Access-Control-Max-Age", "86400")?;
+            headers.set("Vary", "Origin")?;
         }
         return Ok(Response::empty()?.with_headers(headers));
     }
@@ -53,6 +53,7 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, wor
         let headers = response.headers_mut();
         headers.set("Access-Control-Allow-Origin", &origin)?;
         headers.set("Access-Control-Allow-Credentials", "true")?;
+        headers.set("Vary", "Origin")?;
     }
 
     Ok(response)
