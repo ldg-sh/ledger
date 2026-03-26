@@ -16,7 +16,11 @@ impl S3StorageManager {
             .load()
             .await;
 
-        let client = aws_sdk_s3::Client::new(&config);
+        let s3_config = aws_sdk_s3::config::Builder::from(&config)
+            .force_path_style(true)
+            .build();
+
+        let client = aws_sdk_s3::Client::from_conf(s3_config);
 
         Self { client, bucket }
     }
