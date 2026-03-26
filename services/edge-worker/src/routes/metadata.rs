@@ -1,4 +1,4 @@
-use crate::{authenticate, AppState};
+use crate::{AppState, authenticate};
 use common::types::file::metadata::{MetadataRequest, MetadataResponse};
 use std::sync::Arc;
 use worker::*;
@@ -8,7 +8,7 @@ pub async fn handle_metadata(
     ctx: RouteContext<Arc<AppState>>,
 ) -> Result<Response> {
     let user = authenticate!(&req, &ctx);
-    
+
     let state = &ctx.data;
     let kv = ctx.env.kv("METADATA_CACHE")?;
 
@@ -19,8 +19,9 @@ pub async fn handle_metadata(
         return Response::from_json(&cached);
     }
 
-    let metadata: MetadataResponse = state.config
-        .make_internal_request("/internal/file/metadata", &user.id, &payload)
+    let metadata: MetadataResponse = state
+        .config
+        .make_internal_request("/internal/file/metadata", &user.id, Method::Post, &payload)
         .await?;
 
     kv.put(&cache_key, &metadata)?

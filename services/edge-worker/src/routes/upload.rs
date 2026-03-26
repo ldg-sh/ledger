@@ -41,6 +41,7 @@ pub async fn handle_create(mut req: Request, ctx: RouteContext<Arc<AppState>>) -
         .make_internal_request::<_, InitUploadInternalResponse>(
             "/internal/upload/init",
             &user.id,
+            Method::Post,
             &internal_req,
         )
         .await?;
@@ -90,6 +91,7 @@ pub async fn handle_complete(
         .make_internal_request::<_, ()>(
             "/internal/upload/complete",
             &user.id,
+            Method::Post,
             &req_body,
         )
         .await

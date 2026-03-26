@@ -1,7 +1,7 @@
 use crate::{authenticate, AppState};
 use common::types::file::list::{ListFilesRequest, ListFilesResponse};
 use std::sync::Arc;
-use worker::{Request, Response, RouteContext};
+use worker::{Method, Request, Response, RouteContext};
 
 pub async fn handle_list(mut req: Request, ctx: RouteContext<Arc<AppState>>) -> worker::Result<Response> {
     let user = authenticate!(&req, &ctx);
@@ -12,6 +12,7 @@ pub async fn handle_list(mut req: Request, ctx: RouteContext<Arc<AppState>>) -> 
     let response = state.config.make_internal_request::<_, ListFilesResponse>(
         "/internal/file/list",
         &user.id,
+        Method::Post,
         &payload
     ).await?;
 

@@ -1,4 +1,4 @@
-use crate::{authenticate, AppState};
+use crate::{AppState, authenticate};
 use common::types::user_info::{UserInfoRequest, UserInfoResponse};
 use std::sync::Arc;
 use worker::*;
@@ -18,8 +18,9 @@ pub async fn handle_info(req: Request, ctx: RouteContext<Arc<AppState>>) -> Resu
         account_id: user.id.clone(),
     };
 
-    let metadata: UserInfoResponse = state.config
-        .make_internal_request("/internal/user/info", &user.id, &user_request)
+    let metadata: UserInfoResponse = state
+        .config
+        .make_internal_request("/internal/user/info", &user.id, Method::Post, &user_request)
         .await?;
 
     kv.put(&cache_key, &metadata)?

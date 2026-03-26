@@ -30,6 +30,7 @@ impl Configuration {
         &self,
         path: &str,
         user_id: &str,
+        method: Method,
         payload: &T,
     ) -> Result<R, worker::Error> {
         let headers = Headers::new();
@@ -43,7 +44,7 @@ impl Configuration {
             RequestInit::new()
                 .with_body(Some(serde_json::to_string(payload)?.into()))
                 .with_headers(headers)
-                .with_method(Method::Post),
+                .with_method(method),
         )?;
 
         let mut response = Fetch::Request(request).send().await?;
