@@ -21,6 +21,7 @@ interface UserContextType {
 }
 
 const REDIRECT_BLACKLIST = ["/login", "/callback/**"];
+const EDGE_URL = process.env.NEXT_PUBLIC_EDGE_URL || "http://localhost:8787";
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
@@ -32,16 +33,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const initAuth = async () => {
     try {
-      let res = await fetch("/api/user/info", { credentials: "include" });
+      let res = await fetch(`${EDGE_URL}/user/info`, { credentials: "include" });
 
       if (res.status === 401) {
-        const refreshRes = await fetch("/auth/refresh", {
+        const refreshRes = await fetch(`/auth/refresh`, {
           credentials: "include",
           method: "POST",
         });
 
         if (refreshRes.ok) {
-          res = await fetch("/api/user/info", { credentials: "include" });
+          res = await fetch(`${EDGE_URL}/user/info`, { credentials: "include" });
         }
       }
 
@@ -101,7 +102,7 @@ export const useUser = () => {
 };
 
 export const logout = async () => {
-  await fetch("/auth/logout", {
+  await fetch(`/auth/logout`, {
     method: "POST",
     credentials: "include",
   });
