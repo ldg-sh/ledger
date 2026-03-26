@@ -14,6 +14,7 @@
     width: 450px;
     z-index: 1;
     overflow: hidden;
+    min-height: 78.5px;
 }
 
 .dropOverlay {
@@ -66,10 +67,22 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    position: relative;
+    height: 48.5px;
+        outline: var(--border-style);
+
+}
+
+.status {
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    margin: 0;
 }
 
 .left {
-    width: 70%;
+    width: 350px;
+    position: relative;
 }
 
 .subtext {
@@ -109,25 +122,30 @@
     color: var(--color-text-secondary);
     margin: 0;
     transition: opacity 0.3s ease;
+    position: relative;
 }
 
 .fileProgress {
     display: flex;
     align-items: center;
+    position: relative;
     justify-content: space-between;
-    border-bottom: var(--border-style);
     padding: 15px;
     gap: 10px;
     width: calc(100% - 30px);
 }
 
 .progressFill {
-    height: 6px;
-    background-color: var(--color-text-primary);
+    background-color: var(--color-framework);
     transition: width 0.3s ease;
     position: absolute;
+    height: 100%;
     top: 0;
     left: 0;
+    width: 0;
+    width: 100%;
+    opacity: 0.5;
+    user-select: none;
 }
 
 .progressText {
@@ -139,24 +157,28 @@
 }
 
 .progressBackground {
-    position: relative;
     width: 100%;
-    height: 6px;
+    height: 100%;
     background-color: var(--color-framework);
 }
 
 .progressBar {
-    display: flex;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     align-items: center;
     gap: 8px;
     transition: width 0.3s ease;
-    margin-top: 6px;
-    position: relative;
+    z-index: -1;
+    pointer-events: none;
 }
 
 .progressBars {
     display: flex;
     width: 100%;
+    height: 100%;
     position: relative;
     align-items: center;
 }
@@ -188,6 +210,7 @@
 
 .fileInfo {
     width: 60%;
+    height: 30px;
 }
 
 .progressNumbers {

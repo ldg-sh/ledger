@@ -7,7 +7,7 @@ export interface UploadTask {
 }
 
 export interface FileUpload {
-  name: string;
+  stateId: string;
   total: number;
   fileId: string;
   uploadUrls: string[];
