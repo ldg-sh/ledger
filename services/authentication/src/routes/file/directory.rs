@@ -1,7 +1,7 @@
 use actix_web::{HttpResponse, post, web};
 use common::entities::file;
 use common::entities::prelude::File;
-use common::types::file::directory::DirectoryRequest;
+use common::types::file::directory::{DirectoryRequest, DirectoryResponse};
 use sea_orm::prelude::DateTimeWithTimeZone;
 use sea_orm::{DatabaseConnection, EntityTrait, Set};
 use storage::s3_manager::S3StorageManager;
@@ -14,8 +14,9 @@ pub async fn directory(
     payload: web::Json<DirectoryRequest>,
     authenticated_user: AuthenticatedUser
 ) -> HttpResponse {
+    let id = uuid::Uuid::new_v4().to_string();
     let insert = File::insert(file::ActiveModel {
-        id: Set(uuid::Uuid::new_v4().to_string()),
+        id: Set(id.clone()),
         file_name: Set(payload.name.clone()),
         owner_id: Set(authenticated_user.id.clone()),
         created_at: Set(DateTimeWithTimeZone::from(chrono::Utc::now())),
@@ -34,5 +35,9 @@ pub async fn directory(
         ));
     }
 
-    HttpResponse::Ok().finish()
+    let response = DirectoryResponse {
+        file_id: id.clone(),
+    };
+
+    HttpResponse::Ok().json(response)
 }

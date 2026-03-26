@@ -18,4 +18,5 @@ export interface FileUpload {
   status: string;
   startTime: number;
   etags: Map<number, string>;
+  deleting: boolean;
 }

@@ -43,7 +43,7 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, wor
         .post_async("/file/move", routes::r#move::handle_move)
         .post_async("/file/rename", routes::rename::handle_rename)
         .post_async("/directory/create", routes::directory::handle_directory)
-        .delete_async("/directory/delete", routes::directory::handle_directory)
+        .delete_async("/directory/delete", routes::directory::handle_directory_delete)
         .post_async("/file/list", routes::list::handle_list)
         .get_async("/user/info", routes::user::handle_info)
         .run(req, env)

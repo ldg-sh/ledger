@@ -1,9 +1,9 @@
-use crate::routes::user::*;
 use crate::routes::file::*;
+use crate::routes::user::*;
 use actix_web::web;
 
-pub mod user;
 pub mod file;
+pub mod user;
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -18,7 +18,10 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                     .service(list::list)
                     .service(copy::copy)
                     .service(delete::delete)
-                    .service(directory::directory)
+                    .service(web::scope("/directory")
+                        .service(directory::directory)
+                        .service(delete_directory::delete)
+                    )
                     .service(metadata::metadata)
                     .service(r#move::r#move)
                     .service(rename::rename),

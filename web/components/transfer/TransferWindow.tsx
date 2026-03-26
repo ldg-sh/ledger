@@ -61,6 +61,7 @@ export default function TransferWindow() {
         totalBytes: size,
         status: "Waiting...",
         etags: new Map<number, string>(),
+        deleting: false,
       };
 
       setFileUploads((prev) => [...prev, fileUpload]);
@@ -126,7 +127,9 @@ export default function TransferWindow() {
             fileUpload.etags.set(task.chunkIndex, etag);
 
             if (fileUpload.etags.size == fileUpload.total) {
-              fileUpload.status = "Completed in " + formatDuration(Date.now() - fileUpload.startTime);
+              fileUpload.status =
+                "Completed in " +
+                formatDuration(Date.now() - fileUpload.startTime);
 
               completeUpload(
                 fileUpload.uploadId,
@@ -142,11 +145,23 @@ export default function TransferWindow() {
                     );
                   });
                   setTimeout(() => {
-                    setFileUploads((prev) =>
-                      prev.filter(
-                        (upload) => upload.fileId != fileUpload.fileId,
-                      ),
-                    );
+                    setTimeout(() => {
+                      setFileUploads((prev) =>
+                        prev.filter(
+                          (upload) => upload.fileId != fileUpload.fileId,
+                        ),
+                      );
+                    }, 500);
+
+                    setFileUploads((prev) => {
+                      const upload = prev.find(
+                        (upload) => upload.fileId === fileUpload.fileId,
+                      );
+                      if (upload) {
+                        upload.deleting = true;
+                      }
+                      return [...prev];
+                    });
 
                     setTargetSize((prev) => prev - fileUpload.totalBytes);
                     setTotalUploadedSize(
@@ -154,7 +169,7 @@ export default function TransferWindow() {
                     );
                   }, 2000);
                 })
-                .catch((error) => {
+                .catch(() => {
                   fileUpload.status = "Error";
                 });
             }
@@ -335,7 +350,12 @@ export default function TransferWindow() {
                 setIsExpanded(!isExpanded);
               }}
             >
-              <GlyphButton glyph="chevron-up" rotate size={26} fullSize="48.5px"></GlyphButton>
+              <GlyphButton
+                glyph="chevron-up"
+                rotate
+                size={20}
+                fullSize="48.5px"
+              ></GlyphButton>
             </div>
           </div>
 
@@ -358,7 +378,13 @@ export default function TransferWindow() {
             {fileUploads
               .filter((fileProg) => fileProg.uploadId)
               .map((fileProg) => (
-                <div className={styles.fileProgress} key={fileProg.uploadId}>
+                <div
+                  className={cn(
+                    styles.fileProgress,
+                    fileProg.deleting && styles.deleting,
+                  )}
+                  key={fileProg.uploadId}
+                >
                   <div className={styles.progressBar}>
                     <div className={styles.progressBars}>
                       <div

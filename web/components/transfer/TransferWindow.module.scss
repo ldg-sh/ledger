@@ -132,6 +132,13 @@
     padding: 15px;
     gap: 10px;
     width: calc(100% - 30px);
+    height: 30px;
+
+    transition:
+        height 0.5s ease,
+        padding 0.5s ease,
+        margin 0.5s ease,
+        opacity 0.5s ease;
 }
 
 .progressFill {
@@ -141,7 +148,6 @@
     height: 100%;
     top: 0;
     left: 0;
-    width: 0;
     width: 100%;
     opacity: 0.5;
     user-select: none;
@@ -233,4 +239,13 @@
 .disabled {
     pointer-events: none;
     opacity: 0.5;
+}
+
+.deleting {
+    height: 0;
+    margin: 0;
+    overflow: hidden;
+    padding-top: 0;
+    padding-bottom: 0;
+    pointer-events: none;
 }
