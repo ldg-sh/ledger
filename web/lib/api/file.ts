@@ -89,31 +89,42 @@ export async function createUpload(
   return json;
 }
 
-export async function uploadPart(
+export function uploadPart(
   signedUrl: string,
   partNumber: number,
   body: Uint8Array,
-) {
-  const urlWithParams = new URL(signedUrl);
+  onProgress?: (bytesSent: number) => void,
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
 
-  const response = await fetch(urlWithParams.toString(), {
-    method: "PUT",
-    body: body as BodyInit,
+    xhr.open("PUT", signedUrl);
+
+    if (onProgress && xhr.upload) {
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          onProgress(event.loaded);
+        }
+      };
+    }
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        const etag = xhr.getResponseHeader("ETag")?.replace(/"/g, "");
+        if (etag) {
+          resolve(etag);
+        } else {
+          reject(new Error("No ETag returned"));
+        }
+      } else {
+        reject(new Error(`Upload failed: ${xhr.statusText}`));
+      }
+    };
+
+    xhr.onerror = () => reject(new Error("Network error during upload"));
+
+    xhr.send(body as any);
   });
-
-  if (!response.ok) {
-    throw new Error(
-      `Upload failed for part ${partNumber}: ${response.statusText}`,
-    );
-  }
-
-  const etag = response.headers.get("ETag")?.replace(/"/g, "");
-
-  if (!etag) {
-    throw new Error(`No ETag returned for part ${partNumber}`);
-  }
-
-  return etag;
 }
 
 export async function completeUpload(

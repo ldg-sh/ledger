@@ -123,8 +123,6 @@ export default function TransferWindow() {
       upload(task)
         .then((etag) => {
           fileUpload.etags.set(task.chunkIndex, etag);
-          fileUpload.bytesUploaded += task.chunk.size;
-          setTotalUploadedSize((prev) => prev + task.chunk.size);
 
           if (fileUpload.etags.size === fileUpload.total) {
             fileUpload.status = "Completed";
@@ -153,7 +151,6 @@ export default function TransferWindow() {
               })
               .catch((error) => {
                 fileUpload.status = "Error";
-                setTotalUploadedSize((prev) => prev - fileUpload.totalBytes);
               });
           }
         })
@@ -182,10 +179,37 @@ export default function TransferWindow() {
   };
 
   const upload = async (task: UploadTask) => {
-    const uint8Array = new Uint8Array(await task.chunk.arrayBuffer());
+  const uint8Array = new Uint8Array(await task.chunk.arrayBuffer());
+  let totalSize = uint8Array.length;
+  let uploadedBytes = 0;
 
-    return uploadPart(task.uploadUrl, task.chunkIndex + 1, uint8Array);
-  };
+  return uploadPart(
+    task.uploadUrl,
+    task.chunkIndex,
+    uint8Array,
+    (bytesSent) => {
+      let newAmount = bytesSent - uploadedBytes;
+
+      if (newAmount > 0) {
+        setTotalUploadedSize((prev) => prev + newAmount);
+      }
+
+      fileUploads.current = fileUploads.current.map((upload) => {
+        if (upload.fileId === task.fileId) {
+          return {
+            ...upload,
+            bytesUploaded: upload.bytesUploaded + newAmount,
+          };
+        }
+        return upload;
+      });
+
+      uploadedBytes = bytesSent;
+    }
+  ).then((etag) => {
+    return etag;
+  });
+};
 
   const onDragOver = (e: React.DragEvent<HTMLDocument>) => {
     e.preventDefault();
