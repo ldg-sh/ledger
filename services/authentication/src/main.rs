@@ -23,21 +23,21 @@ async fn main() -> std::io::Result<()> {
     dotenv::dotenv().ok();
     env_logger::init_from_env(Env::default().default_filter_or("info"));
 
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set").trim().to_owned();
 
-    let account_id = env::var("R2_ACCOUNT_ID").expect("R2_ACCOUNT_ID must be set");
-    let access_key = env::var("R2_ACCESS_KEY").expect("R2_ACCESS_KEY must be set");
-    let secret_key = env::var("R2_SECRET_KEY").expect("R2_SECRET_KEY must be set");
-    let bucket = env::var("R2_BUCKET").expect("R2_BUCKET must be set");
+    let account_id = env::var("R2_ACCOUNT_ID").expect("R2_ACCOUNT_ID must be set").trim().to_owned();
+    let access_key = env::var("R2_ACCESS_KEY").expect("R2_ACCESS_KEY must be set").trim().to_owned();
+    let secret_key = env::var("R2_SECRET_KEY").expect("R2_SECRET_KEY must be set").trim().to_owned();
+    let bucket = env::var("R2_BUCKET").expect("R2_BUCKET must be set").trim().to_owned();
 
-    let google_client_id = env::var("GOOGLE_CLIENT_ID").expect("GOOGLE_CLIENT_ID must be set");
-    let google_client_secret = env::var("GOOGLE_CLIENT_SECRET").expect("GOOGLE_CLIENT_SECRET must be set");
-    let google_callback_url = env::var("GOOGLE_CALLBACK_URL").expect("GOOGLE_CLIENT_SECRET must be set");
+    let google_client_id = env::var("GOOGLE_CLIENT_ID").expect("GOOGLE_CLIENT_ID must be set").trim().to_owned();
+    let google_client_secret = env::var("GOOGLE_CLIENT_SECRET").expect("GOOGLE_CLIENT_SECRET must be set").trim().to_owned();
+    let google_callback_url = env::var("GOOGLE_CALLBACK_URL").expect("GOOGLE_CLIENT_SECRET must be set").trim().to_owned();
 
-    let github_client_id = env::var("GITHUB_CLIENT_ID").expect("GITHUB_CLIENT_ID must be set");
-    let github_client_secret = env::var("GITHUB_CLIENT_SECRET").expect("GITHUB_CLIENT_SECRET must be set");
+    let github_client_id = env::var("GITHUB_CLIENT_ID").expect("GITHUB_CLIENT_ID must be set").trim().to_owned();
+    let github_client_secret = env::var("GITHUB_CLIENT_SECRET").expect("GITHUB_CLIENT_SECRET must be set").trim().to_owned();
 
-    let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set");
+    let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set").trim().to_owned();
 
     let provider_configuration = ProviderConfiguration {
         google_client_id,
