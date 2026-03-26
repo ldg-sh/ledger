@@ -1,5 +1,5 @@
-use serde::Serialize;
 use serde::de::DeserializeOwned;
+use serde::Serialize;
 use worker::{Env, Fetch, Headers, Method, Request, RequestInit};
 
 #[derive(Debug, Clone)]

@@ -1,18 +1,17 @@
 use crate::middleware::middleware::AuthenticatedUser;
-use actix_web::{HttpResponse, post, web};
+use actix_web::{post, web, HttpResponse};
 use common::entities::file;
 use common::entities::prelude::File;
 use common::types::file::upload_complete::CompleteUploadRequest;
 use common::types::file::upload_init::{InitUploadInternalRequest, InitUploadInternalResponse};
-use sea_orm::ColumnTrait;
-use sea_orm::QueryFilter;
 use sea_orm::prelude::DateTimeWithTimeZone;
 use sea_orm::sea_query::prelude::chrono;
+use sea_orm::ColumnTrait;
+use sea_orm::QueryFilter;
 use sea_orm::{DatabaseConnection, EntityTrait, Set};
-use migration::prelude::serde_json::json;
-use storage::StorageBackend;
 use storage::s3_manager::S3StorageManager;
 use storage::s3_scoped_storage::S3ScopedStorage;
+use storage::StorageBackend;
 
 #[post("init")]
 pub async fn init(
@@ -113,5 +112,5 @@ pub async fn complete(
         ));
     }
 
-    HttpResponse::Ok().json(json!({}))
+    HttpResponse::Ok().finish()
 }

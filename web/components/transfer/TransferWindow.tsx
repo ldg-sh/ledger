@@ -161,6 +161,7 @@ export default function TransferWindow() {
           const fileUpload = fileUploads.current.find(
             (upload) => upload.fileId === task.fileId,
           );
+
           if (fileUpload) {
             fileUpload.status = "Error";
           }
