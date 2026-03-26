@@ -27,3 +27,8 @@ invocation_logs = true
 enabled = false
 persist = true
 head_sampling_rate = 1
+
+[[routes]]
+pattern = "api.ledger.thesamgordon.com"
+zone_name = "thesamgordon.com"
+custom_domain = true

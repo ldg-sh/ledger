@@ -21,7 +21,7 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, wor
         let headers = worker::Headers::new();
         if is_allowed {
             headers.set("Access-Control-Allow-Origin", &origin)?;
-            headers.set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")?;
+            headers.set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS, PATCH")?;
             headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization")?;
             headers.set("Access-Control-Allow-Credentials", "true")?;
             headers.set("Vary", "Origin")?;
