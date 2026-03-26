@@ -16,6 +16,7 @@ pub async fn login_success(user_id: String, jwt_secret: String, database: Databa
         .max_age(actix_web::cookie::time::Duration::minutes(15))
         .http_only(true)
         .secure(true)
+        .same_site(actix_web::cookie::SameSite::None)
         .finish();
 
     let refresh_cookie = actix_web::cookie::Cookie::build("refresh_token", raw_refresh_token.clone())
