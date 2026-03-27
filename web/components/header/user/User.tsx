@@ -28,8 +28,8 @@ export default function User() {
         src={user.user?.avatar_url || "/default-avatar.png"}
         alt={`${user.user?.username}'s avatar`}
         className={styles.avatar}
-        width={48}
-        height={48}
+        width={52}
+        height={52}
       />
       <button
         className={styles.info}

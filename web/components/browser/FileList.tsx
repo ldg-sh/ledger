@@ -37,6 +37,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [currentOffset, setCurrentOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [rightClickedFile, setRightClickedFile] = useState<{
     fileId: string;
@@ -230,6 +231,8 @@ export default function FileList({ parentContainerRef }: FileListProps) {
 
       if (!res.hasMore) {
         setHasMore(false);
+      } else {
+        setHasMore(true);
       }
 
       setData(res);
@@ -239,7 +242,8 @@ export default function FileList({ parentContainerRef }: FileListProps) {
   }, [pathname, authLoading, sort]);
 
   const loadMoreData = useCallback(async () => {
-    if (authLoading || !hasMore) return;
+    if (authLoading || !hasMore || isLoading) return;
+    console.log("Loading more data with offset:", currentOffset);
 
     setIsLoading(true);
 
@@ -249,6 +253,12 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       currentOffset,
       CHUNK_SIZE,
     );
+
+    if (!res.hasMore) {
+      setHasMore(false);
+    } else {
+      setHasMore(true);
+    }
 
     setData((prevData) => {
       if (!prevData) return res;
@@ -269,7 +279,11 @@ export default function FileList({ parentContainerRef }: FileListProps) {
 
   const refreshFileList = useCallback(
     async (event: Event) => {
+      if (isRefreshing) return;
+
+      setIsRefreshing(true);
       await loadData();
+      setIsRefreshing(false);
 
       if (event instanceof CustomEvent && typeof event.detail === "function") {
         event.detail();
