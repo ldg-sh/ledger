@@ -1,49 +1,49 @@
-name = 'ledger-edge-worker'
+name = "ledger-edge-worker"
 main = "build/index.js"
 compatibility_date = "2026-03-01"
-
-[[kv_namespaces]]
-binding = "METADATA_CACHE"
-id = "acf6f93fc500499eab68e751b377f54a"
-
-[[kv_namespaces]]
-binding = "USER_CACHE"
-id = "423b2f30666c496a846a4782f0e00c5b"
-
-[env.production]
-name = "ledger-edge-worker"
-vars = { ALLOWED_ORIGIN = "https://frontend.ledger.thesamgordon.com", AUTH_SERVER_URI = "https://auth.ledger.thesamgordon.com" }
-
-[[env.production.kv_namespaces]]
-binding = "METADATA_CACHE"
-id = "acf6f93fc500499eab68e751b377f54a"
-
-[[env.production.kv_namespaces]]
-binding = "USER_CACHE"
-id = "423b2f30666c496a846a4782f0e00c5b"
-
-[env.dev]
-vars = { ALLOWED_ORIGIN = "http://localhost:3000", AUTH_SERVER_URI = "http://localhost:8080" }
 
 [build]
 command = "worker-build --release"
 
-[observability]
-enabled = false
-head_sampling_rate = 1
+[env.production]
+name = "ledger-edge-worker"
+main = "build/index.js"
+compatibility_date = "2026-03-01"
+workers_dev = false
 
-[observability.logs]
+[env.production.vars]
+ALLOWED_ORIGIN = "https://frontend.ledger.thesamgordon.com"
+AUTH_SERVER_URI = "https://auth.ledger.thesamgordon.com"
+ENDPOINT = "https://t3.storageapi.dev"
+
+[[env.production.kv_namespaces]]
+binding = "METADATA_CACHE"
+id = "acf6f93fc500499eab68e751b377f54a"
+
+[[env.production.kv_namespaces]]
+binding = "USER_CACHE"
+id = "423b2f30666c496a846a4782f0e00c5b"
+
+[[env.production.routes]]
+pattern = "api.ledger.thesamgordon.com"
+custom_domain = true
+
+[env.production.observability]
+enabled = true
+head_sampling_rate = 1
+[env.production.observability.logs]
 enabled = true
 head_sampling_rate = 1
 persist = true
 invocation_logs = true
 
-[observability.traces]
-enabled = false
-persist = true
-head_sampling_rate = 1
+[env.dev]
+vars = { ALLOWED_ORIGIN = "http://localhost:3000", AUTH_SERVER_URI = "http://localhost:8080" }
 
-[[routes]]
-pattern = "api.ledger.thesamgordon.com"
-zone_name = "thesamgordon.com"
-custom_domain = true
+[[env.dev.kv_namespaces]]
+binding = "METADATA_CACHE"
+id = "acf6f93fc500499eab68e751b377f54a"
+
+[[env.dev.kv_namespaces]]
+binding = "USER_CACHE"
+id = "423b2f30666c496a846a4782f0e00c5b"

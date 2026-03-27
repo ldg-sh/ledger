@@ -268,6 +268,8 @@ export default function FileList({ parentContainerRef }: FileListProps) {
 
   const refreshFileList = useCallback(
     async (event: Event) => {
+      await loadData();
+
       if (event instanceof CustomEvent && typeof event.detail === "function") {
         event.detail();
       } else if (
@@ -279,6 +281,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
         }
       }
     },
+
     [loadData],
   );
 
@@ -366,7 +369,6 @@ export default function FileList({ parentContainerRef }: FileListProps) {
 
   useEffect(() => {
     window.addEventListener("refresh-file-list", refreshFileList);
-
 
     return () =>
       window.removeEventListener("refresh-file-list", refreshFileList);
