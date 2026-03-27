@@ -16,7 +16,7 @@ pub async fn rename(
             file::Column::FileName,
             Expr::Value(payload.file_name.to_owned().into()),
         )
-        .filter(file::Column::Id.eq(payload.file_name.to_owned()))
+        .filter(file::Column::Id.eq(payload.file_id.to_owned()))
         .exec(database.get_ref())
         .await
     {
