@@ -1,19 +1,31 @@
-export function getFileIcon(fileType: string): string {
+import { 
+  Folder, 
+  Image, 
+  FileText, 
+  FileArchive, 
+  FileVideo, 
+  FileAudio, 
+  HardDrive, 
+  File,
+  LucideIcon 
+} from "lucide-react";
+
+export function getFileIcon(fileType: string): LucideIcon {
     if (fileType === 'folder') {
-        return "folder";
+        return Folder;
     } else if (fileType.startsWith('image/')) {
-        return "image";
+        return Image;
     } else if (fileType === 'application/pdf' || fileType === 'text/plain') {
-        return "file-text";
+        return FileText;
     } else if (fileType === 'application/zip') {
-        return "file-archive";
+        return FileArchive;
     } else if (fileType.startsWith('video/')) {
-        return "file-video";
+        return FileVideo;
     } else if (fileType.startsWith('audio/')) {
-        return "file-audio";
+        return FileAudio;
     } else if (fileType === "application/x-apple-diskimage") {
-        return "hard-drive";
+        return HardDrive;
     }
     
-    return "file";
+    return File;
 }

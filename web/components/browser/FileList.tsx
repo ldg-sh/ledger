@@ -34,7 +34,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
   const [lastDeliberateClick, setLastDeliberateClick] = useState<string | null>(
     null,
   );
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentOffset, setCurrentOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
 
@@ -215,6 +215,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
     },
     [lastDeliberateClick, getAllFileIds],
   );
+
   const loadData = useCallback(async () => {
     if (authLoading) return;
 

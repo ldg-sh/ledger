@@ -1,6 +1,5 @@
 "use client";
 
-import { DynamicIcon } from "lucide-react/dynamic";
 import styles from "./Row.module.scss";
 import { getFileIcon } from "@/lib/util/icon";
 import { usePathname, useRouter } from "next/navigation";
@@ -64,6 +63,8 @@ export default function Row({
     window.location.assign(`/api/download/${fileId}`);
   }
 
+  const Icon = getFileIcon(folder ? "folder" : fileType);
+
   return (
     <div className={styles.rowContainer}>
       <div className={styles.moreOptions} onClick={showMenu}>
@@ -98,16 +99,14 @@ export default function Row({
         }}
       >
         {folder ? (
-          <DynamicIcon
-            name={"folder"}
+          <Icon
             size={16}
             strokeWidth={1.6}
             color={"var(--color-text-secondary)"}
             className={styles.rowElement}
           />
         ) : (
-          <DynamicIcon
-            name={getFileIcon(fileType) as any}
+          <Icon
             size={16}
             strokeWidth={1.6}
             color={"var(--color-text-secondary)"}
