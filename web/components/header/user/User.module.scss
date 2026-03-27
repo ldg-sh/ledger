@@ -7,6 +7,7 @@
 }
 
 .info {
+    all: unset;
     display: flex;
     flex-direction: column;
     padding-left: 10px;
@@ -42,6 +43,7 @@
     margin: 0;
     font-weight: 300;
     margin-bottom: -0.1em;
+    font-family: var(--font-inter);
 }
 
 .username {
@@ -49,6 +51,7 @@
     font-size: 1.1rem;
     margin: 0;
     color: var(--color-text-bold);
+    font-family: var(--font-inter);
 }
 
 .avatar {
@@ -82,5 +85,4 @@
     .username {
         font-size: 0.9rem;
     }
-    
 }

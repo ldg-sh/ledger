@@ -7,7 +7,7 @@ import { MenuProvider } from "@/context/MenuContext";
 import { UserProvider } from "@/context/UserContext";
 import { SortProvider } from "@/context/SortContext";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const overusedGrotesk = localFont({
   src: "../public/fonts/OverusedGrotesk-VF.woff",
   variable: "--font-overused-grotesk",
