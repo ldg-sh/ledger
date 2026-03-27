@@ -7,7 +7,9 @@ export type SortOption =
   | "date_desc"
   | "date_asc"
   | "size_desc"
-  | "size_asc";
+  | "size_asc"
+  | "type_desc"
+  | "type_asc";
 
 interface SortContextType {
   sort: SortOption;

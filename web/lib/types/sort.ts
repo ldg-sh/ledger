@@ -5,4 +5,6 @@ export enum SortType {
     SizeDesc = "size_desc",
     DateAsc = "date_asc",
     DateDesc = "date_desc",
+    TypeAsc = "type_asc",
+    TypeDesc = "type_desc",
 }
