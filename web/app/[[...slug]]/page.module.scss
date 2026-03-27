@@ -31,7 +31,8 @@
 .footer {
   position: fixed;
   bottom: 0;
-  width: 100%;
+  left: calc(50% - var(--content-width) / 2);
+  width: var(--content-width);
   border-top: var(--border-style);
   background-color: var(--color-background);
   height: 78.5px;
