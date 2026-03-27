@@ -17,14 +17,14 @@ pub async fn list(
     let offset = payload.offset.unwrap_or(0) as u64;
 
     let (column, order) = match payload.sort.as_str() {
-        "name_asc" => (file::Column::FileName, Order::Desc),
-        "name_desc" => (file::Column::FileName, Order::Asc),
+        "name_asc" => (file::Column::FileName, Order::Asc),
+        "name_desc" => (file::Column::FileName, Order::Desc),
         "date_asc" => (file::Column::CreatedAt, Order::Asc),
         "date_desc" => (file::Column::CreatedAt, Order::Desc),
         "size_asc" => (file::Column::FileSize, Order::Asc),
         "size_desc" => (file::Column::FileSize, Order::Desc),
-        "type_asc" => (file::Column::FileType, Order::Desc),
-        "type_desc" => (file::Column::FileType, Order::Asc),
+        "type_asc" => (file::Column::FileType, Order::Asc),
+        "type_desc" => (file::Column::FileType, Order::Desc),
         _ => (file::Column::Id, Order::Desc),
     };
 
