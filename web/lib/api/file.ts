@@ -14,12 +14,12 @@ import { CopyFilesRequest } from "../types/generated/CopyFilesRequest";
 import { CopyFilesResponse } from "../types/generated/CopyFilesResponse";
 import { CompleteUploadRequest } from "../types/generated/CompleteUploadRequest";
 
-export async function listFiles(directoryPath: string, sort: string) {
+export async function listFiles(directoryPath: string, sort: string, offset: number = 0, limit: number = 1000) {
   let request: ListFilesRequest = {
     path: directoryPath,
     sort: sort,
-    limit: 1000,
-    offset: 0,
+    limit: limit,
+    offset: offset,
   };
 
   const res = await authenticatedFetch(`/file/list`, {
@@ -38,7 +38,7 @@ export async function listFiles(directoryPath: string, sort: string) {
 
   fileList = files.filter((file) => file.file_type !== "directory");
 
-  return { files: fileList, folders: folders };
+  return { files: fileList, folders: folders, hasMore: json.has_more };
 }
 
 export async function fetchUrl(fileId: string) {

@@ -1,4 +1,5 @@
-import { Suspense } from "react";
+"use client";
+import { Suspense, useRef } from "react";
 import Location from "@/components/browser/Location";
 import TableHeader from "@/components/browser/TableHeader";
 import FileList from "@/components/browser/FileList";
@@ -7,6 +8,7 @@ import TransferWindow from "@/components/transfer/TransferWindow";
 import Footer from "@/components/browser/Footer";
 
 export default function MainPage() {
+  const parentContainerRef = useRef<HTMLDivElement>(null);
   return (
     <div className={styles.pageContainer}>
       <div className={styles.centerpiece}>
@@ -17,11 +19,11 @@ export default function MainPage() {
             <TableHeader />
           </div>
 
-          <div className={styles.rows}>
+          <div className={styles.rows} ref={parentContainerRef}>
             <Suspense
               fallback={<div className={styles.loading}>Loading files...</div>}
             >
-              <FileList />
+              <FileList parentContainerRef={parentContainerRef as React.RefObject<HTMLDivElement>} />
             </Suspense>
           </div>
           <div className={styles.footer}>

@@ -29,5 +29,6 @@ pub struct ListFileElement {
 #[derive(ts_rs::TS)]
 #[ts(export)]
 pub struct ListFilesResponse {
-    pub files: Vec<ListFileElement>
+    pub files: Vec<ListFileElement>,
+    pub has_more: bool
 }

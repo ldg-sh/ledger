@@ -13,6 +13,9 @@ pub async fn list(
     payload: web::Json<ListFilesRequest>,
     authenticated_user: AuthenticatedUser,
 ) -> impl Responder {
+    let limit = payload.limit.unwrap_or(20) as u64;
+    let offset = payload.offset.unwrap_or(0) as u64;
+
     let (column, order) = match payload.sort.as_str() {
         "name_asc" => (file::Column::FileName, Order::Asc),
         "name_desc" => (file::Column::FileName, Order::Desc),
@@ -23,20 +26,27 @@ pub async fn list(
         _ => (file::Column::Id, Order::Desc),
     };
 
-    let files = match File::find()
+    let mut files = match File::find()
         .filter(file::Column::OwnerId.eq(authenticated_user.id.clone()))
         .filter(file::Column::Path.eq(payload.path.clone()))
         .order_by(column, order)
-        .limit(payload.limit.unwrap_or(100) as u64)
+        .limit(limit + 1)
+        .offset(offset)
         .all(database.get_ref())
         .await
     {
         Ok(list) => list,
         Err(e) => {
             log::error!("Error fetching files: {:?}", e);
-            return HttpResponse::InternalServerError().body("Failed to fetch files");
+            return HttpResponse::InternalServerError().finish();
         }
     };
+
+    let has_more = files.len() as u64 > limit;
+
+    if has_more {
+        files.pop();
+    }
 
     let files: Vec<_> = files
         .into_iter()
@@ -51,7 +61,5 @@ pub async fn list(
         })
         .collect();
 
-    let cleaned = ListFilesResponse { files };
-
-    HttpResponse::Ok().json(cleaned)
+    HttpResponse::Ok().json(ListFilesResponse { files, has_more })
 }

@@ -20,7 +20,13 @@ interface FileListData {
   files: ListFileElement[];
 }
 
-export default function FileList() {
+interface FileListProps {
+  parentContainerRef?: React.RefObject<HTMLDivElement>;
+}
+
+const CHUNK_SIZE = 75;
+
+export default function FileList({ parentContainerRef }: FileListProps) {
   const { sort } = useSort();
   const pathname = usePathname();
   const [data, setData] = useState<FileListData | null>(null);
@@ -29,6 +35,8 @@ export default function FileList() {
     null,
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [currentOffset, setCurrentOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
 
   const [rightClickedFile, setRightClickedFile] = useState<{
     fileId: string;
@@ -207,15 +215,50 @@ export default function FileList() {
     },
     [lastDeliberateClick, getAllFileIds],
   );
-
   const loadData = useCallback(async () => {
     if (authLoading) return;
 
     setIsLoading(true);
-    const res = await listFiles(extractPathFromUrl(pathname), sort);
-    setData(res);
-    setIsLoading(false);
+    try {
+      const res = await listFiles(
+        extractPathFromUrl(pathname),
+        sort,
+        0,
+        CHUNK_SIZE,
+      );
+
+      if (!res.hasMore) {
+        setHasMore(false);
+      }
+
+      setData(res);
+    } finally {
+      setIsLoading(false);
+    }
   }, [pathname, authLoading, sort]);
+
+  const loadMoreData = useCallback(async () => {
+    if (authLoading || !hasMore) return;
+
+    setIsLoading(true);
+
+    const res = await listFiles(
+      extractPathFromUrl(pathname),
+      sort,
+      currentOffset,
+      CHUNK_SIZE,
+    );
+
+    setData((prevData) => {
+      if (!prevData) return res;
+      return {
+        folders: [...prevData.folders, ...res.folders],
+        files: [...prevData.files, ...res.files],
+        hasMore: res.hasMore,
+      };
+    });
+    setIsLoading(false);
+  }, [pathname, authLoading, sort, currentOffset]);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -225,10 +268,6 @@ export default function FileList() {
 
   const refreshFileList = useCallback(
     async (event: Event) => {
-      setIsLoading(true);
-      await loadData();
-      setIsLoading(false);
-
       if (event instanceof CustomEvent && typeof event.detail === "function") {
         event.detail();
       } else if (
@@ -326,11 +365,38 @@ export default function FileList() {
   }, [pasteFileIdFromClipboard, pasteFileIdsFromClipboard, refreshFileList]);
 
   useEffect(() => {
-    loadData();
     window.addEventListener("refresh-file-list", refreshFileList);
+
+
     return () =>
       window.removeEventListener("refresh-file-list", refreshFileList);
-  }, [loadData, refreshFileList]);
+  }, [loadData, refreshFileList, parentContainerRef]);
+
+  useEffect(() => {
+    setCurrentOffset(0);
+    loadData();
+  }, [sort, pathname, loadData]);
+
+  useEffect(() => {
+    const container = parentContainerRef?.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollHeight, scrollTop, clientHeight } = container;
+      if (scrollHeight - scrollTop - clientHeight < 100 && !isLoading) {
+        setCurrentOffset((prev) => prev + CHUNK_SIZE);
+      }
+    };
+
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [parentContainerRef, isLoading]);
+
+  useEffect(() => {
+    if (currentOffset > 0) {
+      loadMoreData();
+    }
+  }, [currentOffset, loadMoreData]);
 
   return (
     <>
