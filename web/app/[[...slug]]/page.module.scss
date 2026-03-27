@@ -25,10 +25,11 @@
   flex-direction: column;
   height: calc(100% - 80px);
   width: max-content;
+      width: 100%;
 }
 
 .footer {
-  position: absolute;
+  position: fixed;
   bottom: 0;
   width: 100%;
   border-top: var(--border-style);
@@ -37,15 +38,11 @@
 }
 
 @media (max-width: 600px) {
-  .rows {
-    width: 100%;
-  }
-
   .pageContainer {
     margin-top: 62.5px;
   }
 
   .footer {
-    bottom: 48px;
+    bottom: 54px;
   }
 }
