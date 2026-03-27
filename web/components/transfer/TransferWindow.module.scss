@@ -16,8 +16,7 @@
     overflow: hidden;
     min-height: 78.5px;
 
-    transition:
-        border-top-left-radius 0.3s ease
+    transition: border-top-left-radius 0.3s ease;
 }
 
 .dropOverlay {
@@ -267,5 +266,33 @@
 
     .subtitle {
         font-size: 0.7rem;
+    }
+
+    .fileName {
+        font-size: 0.8rem;
+    }
+
+    .status {
+        font-size: 0.7rem;
+    }
+
+    .subtext {
+        font-size: 0.8rem;
+    }
+
+    .progressText {
+        font-size: 0.4rem;
+    }
+
+    .bytesUploaded {
+        font-size: 0.6rem;
+    }
+
+    .chunksUploaded {
+        font-size: 0.6rem;
+    }
+
+    .fileProgress {
+        width: calc(100% - 20px);
     }
 }
