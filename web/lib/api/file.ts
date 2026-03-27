@@ -160,7 +160,7 @@ export async function renameFile(fileId: string, newFileName: string) {
   };
 
   const res = await authenticatedFetch(`/file/rename`, {
-    method: "PATCH",
+    method: "POST",
     body: JSON.stringify(request),
   });
 
