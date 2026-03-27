@@ -86,6 +86,7 @@
 
 .text {
     margin-bottom: 12px;
+    width: calc(100% - 40px);
 }
 
 @media (max-width: 600px) {
