@@ -15,6 +15,9 @@
     z-index: 1;
     overflow: hidden;
     min-height: 78.5px;
+
+    transition:
+        border-top-left-radius 0.3s ease
 }
 
 .dropOverlay {

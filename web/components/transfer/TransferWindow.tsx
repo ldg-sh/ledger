@@ -64,6 +64,8 @@ export default function TransferWindow() {
         deleting: false,
       };
 
+      setTargetSize((prev) => prev + size);
+
       setFileUploads((prev) => [...prev, fileUpload]);
 
       createNewUpload(file).then((uploadResponse) => {
@@ -97,7 +99,6 @@ export default function TransferWindow() {
           });
         }
 
-        setTargetSize((prev) => prev + size);
         launchWorkers();
       });
     }
@@ -323,7 +324,12 @@ export default function TransferWindow() {
         </div>
       </div>
 
-      <div className={styles.transferWindow}>
+      <div
+        className={styles.transferWindow}
+        style={{
+          borderTopLeftRadius: isExpanded ? "16px" : "0px",
+        }}
+      >
         <div className={styles.popupContent}>
           <div className={styles.header}>
             <div className={styles.left}>
