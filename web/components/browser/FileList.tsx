@@ -28,6 +28,7 @@ export default function FileList() {
   const [lastDeliberateClick, setLastDeliberateClick] = useState<string | null>(
     null,
   );
+  const [isLoading, setIsLoading] = useState(false);
 
   const [rightClickedFile, setRightClickedFile] = useState<{
     fileId: string;
@@ -210,8 +211,10 @@ export default function FileList() {
   const loadData = useCallback(async () => {
     if (authLoading) return;
 
+    setIsLoading(true);
     const res = await listFiles(extractPathFromUrl(pathname), sort);
     setData(res);
+    setIsLoading(false);
   }, [pathname, authLoading, sort]);
 
   useEffect(() => {
@@ -222,7 +225,9 @@ export default function FileList() {
 
   const refreshFileList = useCallback(
     async (event: Event) => {
+      setIsLoading(true);
       await loadData();
+      setIsLoading(false);
 
       if (event instanceof CustomEvent && typeof event.detail === "function") {
         event.detail();
@@ -330,6 +335,10 @@ export default function FileList() {
   return (
     <>
       <div
+        style={{
+          opacity: isLoading ? ".5" : "1",
+          transition: "opacity 0.2s",
+        }}
         onContextMenu={(event) => {
           const target = event.target as HTMLElement;
 
