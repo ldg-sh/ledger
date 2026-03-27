@@ -37,3 +37,10 @@
 .danger .glyphIcon path {
     stroke: var(--color-error-foreground);
 }
+
+@media (max-width: 600px) {
+    .glyphButton {
+        width: 30px !important;
+        height: 30px !important;
+    }
+}

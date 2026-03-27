@@ -39,10 +39,6 @@ export default function GlyphButton({
         size={size}
         color={color}
         className={cn(styles.glyphIcon, rotated && styles.rotated, danger && styles.danger)}
-        style={{
-          width: size,
-          height: size,
-        }}
       />
     </button>
   );
