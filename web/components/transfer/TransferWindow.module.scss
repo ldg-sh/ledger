@@ -244,15 +244,6 @@
     opacity: 0.5;
 }
 
-.deleting {
-    height: 0;
-    margin: 0;
-    overflow: hidden;
-    padding-top: 0;
-    padding-bottom: 0;
-    pointer-events: none;
-}
-
 @media (max-width: 600px) {
     .transferWindow {
         width: 100%;

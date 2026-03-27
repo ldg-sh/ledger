@@ -61,7 +61,6 @@ export default function TransferWindow() {
         totalBytes: size,
         status: "Waiting...",
         etags: new Map<number, string>(),
-        deleting: false,
       };
 
       setTargetSize((prev) => prev + size);
@@ -145,30 +144,6 @@ export default function TransferWindow() {
                       }),
                     );
                   });
-                  setTimeout(() => {
-                    setTimeout(() => {
-                      setFileUploads((prev) =>
-                        prev.filter(
-                          (upload) => upload.fileId != fileUpload.fileId,
-                        ),
-                      );
-                    }, 500);
-
-                    setFileUploads((prev) => {
-                      const upload = prev.find(
-                        (upload) => upload.fileId === fileUpload.fileId,
-                      );
-                      if (upload) {
-                        upload.deleting = true;
-                      }
-                      return [...prev];
-                    });
-
-                    setTargetSize((prev) => prev - fileUpload.totalBytes);
-                    setTotalUploadedSize(
-                      (prev) => prev - fileUpload.totalBytes,
-                    );
-                  }, 2000);
                 })
                 .catch(() => {
                   fileUpload.status = "Error";
@@ -326,9 +301,6 @@ export default function TransferWindow() {
 
       <div
         className={styles.transferWindow}
-        style={{
-          borderTopLeftRadius: isExpanded ? "16px" : "0px",
-        }}
       >
         <div className={styles.popupContent}>
           <div className={styles.header}>
@@ -338,11 +310,9 @@ export default function TransferWindow() {
                 {fileUploads.length === 0 ? (
                   "No active transfers"
                 ) : (
-                  <div>
-                    {fileUploads.length} upload
-                    {fileUploads.length !== 1 ? "s" : ""} in progress{" "}
+                  <div className={styles.subtitle}>
                     {fileUploads.length > 0
-                      ? `- ${pretifyFileSize(
+                      ? `${pretifyFileSize(
                           totalUploadedSize,
                         )} / ${pretifyFileSize(targetSize)}`
                       : ""}
@@ -386,8 +356,7 @@ export default function TransferWindow() {
               .map((fileProg) => (
                 <div
                   className={cn(
-                    styles.fileProgress,
-                    fileProg.deleting && styles.deleting,
+                    styles.fileProgress
                   )}
                   key={fileProg.uploadId}
                 >
