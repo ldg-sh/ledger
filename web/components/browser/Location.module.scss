@@ -32,3 +32,14 @@
 .pathGrouping {
     display: flex;
 }
+
+@media (max-width: 600px) {
+    .locationBar {
+        padding: 8px;
+        font-size: 0.8rem;
+    }
+
+    .pathSegment {
+        margin-left: 0;
+    }
+}

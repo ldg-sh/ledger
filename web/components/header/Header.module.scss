@@ -51,3 +51,22 @@
     margin: 0;
     font-weight: 300;
 }
+
+
+@media (max-width: 600px) {
+    .logoText {
+        display: none;
+    }
+
+    .logo {
+        margin: 0 10px;
+    }
+
+    .header {
+        height: 60px;
+    }
+    
+    .user {
+        margin: 0 10px;
+    }
+}

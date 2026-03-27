@@ -2,7 +2,7 @@
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);   
+    transform: translate(-50%, -50%);
     justify-content: center;
     z-index: 5;
 }
@@ -36,4 +36,17 @@
     z-index: 4;
     background-color: rgba(255, 255, 255, 0.5);
     backdrop-filter: blur(2px);
+}
+
+@media (max-width: 600px) {
+    .popupChildren {
+        padding: 20px;
+        min-width: 300px;
+        border-radius: 18px;
+    }
+
+    .close {
+        top: 20px;
+        right: 20px;
+    }
 }

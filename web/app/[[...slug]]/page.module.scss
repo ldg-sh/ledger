@@ -11,7 +11,7 @@
   border-right: var(--border-style);
   width: var(--content-width);
   position: relative;
-  height: calc(100vh - 90px);
+  height: calc(100vh - 70px);
   overflow-y: hidden;
 }
 
@@ -24,6 +24,7 @@
   display: flex;
   flex-direction: column;
   height: calc(100% - 80px);
+  width: max-content;
 }
 
 .footer {
@@ -33,4 +34,18 @@
   border-top: var(--border-style);
   background-color: var(--color-background);
   height: 78.5px;
+}
+
+@media (max-width: 600px) {
+  .rows {
+    width: 100%;
+  }
+
+  .pageContainer {
+    margin-top: 62.5px;
+  }
+
+  .footer {
+    bottom: 48px;
+  }
 }

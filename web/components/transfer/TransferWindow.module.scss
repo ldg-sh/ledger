@@ -252,3 +252,29 @@
     padding-bottom: 0;
     pointer-events: none;
 }
+
+@media (max-width: 600px) {
+    .transferWindow {
+        width: 100%;
+        right: 0;
+        border-radius: 0;
+        border-top-left-radius: 0 !important;
+        min-height: unset;
+    }
+
+    .header {
+        padding: 10px;
+    }
+
+    .fileProgress {
+        padding: 10px;
+    }
+
+    .title {
+        font-size: 1rem;
+    }
+
+    .subtitle {
+        font-size: 0.7rem;
+    }
+}

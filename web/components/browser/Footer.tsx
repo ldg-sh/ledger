@@ -13,43 +13,45 @@ export default function Footer() {
   const [isFolderPopupOpen, setIsFolderPopupOpen] = useState(false);
 
   return (
-    <div className={styles.footerContainer}>
-      <div
-        className={cn(styles.uploadFile, styles.buttonComponent)}
-        onClick={() => {
-          inputRef.current?.click();
-        }}
-      >
-        <Upload size={16} strokeWidth={2.5} />
-        <span>Upload File</span>
-      </div>
-      <input
-        type="file"
-        style={{ display: "none" }}
-        multiple
-        ref={inputRef}
-        onChange={(e) => {
-          const event = new CustomEvent("trigger-upload", {
-            detail: e.target.files,
-          });
+    <>
+      <div className={styles.footerContainer}>
+        <div
+          className={cn(styles.uploadFile, styles.buttonComponent)}
+          onClick={() => {
+            inputRef.current?.click();
+          }}
+        >
+          <Upload size={16} strokeWidth={2.5} />
+          <span>Upload File</span>
+        </div>
+        <input
+          type="file"
+          style={{ display: "none" }}
+          multiple
+          ref={inputRef}
+          onChange={(e) => {
+            const event = new CustomEvent("trigger-upload", {
+              detail: e.target.files,
+            });
 
-          window.dispatchEvent(event);
+            window.dispatchEvent(event);
 
-          (e.target as HTMLInputElement).value = "";
-        }}
-      />
-      <div
-        className={cn(
-          styles.createFolder,
-          styles.buttonComponent,
-          styles.nonPrimaryElement
-        )}
-        onClick={() => {
-          setIsFolderPopupOpen(true);
-        }}
-      >
-        <FolderPlus size={16} strokeWidth={2.5} />
-        <span>Create Folder</span>
+            (e.target as HTMLInputElement).value = "";
+          }}
+        />
+        <div
+          className={cn(
+            styles.createFolder,
+            styles.buttonComponent,
+            styles.nonPrimaryElement,
+          )}
+          onClick={() => {
+            setIsFolderPopupOpen(true);
+          }}
+        >
+          <FolderPlus size={16} strokeWidth={2.5} />
+          <span>Create Folder</span>
+        </div>
       </div>
 
       <AnimatePresence>
@@ -61,6 +63,6 @@ export default function Footer() {
           />
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 }

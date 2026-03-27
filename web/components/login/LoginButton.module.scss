@@ -4,7 +4,7 @@
     justify-content: center;
     align-items: center;
     gap: 1rem;
-    width: 100%;
+    width: calc(100% - 40px);
     padding: 12px 20px;
     border-radius: 10px;
     background-color: var(--color-background);
@@ -22,4 +22,10 @@
 
 .loginButton:active {
     background-color: var(--color-background-active);
+}
+
+@media (max-width: 600px) {
+    .loginButton {
+        font-size: .9rem;
+    }
 }

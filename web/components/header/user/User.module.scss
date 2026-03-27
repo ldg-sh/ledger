@@ -64,3 +64,23 @@
     transition: background-color 0.2s ease;
     cursor: pointer;
 }
+
+@media (max-width: 600px) {
+    .container {
+        height: 40px;
+    }
+
+    .avatar {
+        width: 38px;
+        height: 38px;
+    }
+
+    .title {
+        font-size: 0.7rem;
+    }
+
+    .username {
+        font-size: 0.9rem;
+    }
+    
+}

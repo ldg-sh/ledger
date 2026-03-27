@@ -58,3 +58,24 @@
 .destructive {
     color: var(--color-error-foreground);
 }
+
+@media (max-width: 600px) {
+    .contextMenuItem {
+        padding: 6px 8px;
+        font-size: 16px;
+    }
+
+    .hotkey {
+        display: none;
+    }
+
+    .icon {
+        width: 15px;
+        height: 15px;
+    }
+
+    .contextMenuItem {
+        gap: 18px;
+        font-size: .7rem;
+    }
+}

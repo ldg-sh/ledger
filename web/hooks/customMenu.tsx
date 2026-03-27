@@ -16,10 +16,15 @@ export const useCustomMenu = (menuId: string) => {
   const isVisible = activeMenuId === menuId;
 
   const showMenu = useCallback((event: React.MouseEvent) => {
+    let width = MENU_WIDTH;
+    if (window.innerWidth < 600) {
+      width = 120;
+    }
+    
     event.preventDefault();
 
-    if (event.pageX + MENU_WIDTH + 100 > window.innerWidth) {
-      setPosition({ x: event.pageX - MENU_WIDTH, y: event.pageY });
+    if (event.pageX + width + 100 > window.innerWidth) {
+      setPosition({ x: event.pageX - width, y: event.pageY });
     } else {
       setPosition({ x: event.pageX, y: event.pageY });
     }

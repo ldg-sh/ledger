@@ -29,6 +29,7 @@
     cursor: default;
     user-select: none;
     overflow: hidden;
+    position: relative;
 }
 
 .fileName {
@@ -53,3 +54,34 @@
 .rowContainer {
     position: relative;
 }   
+
+@media (max-width: 600px) {
+    .row {
+        min-width: 100%;
+    }
+
+    .fileName {
+        width: 80%;
+        font-size: 0.8rem;
+    }
+
+    .fileSize {
+        display: none;
+    }
+
+    .fileType {
+        display: none;
+    }
+
+    .createdAt {
+        display: none;
+    }
+
+    .rowContainer {
+        width: 100%;
+    }
+
+    .rowElement {
+        padding-left: 10px;
+    }
+}

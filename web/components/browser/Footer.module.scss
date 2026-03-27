@@ -20,7 +20,7 @@
     align-items: center;
     gap: 16px;
     height: 100%;
-    width: 130px;
+    width: 140px;
     padding: 16px 20px;
     border-radius: 10px;
     display: flex;
@@ -52,4 +52,17 @@
 
 .nonPrimaryElement:active {
     background-color: var(--color-background-active);
+}
+
+@media (max-width: 600px) {
+    .buttonComponent {
+        width: 100%;
+        padding: 12px 12px;
+        font-size: 0.7rem;
+        border-radius: 8px;
+    }
+
+    .footerContainer {
+        padding: 10px;
+    }
 }

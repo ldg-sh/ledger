@@ -31,7 +31,21 @@
     flex-direction: column;
     align-items: center;
     gap: 2rem;
-    width: 400px;
+    width: 500px;
+}
+
+@media (max-width: 600px) {
+    .content {
+        width: 90%;
+    }
+
+    .title {
+        font-size: 2rem;
+    }
+
+    .subtitle {
+        font-size: .9rem;
+    }
 }
 
 .loginButtonContainer {

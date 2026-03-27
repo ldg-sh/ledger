@@ -11,3 +11,9 @@
     flex-direction: column;
     padding: 8px;
 }
+
+@media (max-width: 600px) {
+    .contextMenu {
+        min-width: 120px;
+    }
+}
