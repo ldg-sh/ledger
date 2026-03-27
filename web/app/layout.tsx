@@ -5,6 +5,7 @@ import localFont from "next/font/local";
 import { cn } from "@/lib/util/class";
 import { MenuProvider } from "@/context/MenuContext";
 import { UserProvider } from "@/context/UserContext";
+import { SortProvider } from "@/context/SortContext";
 
 const inter = Inter({ subsets: ["latin"] });
 const overusedGrotesk = localFont({
@@ -21,8 +22,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <body className={styles.body}>
         <UserProvider>
           <MenuProvider>
-            <Header />
-            {children}
+            <SortProvider>
+              <Header />
+              {children}
+            </SortProvider>
           </MenuProvider>
         </UserProvider>
       </body>

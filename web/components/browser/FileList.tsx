@@ -13,6 +13,7 @@ import ContextMenuItem from "../general/menu/ContextMenuItem";
 import RenameFile from "./popups/RenameFile";
 import DeleteFile from "./popups/DeleteFile";
 import { ListFileElement } from "@/lib/types/generated/ListFileElement";
+import { useSort } from "@/context/SortContext";
 
 interface FileListData {
   folders: ListFileElement[];
@@ -20,6 +21,7 @@ interface FileListData {
 }
 
 export default function FileList() {
+  const { sort } = useSort();
   const pathname = usePathname();
   const [data, setData] = useState<FileListData | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
@@ -208,9 +210,9 @@ export default function FileList() {
   const loadData = useCallback(async () => {
     if (authLoading) return;
 
-    const res = await listFiles(extractPathFromUrl(pathname));
+    const res = await listFiles(extractPathFromUrl(pathname), sort);
     setData(res);
-  }, [pathname, authLoading]);
+  }, [pathname, authLoading, sort]);
 
   useEffect(() => {
     if (!authLoading && user) {

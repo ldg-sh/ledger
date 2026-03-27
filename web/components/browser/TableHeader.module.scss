@@ -10,6 +10,7 @@
 }
 
 .headerElement {
+    all: unset;
     padding-left: 20px;
     padding-top: 10px;
     padding-bottom: 10px;
@@ -17,6 +18,18 @@
     display: inline-block;
     font-weight: 600;
     color: var(--color-text-bold);
+    cursor: pointer;
+}
+
+.sortIcon,
+.sortIconActive {
+    margin-left: 5px;
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
 .fileName {
@@ -35,5 +48,4 @@
     .tableHeader {
         display: none;
     }
-    
 }

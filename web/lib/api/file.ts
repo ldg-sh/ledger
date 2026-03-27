@@ -14,9 +14,10 @@ import { CopyFilesRequest } from "../types/generated/CopyFilesRequest";
 import { CopyFilesResponse } from "../types/generated/CopyFilesResponse";
 import { CompleteUploadRequest } from "../types/generated/CompleteUploadRequest";
 
-export async function listFiles(directoryPath: string) {
+export async function listFiles(directoryPath: string, sort: string) {
   let request: ListFilesRequest = {
     path: directoryPath,
+    sort: sort,
     limit: 1000,
     offset: 0,
   };
@@ -34,10 +35,8 @@ export async function listFiles(directoryPath: string) {
   let fileList: ListFileElement[] = [];
 
   folders = files.filter((file) => file.file_type === "directory");
-  folders.sort((a, b) => a.file_name.localeCompare(b.file_name));
 
   fileList = files.filter((file) => file.file_type !== "directory");
-  fileList.sort((a, b) => a.file_name.localeCompare(b.file_name));
 
   return { files: fileList, folders: folders };
 }

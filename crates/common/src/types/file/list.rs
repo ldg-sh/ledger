@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 #[ts(export)]
 pub struct ListFilesRequest {
     pub path: String,
+    pub sort: String,
     pub limit: Option<u32>,
     pub offset: Option<u32>,
 }

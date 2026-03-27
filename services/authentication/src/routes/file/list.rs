@@ -1,7 +1,7 @@
 use actix_web::{HttpResponse, Responder, post, web};
 use common::entities::file;
 use common::entities::prelude::File;
-use sea_orm::ColumnTrait;
+use sea_orm::{ColumnTrait, Order, QueryOrder, QuerySelect};
 use sea_orm::{DatabaseConnection, EntityTrait};
 use sea_orm::{QueryFilter};
 use common::types::file::list::{ListFileElement, ListFilesRequest, ListFilesResponse};
@@ -13,9 +13,21 @@ pub async fn list(
     payload: web::Json<ListFilesRequest>,
     authenticated_user: AuthenticatedUser,
 ) -> impl Responder {
+    let (column, order) = match payload.sort.as_str() {
+        "name_asc" => (file::Column::FileName, Order::Asc),
+        "name_desc" => (file::Column::FileName, Order::Desc),
+        "date_asc" => (file::Column::CreatedAt, Order::Asc),
+        "date_desc" => (file::Column::CreatedAt, Order::Desc),
+        "size_asc" => (file::Column::FileSize, Order::Asc),
+        "size_desc" => (file::Column::FileSize, Order::Desc),
+        _ => (file::Column::Id, Order::Desc),
+    };
+
     let files = match File::find()
         .filter(file::Column::OwnerId.eq(authenticated_user.id.clone()))
         .filter(file::Column::Path.eq(payload.path.clone()))
+        .order_by(column, order)
+        .limit(payload.limit.unwrap_or(100) as u64)
         .all(database.get_ref())
         .await
     {
