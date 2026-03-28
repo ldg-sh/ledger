@@ -30,7 +30,7 @@ export default function DeleteFile({ onClose, fileIds, fileName }: DeleteFilePro
         window.dispatchEvent(event);
       });
     } else {
-      Promise.all(fileIds.map((fileId) => deleteFiles([fileId]))).then(() => {
+      deleteFiles(fileIds).then(() => {
         let event = new CustomEvent("refresh-file-list", {
           detail: () => {
             onClose();
