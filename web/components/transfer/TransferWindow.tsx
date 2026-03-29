@@ -35,6 +35,7 @@ export default function TransferWindow() {
     };
 
     window.addEventListener("trigger-upload", handleExternalUpload);
+
     return () =>
       window.removeEventListener("trigger-upload", handleExternalUpload);
   }, []);
@@ -44,12 +45,12 @@ export default function TransferWindow() {
       e instanceof FileList ? Array.from(e) : Array.from(e.dataTransfer.files);
 
     for (const file of files) {
-      let size = file.size;
-      let totalChunks = Math.ceil(size / CHUNK_SIZE);
+      const size = file.size;
+      const totalChunks = Math.ceil(size / CHUNK_SIZE);
 
-      let stateUuid = crypto.randomUUID();
+      const stateUuid = crypto.randomUUID();
 
-      let fileUpload: FileUpload = {
+      const fileUpload: FileUpload = {
         stateId: stateUuid,
         total: totalChunks,
         fileId: "",
@@ -185,7 +186,7 @@ export default function TransferWindow() {
       task.chunkIndex,
       uint8Array,
       (bytesSent) => {
-        let newAmount = bytesSent - uploadedBytes;
+        const newAmount = bytesSent - uploadedBytes;
 
         if (newAmount > 0) {
           setTotalUploadedSize((prev) => prev + newAmount);
