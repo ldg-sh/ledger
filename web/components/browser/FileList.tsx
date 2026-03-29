@@ -262,6 +262,19 @@ export default function FileList({ parentContainerRef }: FileListProps) {
 
     setData((prevData) => {
       if (!prevData) return res;
+
+      res.files = res.files.filter(
+        (newFile) =>
+          !prevData.files.some((existingFile) => existingFile.id === newFile.id),
+      );
+
+      res.folders = res.folders.filter(
+        (newFolder) =>
+          !prevData.folders.some(
+            (existingFolder) => existingFolder.id === newFolder.id,
+          ),
+      );
+
       return {
         folders: [...prevData.folders, ...res.folders],
         files: [...prevData.files, ...res.files],
