@@ -2,7 +2,6 @@ import { ReactNode, useEffect, useRef, useState } from "react";
 import styles from "./TextInput.module.scss";
 
 interface TextInputProps {
-  title: string;
   onChange: (newValue: string) => void;
   onSubmit: () => void;
   placeholder?: string;
@@ -13,7 +12,6 @@ interface TextInputProps {
 }
 
 export default function TextInput({
-  title,
   onChange,
   onSubmit,
   placeholder,

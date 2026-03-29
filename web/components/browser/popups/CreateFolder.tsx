@@ -44,11 +44,10 @@ export default function CreateFolder({ onClose }: CreateFolderProps) {
           <div className={styles.text}>
             <h1 className={styles.title}>Create New Folder</h1>
             <p className={styles.description}>
-              Enter a name for your new folder below.
+              Enter a name for your new folder.
             </p>
           </div>
           <TextInput
-            title="Folder Name"
             onChange={(newValue) => {
               setValue(newValue);
             }}
