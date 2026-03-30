@@ -20,7 +20,7 @@ interface UserContextType {
   loading: boolean;
 }
 
-const REDIRECT_BLACKLIST = ["/login", "/callback/**"];
+const REDIRECT_BLACKLIST = ["/login", "/callback/**", "/about"];
 const EDGE_URL = process.env.NEXT_PUBLIC_EDGE_URL || "http://localhost:8787";
 
 const UserContext = createContext<UserContextType | undefined>(undefined);

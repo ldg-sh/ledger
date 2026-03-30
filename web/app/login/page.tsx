@@ -1,9 +1,19 @@
+"use client";
+
 import LoginButton from "@/components/login/LoginButton";
 import styles from "./page.module.scss";
+import { useUser } from "@/context/UserContext";
 
 export default function LoginPage() {
   const GITHUB_AUTH_URL = process.env.NEXT_PUBLIC_GITHUB_URL || "";
   const GOOGLE_AUTH_URL = process.env.NEXT_PUBLIC_GOOGLE_URL || "";
+
+  const user = useUser();
+
+  if (user.user) {
+    window.location.href = "/";
+    return null;
+  }
 
   return (
     <div className={styles.loginPage}>

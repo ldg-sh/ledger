@@ -1,0 +1,146 @@
+.aboutContainer {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.title {
+    font-size: 6rem;
+    color: var(--color-text-bold);
+    font-family: var(--font-overused-grotesk);
+    font-weight: 1000;
+    margin: 0;
+}
+
+.descriptionBold {
+    font-size: 1.2rem;
+    color: var(--color-text-primary);
+    font-weight: 600;
+    margin: 0;
+}
+
+.description {
+    font-size: 1.2rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+    font-weight: 300;
+    width: 50%;
+}
+
+.text {
+    border-left: var(--border-style);
+    width: 70%;
+    padding: 5rem;
+    height: 40%;
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+}
+
+.topContainer {
+    border-bottom: var(--border-style);
+    height: 15%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.divider {
+    width: 70%;
+    padding: 0 5rem;
+    border-left: var(--border-style);
+    height: 100%;
+}
+
+.bottomContainer {
+    border-top: var(--border-style);
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 20%;
+}
+
+.buttonContainer {
+    margin-top: 2rem;
+    height: 3rem;
+}
+
+.background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    user-select: none;
+}
+
+.svg {
+    width: 80%;
+    z-index: -1;
+    height: 80%;
+}
+
+.topBar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(100% - 40px);
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: end;
+    margin: 0 20px;
+}
+
+.features {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5rem;
+    border-left: var(--border-style);
+    width: 70%;
+    padding: 5rem;
+    height: 40%;
+}
+
+.footer {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-top: var(--border-style);
+    height: 15%;
+}
+
+.innerFooter {
+    width: 70%;
+    padding: 0 5rem;
+    color: var(--color-text-secondary);
+
+    border-left: var(--border-style);
+    height: 100%;
+    display: flex;
+    align-items: end;
+    justify-content: center;
+}
+
+.footerText {
+    font-size: 0.9rem;
+    text-align: center;
+    margin: 0;
+    margin-bottom: 1rem;
+}
+
+.footerLink {
+    color: var(--color-text-secondary);
+    text-decoration: underline;
+}

@@ -1,7 +1,16 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import styles from "./Header.module.scss";
 import User from "./user/User";
 
 export default function Header() {
+  let pathName = usePathname();
+
+  if (pathName === "/about") {
+    return null;
+  }
+
   return (
     <div className={styles.header}>
       <div className={styles.headerCenter}>

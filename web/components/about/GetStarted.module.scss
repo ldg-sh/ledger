@@ -1,0 +1,21 @@
+.getStartedButton {
+    all: unset;
+    background-color: var(--color-text-bold);
+    color: white;
+    border: none;
+    padding: 14px 42px;
+    font-size: .9rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: var(--font-inter);
+
+    transition: background-color 0.2s ease;
+}
+
+.getStartedButton:hover {
+    background-color: var(--color-background-bold-hover);
+}
+
+.getStartedButton:active {
+    background-color: var(--color-button-background-active);
+}

@@ -1,0 +1,23 @@
+.featureCard {
+    border-radius: 12px;
+    width: 400px;
+}
+
+.title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.description {
+    font-size: 1.2rem;
+    font-weight: 300;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.titleContainer {
+    display: flex;
+    flex-direction: column;
+}
