@@ -38,6 +38,19 @@ export async function listFiles(directoryPath: string, sort: string, offset: num
 
   fileList = files.filter((file) => file.file_type !== "directory");
 
+  fileList = fileList.map((file) => {
+    if (!file.upload_completed) {
+      let newFile: ListFileElement = {
+        ...file,
+        file_size: 0,
+      };
+
+      return newFile;
+    } else {
+      return file;
+    }
+  });
+
   return { files: fileList, folders: folders, hasMore: json.has_more };
 }
 
@@ -179,9 +192,10 @@ export async function deleteFiles(fileIds: string[]) {
   return res.ok;
 }
 
-export async function deleteDirectory(directoryPath: string) {
+export async function deleteDirectory(directoryPath: string, directoryId: string) {
   let request: DeleteDirectoryRequest = {
     path: directoryPath,
+    directory_id: directoryId,
   };
 
   const res = await authenticatedFetch(`/directory/delete`, {
