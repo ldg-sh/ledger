@@ -56,12 +56,21 @@
 }
 
 @media (max-width: 600px) {
-    .locationBar {
+    .left {
         padding: 8px;
         font-size: 0.8rem;
     }
 
     .pathSegment {
         margin-left: 0;
+    }
+
+    .right {
+        padding: 0 8px;
+    }
+
+    .spinner {
+        width: 16px;
+        height: 16px;
     }
 }
