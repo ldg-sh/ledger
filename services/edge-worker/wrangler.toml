@@ -12,8 +12,8 @@ compatibility_date = "2026-03-01"
 workers_dev = false
 
 [env.production.vars]
-ALLOWED_ORIGIN = "https://frontend.ledger.thesamgordon.com"
-AUTH_SERVER_URI = "https://auth.ledger.thesamgordon.com"
+ALLOWED_ORIGIN = "https://ldg.sh"
+AUTH_SERVER_URI = "https://auth.ldg.sh"
 ENDPOINT = "https://t3.storageapi.dev"
 
 [[env.production.kv_namespaces]]
@@ -25,7 +25,7 @@ binding = "USER_CACHE"
 id = "423b2f30666c496a846a4782f0e00c5b"
 
 [[env.production.routes]]
-pattern = "api.ledger.thesamgordon.com"
+pattern = "api.ldg.sh"
 custom_domain = true
 
 [env.production.observability]
