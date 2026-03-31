@@ -3,7 +3,7 @@
 import { copyFiles, listFiles } from "@/lib/api/file";
 import Row from "./Row";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { extractPathFromUrl } from "@/lib/util/url";
 import { useUser } from "@/context/UserContext";
 import { useCustomMenu } from "@/hooks/customMenu";
@@ -30,7 +30,9 @@ const CHUNK_SIZE = 75;
 export default function FileList({ parentContainerRef }: FileListProps) {
   const { sort } = useSort();
   const pathname = usePathname();
-  const { loading: globalLoading } = useLoading();
+
+  const lastRefreshTime = useRef<number>(0);
+  const THROTTLE_MS = 500;
 
   const [data, setData] = useState<FileListData | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<Set<ListFileElement>>(
@@ -309,30 +311,41 @@ export default function FileList({ parentContainerRef }: FileListProps) {
 
   const refreshFileList = useCallback(
     async (event: Event) => {
-      if (isRefreshing) return;
+      const now = Date.now();
+
+      if (isRefreshing || now - lastRefreshTime.current < THROTTLE_MS) {
+        console.log("Refresh throttled");
+        return;
+      }
 
       setIsRefreshing(true);
-      await loadData();
-      setIsRefreshing(false);
+      lastRefreshTime.current = now;
 
-      if (event instanceof CustomEvent && typeof event.detail === "function") {
-        event.detail();
-      } else if (
-        event instanceof CustomEvent &&
-        typeof event.detail === "string"
-      ) {
-        let file =
-          data?.files.find((file) => file.id === event.detail) ||
-          data?.folders.find((folder) => folder.id === event.detail);
+      try {
+        await loadData();
 
-        if (selectedFiles.size === 0) {
-          const filesToSet = [file].filter((f): f is ListFileElement => !!f);
-          setSelectedFiles(new Set(filesToSet));
+        if (
+          event instanceof CustomEvent &&
+          typeof event.detail === "function"
+        ) {
+          event.detail();
+        } else if (
+          event instanceof CustomEvent &&
+          typeof event.detail === "string"
+        ) {
+          const file =
+            data?.files.find((f) => f.id === event.detail) ||
+            data?.folders.find((f) => f.id === event.detail);
+
+          if (selectedFiles.size === 0 && file) {
+            setSelectedFiles(new Set([file]));
+          }
         }
+      } finally {
+        setIsRefreshing(false);
       }
     },
-
-    [loadData],
+    [isRefreshing, loadData, data, selectedFiles.size],
   );
 
   useEffect(() => {
