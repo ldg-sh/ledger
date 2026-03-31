@@ -14,6 +14,7 @@ import RenameFile from "./popups/RenameFile";
 import DeleteFile from "./popups/DeleteFile";
 import { ListFileElement } from "@/lib/types/generated/ListFileElement";
 import { useSort } from "@/context/SortContext";
+import { setGlobalLoading, useLoading } from "@/context/LoadingContext";
 
 interface FileListData {
   folders: ListFileElement[];
@@ -29,6 +30,8 @@ const CHUNK_SIZE = 75;
 export default function FileList({ parentContainerRef }: FileListProps) {
   const { sort } = useSort();
   const pathname = usePathname();
+  const { loading: globalLoading } = useLoading();
+
   const [data, setData] = useState<FileListData | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<Set<ListFileElement>>(
     new Set(),
@@ -230,6 +233,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
     if (authLoading) return;
 
     setIsLoading(true);
+    setGlobalLoading(true);
     try {
       const res = await listFiles(
         extractPathFromUrl(pathname),
@@ -247,14 +251,15 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       setData(res);
     } finally {
       setIsLoading(false);
+      setGlobalLoading(false);
     }
   }, [pathname, authLoading, sort]);
 
   const loadMoreData = useCallback(async () => {
     if (authLoading || !hasMore || isLoading) return;
-    console.log("Loading more data with offset:", currentOffset);
 
     setIsLoading(true);
+    setGlobalLoading(true);
 
     const res = await listFiles(
       extractPathFromUrl(pathname),
@@ -293,6 +298,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       };
     });
     setIsLoading(false);
+    setGlobalLoading(false);
   }, [pathname, authLoading, sort, currentOffset]);
 
   useEffect(() => {

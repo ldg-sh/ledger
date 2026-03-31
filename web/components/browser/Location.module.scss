@@ -1,9 +1,16 @@
 .locationBar {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    padding: 10px 14px;
     background-color: var(--color-background-secondary);
     border-bottom: var(--border-style);
+}
+
+.left {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+
     font-size: 0.9rem;
     font-weight: 300;
     flex-wrap: nowrap;
@@ -30,6 +37,22 @@
 
 .pathGrouping {
     display: flex;
+}
+
+.right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 8px 10px;
+}
+
+.spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: opacity 0.2s ease;
 }
 
 @media (max-width: 600px) {

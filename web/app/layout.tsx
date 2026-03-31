@@ -6,6 +6,7 @@ import { cn } from "@/lib/util/class";
 import { MenuProvider } from "@/context/MenuContext";
 import { UserProvider } from "@/context/UserContext";
 import { SortProvider } from "@/context/SortContext";
+import { LoadingProvider } from "@/context/LoadingContext";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const overusedGrotesk = localFont({
@@ -23,8 +24,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <UserProvider>
           <MenuProvider>
             <SortProvider>
-              <Header />
-              {children}
+              <LoadingProvider>
+                <Header />
+                {children}
+              </LoadingProvider>
             </SortProvider>
           </MenuProvider>
         </UserProvider>
