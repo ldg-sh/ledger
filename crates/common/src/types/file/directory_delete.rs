@@ -5,4 +5,5 @@ use serde::{Deserialize, Serialize};
 #[ts(export)]
 pub struct DeleteDirectoryRequest {
     pub path: String,
+    pub directory_id: String
 }

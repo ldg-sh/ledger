@@ -3,7 +3,7 @@ use actix_web::{delete, web, HttpResponse, Responder};
 use common::entities::file;
 use common::entities::prelude::File;
 use common::types::file::directory_delete::DeleteDirectoryRequest;
-use sea_orm::QueryFilter;
+use sea_orm::{Condition, QueryFilter};
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait};
 use storage::s3_manager::S3StorageManager;
 use storage::s3_scoped_storage::S3ScopedStorage;
@@ -24,10 +24,6 @@ pub async fn delete(
 
     let files_to_delete = match files_to_delete {
         Ok(files) => {
-            if files.is_empty() {
-                return HttpResponse::NotFound().body("File list not found");
-            }
-
             files
         }
         Err(err) => {
@@ -35,8 +31,12 @@ pub async fn delete(
         }
     };
 
+    let condition = Condition::any()
+        .add(file::Column::Id.eq(payload.directory_id.clone()))
+        .add(file::Column::Path.starts_with(payload.path.clone()));
+
     let delete_result = File::delete_many()
-        .filter(file::Column::Path.starts_with(payload.path.clone()))
+        .filter(condition)
         .exec(database.get_ref())
         .await
         .map_err(|err| HttpResponse::InternalServerError().body(err.to_string()));

@@ -14,6 +14,7 @@ import { useState } from "react";
 import RenameFile from "./popups/RenameFile";
 import DeleteFile from "./popups/DeleteFile";
 import GlyphButton from "../general/GlyphButton";
+import { ListFileElement } from "@/lib/types/generated/ListFileElement";
 
 interface RowProps {
   fileName: string;
@@ -22,8 +23,9 @@ interface RowProps {
   fileId: string;
   createdAt?: string;
   folder?: boolean;
+  file: ListFileElement;
   clickCallback?: (
-    fileId: string,
+    file: ListFileElement,
     selected: boolean,
     isShiftKey: boolean,
     isCommandKey: boolean,
@@ -40,6 +42,7 @@ export default function Row({
   folder = false,
   selected = false,
   clickCallback,
+  file,
 }: RowProps) {
   let router = useRouter();
   let pathname = usePathname();
@@ -85,7 +88,7 @@ export default function Row({
             let isShiftKey = event.shiftKey;
             let isCommandKey = event.metaKey || event.ctrlKey;
 
-            clickCallback(fileId, selected, isShiftKey, isCommandKey);
+            clickCallback(file, selected, isShiftKey, isCommandKey);
           }
         }}
         onDoubleClick={() => {
@@ -213,7 +216,7 @@ export default function Row({
         )}
         {isDeletePopupOpen && (
           <DeleteFile
-            fileIds={[fileId]}
+            files={[file]}
             fileName={fileName}
             onClose={() => {
               setIsDeletePopupOpen(false);

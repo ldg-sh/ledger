@@ -17,9 +17,10 @@ export async function createDirectory(path: string, folderName: string) {
   return res.ok;
 }
 
-export async function deleteDirectory(directoryPath: string) {
+export async function deleteDirectory(directoryPath: string, directoryId: string) {
   let directoryDeleteRequest: DeleteDirectoryRequest = {
     path: directoryPath,
+    directory_id: directoryId,
   };
 
   const res = await authenticatedFetch(`/directory/delete`, {

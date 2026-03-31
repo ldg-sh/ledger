@@ -30,19 +30,18 @@ export default function FileList({ parentContainerRef }: FileListProps) {
   const { sort } = useSort();
   const pathname = usePathname();
   const [data, setData] = useState<FileListData | null>(null);
-  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
-  const [lastDeliberateClick, setLastDeliberateClick] = useState<string | null>(
-    null,
+  const [selectedFiles, setSelectedFiles] = useState<Set<ListFileElement>>(
+    new Set(),
   );
+  const [lastDeliberateClick, setLastDeliberateClick] =
+    useState<ListFileElement | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentOffset, setCurrentOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const [rightClickedFile, setRightClickedFile] = useState<{
-    fileId: string;
-    fileName: string;
-  } | null>(null);
+  const [rightClickedFile, setRightClickedFile] =
+    useState<ListFileElement | null>(null);
 
   const [isRenamePopupOpen, setIsRenamePopupOpen] = useState(false);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
@@ -52,9 +51,9 @@ export default function FileList({ parentContainerRef }: FileListProps) {
 
   const { user, loading: authLoading } = useUser();
 
-  const getAllFileIds = useCallback((): string[] => {
+  const getAllFiles = useCallback((): ListFileElement[] => {
     if (!data) return [];
-    return [...data.folders.map((f) => f.id), ...data.files.map((f) => f.id)];
+    return [...data.folders, ...data.files];
   }, [data]);
 
   const getClipboardData = async (): Promise<string[]> => {
@@ -83,7 +82,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       const fileIdsString = Array.from(selectedFiles).join("\n");
       await writeToClipboard(fileIdsString);
     } else if (lastDeliberateClick) {
-      await writeToClipboard(lastDeliberateClick);
+      await writeToClipboard(lastDeliberateClick.id);
     }
   }, [selectedFiles, lastDeliberateClick]);
 
@@ -112,7 +111,11 @@ export default function FileList({ parentContainerRef }: FileListProps) {
 
       const event = new CustomEvent("refresh-file-list", {
         detail: () => {
-          setSelectedFiles(new Set(fileIds.filter(Boolean)));
+          const newlyCopiedFiles = fileIds
+            .map((id) => data?.files.find((file) => file.id === id))
+            .filter((f): f is ListFileElement => !!f);
+
+          setSelectedFiles(new Set(newlyCopiedFiles));
         },
       });
       window.dispatchEvent(event);
@@ -132,7 +135,13 @@ export default function FileList({ parentContainerRef }: FileListProps) {
 
       const event = new CustomEvent("refresh-file-list", {
         detail: () => {
-          setSelectedFiles(newId ? new Set([newId]) : new Set());
+          const newFile = data?.files.find((f) => f.id === newId);
+
+          if (newFile) {
+            setSelectedFiles(new Set([newFile]));
+          } else {
+            setSelectedFiles(new Set());
+          }
         },
       });
       window.dispatchEvent(event);
@@ -141,36 +150,36 @@ export default function FileList({ parentContainerRef }: FileListProps) {
   );
 
   const handleSelectAll = useCallback(() => {
-    setSelectedFiles(new Set(getAllFileIds()));
-  }, [getAllFileIds]);
+    setSelectedFiles(new Set(getAllFiles()));
+  }, [getAllFiles]);
 
   const handleSelectUpper = useCallback(() => {
     if (!lastDeliberateClick) return;
 
-    const allFileIds = getAllFileIds();
-    const lastIndex = allFileIds.indexOf(lastDeliberateClick);
+    const allFiles = getAllFiles();
+    const lastIndex = allFiles.indexOf(lastDeliberateClick);
 
     if (lastIndex > 0) {
       const newSelected = new Set(selectedFiles);
-      newSelected.add(allFileIds[lastIndex - 1]);
+      newSelected.add(allFiles[lastIndex - 1]);
       setSelectedFiles(newSelected);
-      setLastDeliberateClick(allFileIds[lastIndex - 1]);
+      setLastDeliberateClick(allFiles[lastIndex - 1]);
     }
-  }, [lastDeliberateClick, getAllFileIds, selectedFiles]);
+  }, [lastDeliberateClick, getAllFiles, selectedFiles]);
 
   const handleSelectLower = useCallback(() => {
     if (!lastDeliberateClick) return;
 
-    const allFileIds = getAllFileIds();
-    const lastIndex = allFileIds.indexOf(lastDeliberateClick);
+    const allFiles = getAllFiles();
+    const lastIndex = allFiles.indexOf(lastDeliberateClick);
 
-    if (lastIndex < allFileIds.length - 1) {
+    if (lastIndex < allFiles.length - 1) {
       const newSelected = new Set(selectedFiles);
-      newSelected.add(allFileIds[lastIndex + 1]);
+      newSelected.add(allFiles[lastIndex + 1]);
       setSelectedFiles(newSelected);
-      setLastDeliberateClick(allFileIds[lastIndex + 1]);
+      setLastDeliberateClick(allFiles[lastIndex + 1]);
     }
-  }, [lastDeliberateClick, getAllFileIds, selectedFiles]);
+  }, [lastDeliberateClick, getAllFiles, selectedFiles]);
 
   const clearSelection = useCallback(() => {
     setSelectedFiles(new Set());
@@ -179,7 +188,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
 
   const handleRowClick = useCallback(
     (
-      fileId: string,
+      file: ListFileElement,
       selected: boolean,
       isShiftKey: boolean,
       isCommandKey: boolean,
@@ -188,12 +197,12 @@ export default function FileList({ parentContainerRef }: FileListProps) {
         const newSelected = new Set(prevSelected);
 
         if (isCommandKey) {
-          selected ? newSelected.delete(fileId) : newSelected.add(fileId);
+          selected ? newSelected.delete(file) : newSelected.add(file);
         } else if (isShiftKey && lastDeliberateClick) {
           newSelected.clear();
-          const allFileIds = getAllFileIds();
-          const startIndex = allFileIds.indexOf(lastDeliberateClick);
-          const endIndex = allFileIds.indexOf(fileId);
+          const allFiles = getAllFiles();
+          const startIndex = allFiles.indexOf(lastDeliberateClick);
+          const endIndex = allFiles.indexOf(file);
 
           if (startIndex > -1 && endIndex > -1) {
             const [from, to] =
@@ -202,19 +211,19 @@ export default function FileList({ parentContainerRef }: FileListProps) {
                 : [endIndex, startIndex];
 
             for (let i = from; i <= to; i++) {
-              newSelected.add(allFileIds[i]);
+              newSelected.add(allFiles[i]);
             }
           }
         } else {
           newSelected.clear();
-          newSelected.add(fileId);
-          setLastDeliberateClick(fileId);
+          newSelected.add(file);
+          setLastDeliberateClick(file);
         }
 
         return newSelected;
       });
     },
-    [lastDeliberateClick, getAllFileIds],
+    [lastDeliberateClick, getAllFiles],
   );
 
   const loadData = useCallback(async () => {
@@ -265,7 +274,9 @@ export default function FileList({ parentContainerRef }: FileListProps) {
 
       res.files = res.files.filter(
         (newFile) =>
-          !prevData.files.some((existingFile) => existingFile.id === newFile.id),
+          !prevData.files.some(
+            (existingFile) => existingFile.id === newFile.id,
+          ),
       );
 
       res.folders = res.folders.filter(
@@ -304,8 +315,13 @@ export default function FileList({ parentContainerRef }: FileListProps) {
         event instanceof CustomEvent &&
         typeof event.detail === "string"
       ) {
+        let file =
+          data?.files.find((file) => file.id === event.detail) ||
+          data?.folders.find((folder) => folder.id === event.detail);
+
         if (selectedFiles.size === 0) {
-          setSelectedFiles(new Set([event.detail]));
+          const filesToSet = [file].filter((f): f is ListFileElement => !!f);
+          setSelectedFiles(new Set(filesToSet));
         }
       }
     },
@@ -445,9 +461,13 @@ export default function FileList({ parentContainerRef }: FileListProps) {
           const fileId = rowElement?.getAttribute("data-file-id");
           const fileName = rowElement?.getAttribute("data-file-name");
 
+          let file =
+            data?.files.find((f) => f.id === fileId) ||
+            data?.folders.find((f) => f.id === fileId);
+
           if (fileId && fileName) {
-            setRightClickedFile({ fileId, fileName });
-            setLastDeliberateClick(fileId);
+            setRightClickedFile(file || null);
+            setLastDeliberateClick(file || null);
           } else {
             setLastDeliberateClick(null);
           }
@@ -464,7 +484,8 @@ export default function FileList({ parentContainerRef }: FileListProps) {
             fileType="folder"
             folder={true}
             clickCallback={handleRowClick}
-            selected={selectedFiles.has(folder.id)}
+            selected={selectedFiles.has(folder)}
+            file={folder}
           />
         ))}
         {data?.files.map((file) => (
@@ -476,7 +497,8 @@ export default function FileList({ parentContainerRef }: FileListProps) {
             fileId={file.id}
             createdAt={file.created_at}
             clickCallback={handleRowClick}
-            selected={selectedFiles.has(file.id)}
+            selected={selectedFiles.has(file)}
+            file={file}
           />
         ))}
         <div style={{ height: "100px", width: "100%" }} />
@@ -501,10 +523,10 @@ export default function FileList({ parentContainerRef }: FileListProps) {
                 onClick={() => {
                   if (
                     !Array.from(selectedFiles).includes(
-                      rightClickedFile?.fileId || "",
+                      rightClickedFile as ListFileElement,
                     )
                   ) {
-                    copyFileIdToClipboard(rightClickedFile?.fileId || "");
+                    copyFileIdToClipboard(rightClickedFile?.id || "");
                   } else {
                     copyFileIdsToClipboard();
                   }
@@ -532,7 +554,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
                   label="Copy Link"
                   glyph="link"
                   onClick={() => {
-                    const fileId = Array.from(selectedFiles)[0];
+                    const fileId = Array.from(selectedFiles)[0].id;
                     copyFileIdToClipboard(fileId);
                     hideMenu();
                   }}
@@ -555,7 +577,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
                 }}
               />
 
-              {rightClickedFile?.fileId && selectedFiles.size <= 1 && (
+              {rightClickedFile?.id && selectedFiles.size <= 1 && (
                 <ContextMenuItem
                   label="Rename"
                   glyph="pencil-line"
@@ -581,16 +603,16 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       <AnimatePresence>
         {isDeletePopupOpen && (
           <DeleteFile
-            fileIds={
-              Array.from(selectedFiles).includes(
-                rightClickedFile?.fileId || "",
-              ) && rightClickedFile?.fileId
+            files={
+              Array.from(selectedFiles).some(
+                (f) => f.id === rightClickedFile?.id,
+              )
                 ? Array.from(selectedFiles)
                 : rightClickedFile
-                  ? [rightClickedFile.fileId]
+                  ? [rightClickedFile]
                   : []
             }
-            fileName={rightClickedFile?.fileName}
+            fileName={rightClickedFile?.file_name}
             onClose={() => {
               setIsDeletePopupOpen(false);
             }}
@@ -599,8 +621,8 @@ export default function FileList({ parentContainerRef }: FileListProps) {
 
         {isRenamePopupOpen && rightClickedFile && (
           <RenameFile
-            placeholder={rightClickedFile.fileName}
-            fileId={rightClickedFile.fileId}
+            placeholder={rightClickedFile.file_name}
+            fileId={rightClickedFile.id}
             onClose={() => {
               setIsRenamePopupOpen(false);
             }}

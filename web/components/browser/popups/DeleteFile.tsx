@@ -5,42 +5,52 @@ import styles from "./DeleteFile.module.scss";
 import { cn } from "@/lib/util/class";
 import { useState } from "react";
 import { deleteFiles } from "@/lib/api/file";
+import { deleteDirectory } from "@/lib/api/directory";
+import { File } from "@/lib/types/generated/File";
+import { ListFileElement } from "@/lib/types/generated/ListFileElement";
 
 interface DeleteFileProps {
   onClose: () => void;
-  fileIds: string[];
   fileName?: string;
+  files: ListFileElement[];
 }
 
-export default function DeleteFile({ onClose, fileIds, fileName }: DeleteFileProps) {
+export default function DeleteFile({ onClose, files }: DeleteFileProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   function handleSubmit() {
     setIsLoading(true);
 
-    if (fileIds.length == 1) {
-      deleteFiles([fileIds[0]]).then(() => {
-        let event = new CustomEvent("refresh-file-list", {
-          detail: () => {
-            onClose();
-            setIsLoading(false);
-          },
-        });
+    let directories = files.filter((file) => file.file_type === "directory");
+    let regularFiles = files.filter((file) => file.file_type !== "directory");
 
-        window.dispatchEvent(event);
-      });
-    } else {
-      deleteFiles(fileIds).then(() => {
-        let event = new CustomEvent("refresh-file-list", {
-          detail: () => {
-            onClose();
-            setIsLoading(false);
-          },
-        });
+    let promises = [];
 
-        window.dispatchEvent(event);
-      });
+    if (directories.length > 0) {
+      for (let dir of directories) {
+        let basePath = dir.path.endsWith("/")
+          ? dir.path.slice(0, -1)
+          : dir.path;
+        promises.push(deleteDirectory(basePath + "/" + dir.file_name, dir.id));
+      }
     }
+
+    if (regularFiles.length == 1) {
+      promises.push(deleteFiles([regularFiles[0].id]));
+    } else if (regularFiles.length > 1) {
+      promises.push(deleteFiles(regularFiles.map((f) => f.id)));
+    }
+
+    Promise.all(promises).then(() => {
+      let event = new CustomEvent("refresh-file-list", {
+        detail: () => {
+          setIsLoading(false);
+          onClose();
+        },
+      });
+
+      window.dispatchEvent(event);
+    });
   }
 
   return (
@@ -53,13 +63,15 @@ export default function DeleteFile({ onClose, fileIds, fileName }: DeleteFilePro
         <div className={styles.renameFileContainer}>
           <div className={styles.text}>
             <h1 className={styles.title}>Confirm Deletion</h1>
-            {fileIds.length > 1 ? (
-            <p className={styles.description}>
-                Are you sure you want to permanently delete <strong>{fileIds.length}</strong> files?
+            {files.length > 1 ? (
+              <p className={styles.description}>
+                Are you sure you want to permanently delete{" "}
+                <strong>{files.length}</strong> files?
               </p>
             ) : (
               <p className={styles.description}>
-                Are you sure you want to permanently delete <strong>{fileName}</strong>?
+                Are you sure you want to permanently delete{" "}
+                <strong>{files[0].file_name}</strong>?
               </p>
             )}
           </div>
