@@ -19,3 +19,11 @@
 .getStartedButton:active {
     background-color: var(--color-button-background-active);
 }
+
+@media (max-width: 1000px) {
+    .getStartedButton {
+        padding: 12px 30px;
+        font-size: 0.8rem;
+    }
+    
+}
