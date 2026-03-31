@@ -192,20 +192,6 @@ export async function deleteFiles(fileIds: string[]) {
   return res.ok;
 }
 
-export async function deleteDirectory(directoryPath: string, directoryId: string) {
-  let request: DeleteDirectoryRequest = {
-    path: directoryPath,
-    directory_id: directoryId,
-  };
-
-  const res = await authenticatedFetch(`/directory/delete`, {
-    method: "DELETE",
-    body: JSON.stringify(request),
-  });
-
-  return res.ok;
-}
-
 export async function copyFiles(fileIds: string[], destinationPath: string) {
   let destPath = destinationPath.startsWith("/")
     ? destinationPath.slice(1)
