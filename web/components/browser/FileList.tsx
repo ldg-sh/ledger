@@ -304,6 +304,8 @@ export default function FileList({ parentContainerRef }: FileListProps) {
   }, [pathname, authLoading, sort, currentOffset]);
 
   useEffect(() => {
+    setCurrentOffset(0);
+
     if (!authLoading && user) {
       loadData();
     }
@@ -436,11 +438,6 @@ export default function FileList({ parentContainerRef }: FileListProps) {
     return () =>
       window.removeEventListener("refresh-file-list", refreshFileList);
   }, [loadData, refreshFileList, parentContainerRef]);
-
-  useEffect(() => {
-    setCurrentOffset(0);
-    loadData();
-  }, [sort, pathname, loadData]);
 
   useEffect(() => {
     const container = parentContainerRef?.current;
