@@ -43,11 +43,11 @@ async fn main() -> std::io::Result<()> {
     let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set").trim().to_owned();
     let domain_root = env::var("DOMAIN_ROOT").expect("DOMAIN_ROOT must be set").to_owned();
     let rp_origin = env::var("RP_ORIGIN").expect("RP_ORIGIN must be set").to_owned();
+    let rp_id = env::var("RP_ID").expect("RP_ID must be set").to_owned();
 
     let rp_origin = Url::parse(&rp_origin).expect("Invalid RP_ORIGIN URL");
 
-    let auth_root = domain_root.clone();
-    let builder = WebauthnBuilder::new(&auth_root, &rp_origin).expect("Invalid configuration");
+    let builder = WebauthnBuilder::new(&rp_id, &rp_origin).expect("Invalid configuration");
     let builder = builder.rp_name("Ledger");
 
     let provider_configuration = ProviderConfiguration {
