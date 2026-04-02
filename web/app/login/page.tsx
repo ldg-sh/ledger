@@ -10,10 +10,12 @@ import {
   completeRegistration,
 } from "@/lib/api/passkey";
 import { PasskeyInitResponse } from "@/lib/types/generated/PasskeyInitResponse";
+import { useState } from "react";
 
 export default function LoginPage() {
   const GITHUB_AUTH_URL = process.env.NEXT_PUBLIC_GITHUB_URL || "";
   const GOOGLE_AUTH_URL = process.env.NEXT_PUBLIC_GOOGLE_URL || "";
+  const [isLoading, setIsLoading] = useState(false);
 
   const user = useUser();
 
@@ -91,6 +93,7 @@ export default function LoginPage() {
           <div className={styles.passkeyContainer}>
             <LoginButton
               procedure={async () => {
+                setIsLoading(true);
                 let username = "Testing";
                 let existing_id = null;
 
@@ -126,9 +129,15 @@ export default function LoginPage() {
                   },
                 );
 
-                let assertion: any = await window.navigator.credentials.create({
-                  publicKey: creds.publicKey,
-                });
+                let assertion: any = await window.navigator.credentials
+                  .create({
+                    publicKey: creds.publicKey,
+                  })
+                  .catch((err) => {
+                    console.error("Error creating credentials:", err);
+                    setIsLoading(false);
+                    return null;
+                  });
 
                 if (assertion == null) {
                   return;
@@ -155,9 +164,11 @@ export default function LoginPage() {
                   document.dispatchEvent(new CustomEvent("reloadUser"));
                 } else {
                   alert("Passkey registration failed");
+                  setIsLoading(false);
                 }
               }}
               title="Sign up with a Passkey"
+              isLoading={isLoading}
               svg={
                 <svg
                   version="1.1"
@@ -187,6 +198,7 @@ export default function LoginPage() {
             />
             <LoginButton
               procedure={async () => {
+                setIsLoading(true);
                 let res = await beginAuthentication();
                 let data = await res.json();
 
@@ -211,15 +223,21 @@ export default function LoginPage() {
 
                 creds.mediation = "optional";
 
-                console.log("Credential request options:", creds);
-
-                let assertion = (await window.navigator.credentials.get({
-                  publicKey: creds.publicKey,
-                  mediation: creds.mediation as CredentialMediationRequirement,
-                })) as PublicKeyCredential;
+                let assertion = (await window.navigator.credentials
+                  .get({
+                    publicKey: creds.publicKey,
+                    mediation:
+                      creds.mediation as CredentialMediationRequirement,
+                  })
+                  .catch((err) => {
+                    console.error("Error obtaining assertion:", err);
+                    setIsLoading(false);
+                    return null;
+                  })) as PublicKeyCredential;
 
                 if (!assertion) {
                   console.error("No assertion obtained from credentials.get");
+                  setIsLoading(false);
                   return;
                 }
 
@@ -257,8 +275,10 @@ export default function LoginPage() {
                 } else {
                   alert("Passkey authentication failed");
                 }
+                setIsLoading(false);
               }}
               title="Log in with a Passkey"
+              isLoading={isLoading}
               svg={
                 <svg
                   version="1.1"
