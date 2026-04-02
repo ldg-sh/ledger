@@ -9,6 +9,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20260321_142900_create_table::Migration),
             Box::new(m20260321_142905_create_user::Migration),
             Box::new(m20260321_142910_create_refresh_token::Migration),
+            Box::new(m20260402_110621_create_passkey::Migration),
         ]
     }
 
@@ -20,3 +21,4 @@ impl MigratorTrait for Migrator {
 mod m20260321_142900_create_table;
 mod m20260321_142905_create_user;
 mod m20260321_142910_create_refresh_token;
+mod m20260402_110621_create_passkey;

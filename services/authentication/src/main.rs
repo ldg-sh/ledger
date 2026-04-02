@@ -6,6 +6,8 @@ use sea_orm::{Database};
 use std::env;
 use env_logger::Env;
 use log::info;
+use reqwest::Url;
+use webauthn_rs::WebauthnBuilder;
 use migration::{Migrator, MigratorTrait};
 use storage::s3_manager::S3StorageManager;
 
@@ -40,6 +42,13 @@ async fn main() -> std::io::Result<()> {
 
     let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set").trim().to_owned();
     let domain_root = env::var("DOMAIN_ROOT").expect("DOMAIN_ROOT must be set").to_owned();
+    let rp_origin = env::var("RP_ORIGIN").expect("RP_ORIGIN must be set").to_owned();
+
+    let rp_origin = Url::parse(&rp_origin).expect("Invalid RP_ORIGIN URL");
+
+    let auth_root = domain_root.clone();
+    let builder = WebauthnBuilder::new(&auth_root, &rp_origin).expect("Invalid configuration");
+    let builder = builder.rp_name("Ledger");
 
     let provider_configuration = ProviderConfiguration {
         google_client_id,
@@ -50,20 +59,22 @@ async fn main() -> std::io::Result<()> {
         jwt_secret,
         domain_root,
     };
-    
+
+
     let s3_manager = S3StorageManager::new_s3(
         access_key,
         secret_key,
         bucket,
         endpoint,
     ).await;
-    
+
     let database_client = Database::connect(&database_url).await.unwrap();
     Migrator::up(&database_client, None).await.unwrap();
 
     let s3_data = web::Data::new(s3_manager);
     let db_data = web::Data::new(database_client);
     let provider_data = web::Data::new(provider_configuration);
+    let webauth = web::Data::new(builder.build().expect("Failed to build WebAuthn instance"));
 
     info!("Starting user server on port 8080");
 
@@ -72,6 +83,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(s3_data.clone())
             .app_data(db_data.clone())
             .app_data(provider_data.clone())
+            .app_data(webauth.clone())
             .configure(routes::routes)
             .configure(routes::user::routes)
     })

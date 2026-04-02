@@ -9,7 +9,6 @@ import { InitUploadRequest } from "../types/generated/InitUploadRequest";
 import { InitUploadResponse } from "../types/generated/InitUploadResponse";
 import { RenameFileRequest } from "../types/generated/RenameFileRequest";
 import { DeleteFilesRequest } from "../types/generated/DeleteFilesRequest";
-import { DeleteDirectoryRequest } from "../types/generated/DeleteDirectoryRequest";
 import { CopyFilesRequest } from "../types/generated/CopyFilesRequest";
 import { CopyFilesResponse } from "../types/generated/CopyFilesResponse";
 import { CompleteUploadRequest } from "../types/generated/CompleteUploadRequest";
