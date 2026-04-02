@@ -50,6 +50,10 @@
     .passkeyContainer {
         flex-direction: column;
     }
+
+    .divider {
+        margin: .3rem 0;
+    }
 }
 
 .loginButtonContainer {
@@ -57,7 +61,6 @@
     flex-direction: column;
     gap: .5rem;
     width: 100%;
-
 }
 
 .top {
@@ -68,4 +71,24 @@
     display: flex;
     gap: .5rem;
     width: 100%;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    margin: 1rem 0;
+}
+
+.line {
+    flex: 1;
+    height: 1px;
+    background-color: var(--color-framework);
+}
+
+.dividerText {
+    font-size: .9rem;
+    color: var(--color-text-secondary);
+    font-weight: 400;
 }

@@ -83,6 +83,11 @@ export default function LoginPage() {
               </svg>
             }
           />
+          <div className={styles.divider}>
+            <div className={styles.line} />
+            <span className={styles.dividerText}>or</span>
+            <div className={styles.line} />
+          </div>
           <div className={styles.passkeyContainer}>
             <LoginButton
               procedure={async () => {
