@@ -1,5 +1,6 @@
-use crate::{AppState, authenticate};
+use crate::{authenticate, AppState};
 use common::types::user_info::{UserInfoRequest, UserInfoResponse};
+use serde_json::Value;
 use std::sync::Arc;
 use worker::*;
 
@@ -18,15 +19,21 @@ pub async fn handle_info(req: Request, ctx: RouteContext<Arc<AppState>>) -> Resu
         account_id: user.id.clone(),
     };
 
-    let metadata: UserInfoResponse = state
+    let metadata = state
         .config
-        .make_internal_request("/internal/user/info", &user.id, Method::Post, &user_request)
+        .make_internal_request::<_, Value>("/internal/user/info", &user.id, Method::Post, &user_request)
         .await?;
+
+    if metadata.0 != 200 {
+        return Ok(Response::from_json(&metadata.1)?.with_status(metadata.0));
+    }
+
+    let metadata: UserInfoResponse = serde_json::from_value(metadata.1)?;
 
     kv.put(&cache_key, &metadata)?
         .expiration_ttl(300)
         .execute()
         .await?;
 
-    Response::from_json(&metadata)
+    Ok(Response::from_json(&metadata)?.with_status(200))
 }

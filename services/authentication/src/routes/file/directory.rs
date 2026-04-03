@@ -3,8 +3,9 @@ use actix_web::{HttpResponse, post, web};
 use common::entities::file;
 use common::entities::prelude::File;
 use common::types::file::directory::{DirectoryRequest, DirectoryResponse};
+use sea_orm::ColumnTrait;
 use sea_orm::prelude::DateTimeWithTimeZone;
-use sea_orm::{DatabaseConnection, EntityTrait, Set};
+use sea_orm::{DatabaseConnection, EntityTrait, QueryFilter, Set};
 use storage::s3_manager::S3StorageManager;
 
 #[post("create")]
@@ -19,6 +20,34 @@ pub async fn directory(
     let mut inserts = Vec::new();
     let mut current_base = String::from("/");
     let mut current_id = String::from("");
+
+    let existing_directory = File::find()
+        .filter(file::Column::OwnerId.eq(authenticated_user.id.clone()))
+        .filter(file::Column::FileName.eq(directories[0].to_string()))
+        .filter(file::Column::FileType.eq("directory".to_string()))
+        .all(database.get_ref())
+        .await;
+
+    if existing_directory.is_err() {
+        println!("Database error: {:?}", existing_directory.err());
+        return HttpResponse::InternalServerError().finish();
+    }
+
+    if existing_directory.unwrap().len() >= 1 {
+        return HttpResponse::Conflict().finish();
+    }
+
+    if directories.len() == 0 {
+        return HttpResponse::BadRequest().finish();
+    }
+
+    if directories
+        .iter()
+        .any(|directory_name| directory_name.len() > 255)
+    {
+        return HttpResponse::BadRequest()
+            .body("Directory names must be 255 characters or less".to_string());
+    }
 
     directories.iter().for_each(|dir| {
         if !dir.is_empty() {

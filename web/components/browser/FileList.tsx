@@ -496,6 +496,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
             key={folder.id}
             fileId={folder.id}
             fileName={folder.file_name}
+            createdAt={folder.created_at}
             fileSize={folder.file_size as unknown as number}
             fileType="folder"
             folder={true}

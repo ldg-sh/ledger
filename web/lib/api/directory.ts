@@ -14,7 +14,7 @@ export async function createDirectory(path: string, folderName: string) {
     body: JSON.stringify(directoryRequest),
   });
 
-  return res.ok;
+  return res;
 }
 
 export async function deleteDirectory(directoryPath: string, directoryId: string) {

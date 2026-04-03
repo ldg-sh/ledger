@@ -16,5 +16,5 @@ pub async fn handle_move(mut req: Request, ctx: RouteContext<Arc<AppState>>) -> 
         &payload
     ).await?;
 
-    Ok(Response::from_json(&response)?)
+    Ok(Response::from_json(&response.1)?.with_status(response.0))
 }

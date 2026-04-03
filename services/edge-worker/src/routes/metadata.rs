@@ -1,5 +1,6 @@
-use crate::{AppState, authenticate};
+use crate::{authenticate, AppState};
 use common::types::file::metadata::{MetadataRequest, MetadataResponse};
+use serde_json::Value;
 use std::sync::Arc;
 use worker::*;
 
@@ -19,15 +20,15 @@ pub async fn handle_metadata(
         return Response::from_json(&cached);
     }
 
-    let metadata: MetadataResponse = state
+    let metadata = state
         .config
-        .make_internal_request("/internal/file/metadata", &user.id, Method::Post, &payload)
+        .make_internal_request::<_, Value>("/internal/file/metadata", &user.id, Method::Post, &payload)
         .await?;
 
-    kv.put(&cache_key, &metadata)?
+    kv.put(&cache_key, &metadata.1)?
         .expiration_ttl(3600)
         .execute()
         .await?;
 
-    Response::from_json(&metadata)
+    Ok(Response::from_json(&metadata.1)?.with_status(metadata.0))
 }

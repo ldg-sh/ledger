@@ -1,5 +1,5 @@
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 use worker::{Env, Fetch, Headers, Method, Request, RequestInit};
 
 #[derive(Debug, Clone)]
@@ -10,6 +10,11 @@ pub struct Configuration {
     pub bucket: String,
     pub jwt_secret: String,
     pub auth_server_uri: String,
+}
+
+pub struct InternalResponse<R> {
+    pub status: u16,
+    pub data: R,
 }
 
 impl Configuration {
@@ -32,7 +37,7 @@ impl Configuration {
         user_id: &str,
         method: Method,
         payload: &T,
-    ) -> Result<R, worker::Error> {
+    ) -> Result<(u16, serde_json::Value), worker::Error> {
         let headers = Headers::new();
         headers.set("Content-Type", "application/json")?;
         headers.set("x-user-id", user_id)?;
@@ -41,29 +46,23 @@ impl Configuration {
 
         let request = Request::new_with_init(
             &url,
-            RequestInit::new()
+            &RequestInit::new()
                 .with_body(Some(serde_json::to_string(payload)?.into()))
                 .with_headers(headers)
                 .with_method(method),
         )?;
 
         let mut response = Fetch::Request(request).send().await?;
+        let status = response.status_code();
+        let text = response.text().await?;
 
-        if response.status_code() >= 200 && response.status_code() < 300 {
-            let text = response.text().await?;
-
-            if text.is_empty() {
-                return serde_json::from_str::<R>("null")
-                    .map_err(|e| worker::Error::from(e.to_string()));
-            }
-
-            serde_json::from_str::<R>(&text).map_err(|e| worker::Error::from(e.to_string()))
+        let json_body: serde_json::Value = if text.is_empty() {
+            serde_json::Value::Null
         } else {
-            Err(worker::Error::from(format!(
-                "Internal Request Failed: {} - {}",
-                response.status_code(),
-                response.text().await.unwrap_or_default()
-            )))
-        }
+            serde_json::from_str(&text)
+                .map_err(|e| worker::Error::from(format!("Raw body was: {}. Error: {}", text, e)))?
+        };
+
+        Ok((status, json_body))
     }
 }

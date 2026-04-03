@@ -52,6 +52,7 @@ export default function Row({
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
 
   let date = new Date(createdAt);
+
   let formattedDate = createdAt
     ? date.toLocaleString(undefined, {
         year: "numeric",

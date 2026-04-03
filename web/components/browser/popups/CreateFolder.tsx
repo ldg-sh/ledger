@@ -18,18 +18,65 @@ export default function CreateFolder({ onClose }: CreateFolderProps) {
   let router = useRouter();
 
   const [value, setValue] = useState("");
+  const [errorText, setErrorText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  function validateFolderName(name: string) {
+    let folders = name.split("/").filter((part) => part.trim() !== "");
+    let invalidChars = /[<>:"|?*]/;
+
+    if (invalidChars.test(name)) {
+      return "Folder name contains invalid characters.";
+    }
+
+    if (folders.some((folder) => folder.length === 0)) {
+      return "Folder name cannot contain empty parts.";
+    }
+
+    if (folders.length == 0) {
+      return "Folder name cannot be empty.";
+    }
+
+    if (name.length === 0) {
+      return "Folder name cannot be empty.";
+    }
+    if (name.length > 255) {
+      return "Folder name cannot exceed 255 characters.";
+    }
+    return null;
+  }
 
   function handleSubmit() {
     let path = extractPathFromUrl(pathname);
+    let validationError = validateFolderName(value);
+
+    if (validationError) {
+      setErrorText(validationError);
+
+      setTimeout(() => {
+        setErrorText("");
+      }, 3000);
+
+      return;
+    }
+
     setIsLoading(true);
 
-    createDirectory(path, value).then(() => {
+    createDirectory(path, value).then((res) => {
+      if (res.status === 409) {
+        setIsLoading(false);
+        setErrorText("A folder with that name already exists.");
+
+        setTimeout(() => {
+          setErrorText("");
+        }, 3000);
+
+        return;
+      }
+
       setIsLoading(false);
 
-      router.push(
-        pathname + (pathname.endsWith("/") ? "" : "/") + value
-      );
+      router.push(pathname + (pathname.endsWith("/") ? "" : "/") + value);
     });
   }
 
@@ -53,21 +100,24 @@ export default function CreateFolder({ onClose }: CreateFolderProps) {
             }}
             onSubmit={handleSubmit}
             placeholder="path/to/new/folder"
+            errorHint={true}
             select
             // Thank you, Dom, for this hint design.
             hint={
-              <>
-                  <p className={styles.hint}>
-                    Your folder will be created at
-                    <strong>
-                      {" home" +
-                        (extractPathFromUrl(pathname) == ""
-                          ? "/"
-                          : "" + extractPathFromUrl(pathname)) +
-                        value}
-                    </strong>
-                  </p>
-              </>
+              errorText ? (
+                <p className={cn(styles.hint, styles.error)}>{errorText}</p>
+              ) : (
+                <p className={styles.hint}>
+                  Your folder will be created at
+                  <strong>
+                    {" home" +
+                      (extractPathFromUrl(pathname) == ""
+                        ? "/"
+                        : "" + extractPathFromUrl(pathname)) +
+                      value}
+                  </strong>
+                </p>
+              )
             }
           />
           <div className={styles.actions}>
@@ -83,7 +133,7 @@ export default function CreateFolder({ onClose }: CreateFolderProps) {
               className={cn(
                 styles.submitButton,
                 styles.actionButton,
-                isLoading && styles.loading
+                isLoading && styles.loading,
               )}
               disabled={!value}
               onClick={handleSubmit}

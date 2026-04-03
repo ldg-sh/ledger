@@ -1,5 +1,6 @@
 use crate::{authenticate, AppState};
-use common::types::file::list::{ListFilesRequest, ListFilesResponse};
+use common::types::file::list::ListFilesRequest;
+use serde_json::Value;
 use std::sync::Arc;
 use worker::{Method, Request, Response, RouteContext};
 
@@ -9,12 +10,12 @@ pub async fn handle_list(mut req: Request, ctx: RouteContext<Arc<AppState>>) -> 
 
     let payload: ListFilesRequest = req.json().await?;
 
-    let response = state.config.make_internal_request::<_, ListFilesResponse>(
+    let response = state.config.make_internal_request::<_, Value>(
         "/internal/file/list",
         &user.id,
         Method::Post,
         &payload
     ).await?;
 
-    Ok(Response::from_json(&response)?)
+    Ok(Response::from_json(&response.1)?.with_status(response.0))
 }

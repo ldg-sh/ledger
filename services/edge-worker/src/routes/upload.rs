@@ -7,6 +7,7 @@ use rusty_s3::{Bucket, Credentials, S3Action, UrlStyle};
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
+use serde_json::Value;
 use uuid::Uuid;
 use worker::*;
 
@@ -37,14 +38,20 @@ pub async fn handle_create(mut req: Request, ctx: RouteContext<Arc<AppState>>) -
     let background_state = state.clone();
     let result = background_state
         .config
-        .make_internal_request::<_, InitUploadInternalResponse>(
+        .make_internal_request::<_, Value>(
             "/internal/upload/init",
             &user.id,
             Method::Post,
             &internal_req,
         )
         .await?;
-
+    
+    if result.0 != 200 {
+        return Ok(Response::from_json(&result.1)?.with_status(result.0));
+    }
+    
+    let result: InitUploadInternalResponse = serde_json::from_value(result.1)?;
+    
     let credentials = Credentials::new(access_key.as_str(), secret_key.as_str());
 
     let presigned_url_duration = Duration::from_secs(60 * 60);
@@ -62,11 +69,11 @@ pub async fn handle_create(mut req: Request, ctx: RouteContext<Arc<AppState>>) -
         urls.push(presigned_url.to_string());
     }
 
-    Response::from_json(&InitUploadResponse {
+    Ok(Response::from_json(&InitUploadResponse {
         file_id: file_id.to_string(),
         upload_urls: urls,
         upload_id: result.upload_id,
-    })
+    })?.with_status(200))
 }
 
 pub async fn handle_complete(

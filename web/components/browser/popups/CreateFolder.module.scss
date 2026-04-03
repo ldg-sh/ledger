@@ -13,6 +13,7 @@
     margin: 0;
 }
 
+
 .actions {
     display: flex;
     justify-content: flex-end;
@@ -89,6 +90,14 @@
     color: var(--color-text-secondary);
     margin-top: 4px;
     margin-bottom: 0;
+    // disable wrapping 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.error {
+    color: var(--color-error-foreground);
 }
 
 .text {
