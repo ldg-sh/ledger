@@ -35,7 +35,6 @@
     margin-left: 20px;
     display: flex;
     flex-direction: column;
-    
 }
 
 .logoTitle {
@@ -52,7 +51,6 @@
     font-weight: 300;
 }
 
-
 @media (max-width: 600px) {
     .logoText {
         display: none;
@@ -65,11 +63,18 @@
     .header {
         height: 60px;
     }
-    
+
     .user {
         margin: 0 10px;
     }
 
+    .headerCenter {
+        border-left: none;
+        border-right: none;
+    }
+}
+
+@media (max-width: 1100px) {
     .headerCenter {
         border-left: none;
         border-right: none;
