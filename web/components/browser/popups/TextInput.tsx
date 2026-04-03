@@ -1,5 +1,6 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import styles from "./TextInput.module.scss";
+import { cn } from "@/lib/util/class";
 
 interface TextInputProps {
   onChange: (newValue: string) => void;
@@ -11,6 +12,8 @@ interface TextInputProps {
   hint?: string | ReactNode;
   title?: string;
   formType?: string;
+  errorHint?: boolean;
+  required?: boolean;
 }
 
 export default function TextInput({
@@ -20,9 +23,11 @@ export default function TextInput({
   originalValue,
   disabled,
   select = false,
+  errorHint = false,
   hint,
   title,
   formType = "text",
+  required = false,
 }: TextInputProps) {
   let [value, setValue] = useState(originalValue || "");
 
@@ -38,7 +43,20 @@ export default function TextInput({
 
   return (
     <div className={styles.textInputContainer}>
-      {title ? <h1 className={styles.title}>{title || placeholder}</h1> : null}
+      <div className={styles.topText}>
+        {title ? (
+          <h1 className={styles.title}>
+            {title || placeholder}
+            {required && <span className={styles.required}>*</span>}
+          </h1>
+        ) : null}
+        {!isReactNodeHint && hint && (
+          <p className={cn(styles.hint, errorHint ? styles.error : undefined)}>
+            {hint}
+          </p>
+        )}
+      </div>
+
       <input
         ref={inputRef}
         autoFocus={select}
@@ -59,7 +77,6 @@ export default function TextInput({
         disabled={disabled}
       />
       {isReactNodeHint && hint && <>{hint}</>}
-      {!isReactNodeHint && hint && <p className={styles.hint}>{hint}</p>}
     </div>
   );
 }

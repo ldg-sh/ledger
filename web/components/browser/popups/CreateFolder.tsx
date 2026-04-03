@@ -54,13 +54,13 @@ export default function CreateFolder({ onClose }: CreateFolderProps) {
             onSubmit={handleSubmit}
             placeholder="path/to/new/folder"
             select
+            // Thank you, Dom, for this hint design.
             hint={
               <>
                   <p className={styles.hint}>
-                    Your folder will be created {"at "}
+                    Your folder will be created at
                     <strong>
-                      {" "}
-                      {"home" +
+                      {" home" +
                         (extractPathFromUrl(pathname) == ""
                           ? "/"
                           : "" + extractPathFromUrl(pathname)) +

@@ -66,11 +66,13 @@ export default function SignupPage() {
               setEmail(email);
             }}
             formType="email"
+            required
             onSubmit={() => {}}
             placeholder="sam@example.com"
+            errorHint={!!emailError}
             hint={
               emailError ? (
-                <p className={styles.error}>{emailError}</p>
+                emailError
               ) : (
                 "A unique email address to associate with your account."
               )
@@ -84,11 +86,13 @@ export default function SignupPage() {
             }}
             onSubmit={() => {}}
             placeholder="Sam Gordon"
+            required
+            errorHint={!!usernameError}
             hint={
               usernameError ? (
-                <p className={styles.error}>{usernameError}</p>
+                usernameError
               ) : (
-                "A non-unique username to identify you, between 3 and 16 characters."
+                "Between 3 and 16 characters long."
               )
             }
             title="Username"
@@ -100,11 +104,12 @@ export default function SignupPage() {
             }}
             onSubmit={() => {}}
             placeholder="https://example.com/avatar.jpg"
+            errorHint={!!avatarUrlError}
             hint={
               avatarUrlError ? (
-                <p className={styles.error}>{avatarUrlError}</p>
+                avatarUrlError
               ) : (
-                "Optional. A URL to your avatar image."
+                "Direct URL to an image to use as your avatar."
               )
             }
             title="Avatar URL"

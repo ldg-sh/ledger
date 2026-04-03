@@ -4,7 +4,7 @@
     border-radius: 8px;
     padding: 5px 15px;
     width: calc(100% - 32px);
-    height: 30px;
+    height: 28px;
     color: var(--color-text-primary);
     font-size: 0.8rem;
     font-family: var(--font-family);
@@ -28,10 +28,30 @@
     margin-bottom: 4px;
 }
 
+.topText {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 .hint {
     font-size: 0.7rem;
     color: var(--color-text-secondary);
     margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.error {
+    font-size: 0.7rem;
+    color: var(--color-error-foreground);
+    margin-top: 4px;
+    font-weight: 400;
+}
+
+.required {
+    color: var(--color-error-foreground);
+    margin-left: 4px;
+    font-size: 0.7rem;
 }
 
 .textInputContainer {
