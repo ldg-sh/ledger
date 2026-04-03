@@ -38,6 +38,10 @@ export default function SignupPage() {
   };
 
   const validateAvatarUrl = (url: string) => {
+    if (url.length == 0) {
+      return true;
+    }
+
     try {
       new URL(url);
       return true;
@@ -83,7 +87,7 @@ export default function SignupPage() {
             }}
             onSubmit={() => {}}
             placeholder="https://example.com/avatar.jpg"
-            hint={avatarUrlError ? (<p className={styles.error}>{avatarUrlError}</p>) : "A URL to your avatar image."}
+            hint={avatarUrlError ? (<p className={styles.error}>{avatarUrlError}</p>) : "Optional. A URL to your avatar image."}
             title="Avatar URL"
             disabled={isLoading}
           />

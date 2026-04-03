@@ -27,6 +27,12 @@
     cursor: pointer;
 }
 
+.noAvatar {
+    align-items: end;
+    padding-right: 10px;
+    padding-left: 30px;
+}
+
 .container:hover .info,
 .container:hover .avatar {
     background-color: var(--color-background-hover);
