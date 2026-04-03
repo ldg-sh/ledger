@@ -9,6 +9,8 @@ interface TextInputProps {
   disabled?: boolean;
   select?: boolean;
   hint?: string | ReactNode;
+  title?: string;
+  formType?: string;
 }
 
 export default function TextInput({
@@ -19,6 +21,8 @@ export default function TextInput({
   disabled,
   select = false,
   hint,
+  title,
+  formType = "text",
 }: TextInputProps) {
   let [value, setValue] = useState(originalValue || "");
 
@@ -34,10 +38,11 @@ export default function TextInput({
 
   return (
     <div className={styles.textInputContainer}>
+      {title ? <h1 className={styles.title}>{title || placeholder}</h1> : null}
       <input
         ref={inputRef}
         autoFocus={select}
-        type="text"
+        type={formType}
         name="text"
         className={styles.textInput}
         onChange={(e) => {

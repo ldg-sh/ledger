@@ -6,6 +6,7 @@ use serde_json::Value;
 #[ts(export)]
 pub struct PasskeyInitRequest {
     pub username: String,
+    pub email: String,
     pub existing_id: Option<String>
 }
 

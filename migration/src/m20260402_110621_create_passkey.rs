@@ -26,7 +26,6 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(ColumnDef::new(AuthSession::UserId).string().not_null().primary_key())
                     .col(ColumnDef::new(AuthSession::StateData).json().not_null())
-                    .col(ColumnDef::new(AuthSession::StateType).string().not_null())
                     .col(ColumnDef::new(AuthSession::ExpiresAt).timestamp_with_time_zone().not_null())
                     .to_owned(),
             )
@@ -60,6 +59,5 @@ enum AuthSession {
     Table,
     UserId,
     StateData,
-    StateType,
     ExpiresAt
 }

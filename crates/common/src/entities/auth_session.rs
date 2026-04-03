@@ -16,7 +16,6 @@ pub struct Model {
     #[cfg_attr(feature = "ssr", sea_orm(primary_key, auto_increment = false))]
     pub user_id: String,
     pub state_data: Json,
-    pub state_type: String,
     pub expires_at: DateTimeWithTimeZone,
 }
 

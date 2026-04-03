@@ -4,11 +4,13 @@ import { PasskeyInitRequest } from "../types/generated/PasskeyInitRequest";
 
 export async function beginRegistration(
   username: string,
+  email: string,
   user_id: string | null,
 ) {
   let request: PasskeyInitRequest = {
     username,
     existing_id: user_id,
+    email
   };
 
   const res = await fetch(`/auth/passkey/register/init`, {
@@ -22,9 +24,12 @@ export async function beginRegistration(
   return res;
 }
 
-export async function completeRegistration(user_id: string, data: any) {
+export async function completeRegistration(user_id: string, username: string, email: string, avatar_url: string, data: any) {
   let request: PasskeyCompleteRequest = {
     user_id,
+    username,
+    email,
+    avatar_url,
     data,
   };
 

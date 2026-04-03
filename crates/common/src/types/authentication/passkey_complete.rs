@@ -6,5 +6,8 @@ use serde_json::Value;
 #[ts(export)]
 pub struct PasskeyCompleteRequest {
     pub user_id: String,
+    pub username: String,
+    pub email: String,
+    pub avatar_url: String,
     pub data: Value
 }

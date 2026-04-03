@@ -73,11 +73,11 @@ pub async fn complete(
 
     match User::insert(user::ActiveModel {
         id: Set(payload.user_id.clone()),
-        email: Set("".to_string()),
+        email: Set(payload.email.clone()),
         github_id: Default::default(),
         google_id: Default::default(),
-        username: Set(deserialized.id),
-        avatar_url: Default::default(),
+        username: Set(payload.username.clone()),
+        avatar_url: Set(Some(payload.avatar_url.clone())),
         created_at: Set(DateTimeWithTimeZone::from(Utc::now())),
         updated_at: Default::default(),
     })

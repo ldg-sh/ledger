@@ -4,7 +4,7 @@ import { cn } from "@/lib/util/class";
 
 interface LoginButtonProps {
   authUrl?: string;
-  title: string;
+  title?: string;
   svg: React.ReactNode;
   procedure?: () => void;
   isLoading?: boolean;
@@ -28,7 +28,7 @@ export default function LoginButton({
       className={cn(styles.loginButton, isLoading && styles.loading)}
     >
       {svg}
-      <div>{title}</div>
+      {title ? <div>{title}</div> : null}
     </a>
   );
 }

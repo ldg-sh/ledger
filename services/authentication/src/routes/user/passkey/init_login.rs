@@ -31,7 +31,6 @@ pub async fn auth_init(
     match AuthSession::insert(ActiveModel {
         user_id: Set(ticket.to_string()),
         state_data: Set(serialized),
-        state_type: Set("State".to_string()),
         expires_at: Set(DateTimeWithTimeZone::from(
             chrono::Utc::now() + chrono::Duration::days(1),
         )),

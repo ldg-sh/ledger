@@ -7,11 +7,12 @@
     width: calc(100% - 40px);
     padding: 12px 20px;
     border-radius: 10px;
-    background-color: var(--color-background);
+    background-color: #fff;
     border: var(--border-style);
     color: var(--color-text-primary);
     font-weight: 400;
     text-decoration: none;
+
     transition: background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
 }
 

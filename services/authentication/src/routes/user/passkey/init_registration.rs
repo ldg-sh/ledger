@@ -2,8 +2,8 @@ use actix_web::{post, web, HttpResponse};
 use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
 use common::entities::auth_session::ActiveModel;
-use common::entities::passkey;
-use common::entities::prelude::{AuthSession, Passkey};
+use common::entities::{passkey, user};
+use common::entities::prelude::{AuthSession, Passkey, User};
 use common::types::authentication::passkey_init::{PasskeyInitRequest, PasskeyInitResponse};
 use sea_orm::prelude::DateTimeWithTimeZone;
 use sea_orm::ColumnTrait;
@@ -20,6 +20,16 @@ pub async fn register(
     payload: web::Json<PasskeyInitRequest>,
 ) -> HttpResponse {
     let id = Uuid::new_v4();
+
+    let existing_user = User::find()
+        .filter(user::Column::Email.eq(payload.email.clone()))
+        .all(database.get_ref())
+        .await
+        .unwrap_or(vec![]);
+
+    if !existing_user.is_empty() {
+        return HttpResponse::Conflict().finish()
+    }
 
     let existing_keys = match &payload.existing_id {
         Some(existing_id) => Passkey::find()
@@ -42,7 +52,7 @@ pub async fn register(
 
     let (ccr, state) = match webauth.start_passkey_registration(
         id,
-        &payload.username.clone(),
+        &payload.email.clone(),
         &payload.username.clone(),
         Some(cred_ids),
     ) {
@@ -63,7 +73,6 @@ pub async fn register(
     match AuthSession::insert(ActiveModel {
         user_id: Set(id.to_string()),
         state_data: Set(serialized),
-        state_type: Set("State".to_string()),
         expires_at: Set(DateTimeWithTimeZone::from(
             chrono::Utc::now() + chrono::Duration::days(1),
         )),
