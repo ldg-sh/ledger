@@ -565,6 +565,16 @@ export default function FileList({ parentContainerRef }: FileListProps) {
                   hideMenu();
                 }}
               />
+              {rightClickedFile?.id && selectedFiles.size <= 1 && (
+                <ContextMenuItem
+                  label="Rename"
+                  glyph="pencil-line"
+                  onClick={() => {
+                    setIsRenamePopupOpen(true);
+                    hideMenu();
+                  }}
+                />
+              )}
               {selectedFiles.size === 1 && (
                 <ContextMenuItem
                   label="Copy Link"
@@ -593,16 +603,6 @@ export default function FileList({ parentContainerRef }: FileListProps) {
                 }}
               />
 
-              {rightClickedFile?.id && selectedFiles.size <= 1 && (
-                <ContextMenuItem
-                  label="Rename"
-                  glyph="pencil-line"
-                  onClick={() => {
-                    setIsRenamePopupOpen(true);
-                    hideMenu();
-                  }}
-                />
-              )}
               <ContextMenuItem
                 label="Delete"
                 glyph="trash-2"

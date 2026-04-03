@@ -14,7 +14,7 @@
     width: 450px;
     z-index: 1;
     overflow: hidden;
-    min-height: 78.5px;
+    min-height: 60px;
 
     transition: border-top-left-radius 0.3s ease;
 }
@@ -65,12 +65,12 @@
 }
 
 .header {
-    padding: 15px;
+    padding: 10px 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     position: relative;
-    height: 48.5px;
+    height: 40px;
     outline: var(--border-style);
 }
 
@@ -110,7 +110,7 @@
 }
 
 .title {
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: 700;
     color: var(--color-text-bold);
     margin: 0;
@@ -118,7 +118,7 @@
 }
 
 .subtitle {
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     font-weight: 400;
     color: var(--color-text-secondary);
     margin: 0;
@@ -131,9 +131,9 @@
     align-items: center;
     position: relative;
     justify-content: space-between;
-    padding: 15px;
+    padding: 10px;
     gap: 10px;
-    width: calc(100% - 30px);
+    width: calc(100% - 20px);
     height: 30px;
 
     transition:
@@ -191,7 +191,7 @@
 }
 
 .fileName {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: 500;
     color: var(--color-text-primary);
     overflow: hidden;

@@ -8,6 +8,7 @@ interface LoginButtonProps {
   svg: React.ReactNode;
   procedure?: () => void;
   isLoading?: boolean;
+  bold?: boolean;
 }
 
 export default function LoginButton({
@@ -16,6 +17,7 @@ export default function LoginButton({
   svg,
   procedure,
   isLoading = false,
+  bold = false,
 }: LoginButtonProps) {
   return (
     <a
@@ -25,7 +27,7 @@ export default function LoginButton({
           procedure();
         }
       }}
-      className={cn(styles.loginButton, isLoading && styles.loading)}
+      className={cn(styles.loginButton, isLoading && styles.loading, bold && styles.boldButton)}
     >
       {svg}
       {title ? <div>{title}</div> : null}

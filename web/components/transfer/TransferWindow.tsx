@@ -331,7 +331,7 @@ export default function TransferWindow() {
                 glyph="chevron-up"
                 rotate
                 size={20}
-                fullSize="48.5px"
+                fullSize="40px"
               ></GlyphButton>
             </div>
           </div>

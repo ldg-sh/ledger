@@ -57,7 +57,7 @@ export default function Popup({ children, onClosePopup }: PopupProps) {
               onClosePopup && onClosePopup();
             }}
           >
-            <GlyphButton glyph={"x"} size={16} fullSize={"30px"} />
+            <GlyphButton glyph={"x"} size={20} fullSize={"40px"} />
           </div>
           {children}
         </motion.div>

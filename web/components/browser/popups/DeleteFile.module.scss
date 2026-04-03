@@ -21,31 +21,31 @@
 
 .actionButton {
     border: none;
-    height: 36px;
-    padding: 0 40px;
+    height: 40px;
     border-radius: 8px;
     font-weight: 500;
     cursor: pointer;
     transition: background-color 0.2s ease;
     font-family: var(--font-family);
     font-size: 0.8rem;
+    width: 160px;
 }
 
 .submitButton {
-    background-color: var(--color-text-bold);
+    background-color: var(--color-error-foreground);
     color: var(--color-background);
     opacity: 1;
     transition:
         opacity 0.2s ease,
-        background-color 0.2s ease;
+        filter 0.2s ease;
 }
 
 .submitButton:hover:not(:disabled) {
-    background-color: var(--color-background-bold-hover);
+    filter: brightness(1.1);
 }
 
 .submitButton:active:not(:disabled) {
-    background-color: var(--color-button-background-active);
+    filter: brightness(1);
 }
 
 .submitButton:disabled {
@@ -93,6 +93,8 @@
     .actionButton {
         width: 100%;
         padding: 0 20px;
+        height: 36px;
+        font-size: 0.7rem;
     }
 
     .createFolderContainer {

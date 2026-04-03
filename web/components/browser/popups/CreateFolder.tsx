@@ -44,7 +44,7 @@ export default function CreateFolder({ onClose }: CreateFolderProps) {
           <div className={styles.text}>
             <h1 className={styles.title}>Create New Folder</h1>
             <p className={styles.description}>
-              Enter a name for your new folder.
+              Folders are created relative to the current path.
             </p>
           </div>
           <TextInput
@@ -56,7 +56,6 @@ export default function CreateFolder({ onClose }: CreateFolderProps) {
             select
             hint={
               <>
-                {value ? (
                   <p className={styles.hint}>
                     Your folder will be created {"at "}
                     <strong>
@@ -68,11 +67,6 @@ export default function CreateFolder({ onClose }: CreateFolderProps) {
                         value}
                     </strong>
                   </p>
-                ) : (
-                  <p className={styles.hint}>
-                    Your folder will be created relative to the current path.
-                  </p>
-                )}
               </>
             }
           />
@@ -94,7 +88,7 @@ export default function CreateFolder({ onClose }: CreateFolderProps) {
               disabled={!value}
               onClick={handleSubmit}
             >
-              Submit
+              Create
             </button>
           </div>
         </div>

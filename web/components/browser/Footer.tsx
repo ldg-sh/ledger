@@ -21,7 +21,7 @@ export default function Footer() {
             inputRef.current?.click();
           }}
         >
-          <Upload size={16} strokeWidth={2.5} />
+          <Upload size={14} strokeWidth={2.5} />
           <span>Upload File</span>
         </div>
         <input
@@ -49,7 +49,7 @@ export default function Footer() {
             setIsFolderPopupOpen(true);
           }}
         >
-          <FolderPlus size={16} strokeWidth={2.5} />
+          <FolderPlus size={14} strokeWidth={2.5} />
           <span>Create Folder</span>
         </div>
       </div>

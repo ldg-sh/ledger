@@ -8,6 +8,7 @@ import { beginRegistration, completeRegistration } from "@/lib/api/passkey";
 import { PasskeyInitResponse } from "@/lib/types/generated/PasskeyInitResponse";
 import LoginButton from "@/components/login/LoginButton";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -67,7 +68,13 @@ export default function SignupPage() {
             formType="email"
             onSubmit={() => {}}
             placeholder="sam@example.com"
-            hint={emailError ? (<p className={styles.error}>{emailError}</p>) : "A unique email address to associate with your account."}
+            hint={
+              emailError ? (
+                <p className={styles.error}>{emailError}</p>
+              ) : (
+                "A unique email address to associate with your account."
+              )
+            }
             title="Email"
             disabled={isLoading}
           />
@@ -77,48 +84,34 @@ export default function SignupPage() {
             }}
             onSubmit={() => {}}
             placeholder="Sam Gordon"
-            hint={usernameError ? (<p className={styles.error}>{usernameError}</p>) : "A non-unique username to identify you, between 3 and 16 characters."}
+            hint={
+              usernameError ? (
+                <p className={styles.error}>{usernameError}</p>
+              ) : (
+                "A non-unique username to identify you, between 3 and 16 characters."
+              )
+            }
             title="Username"
             disabled={isLoading}
           />
-           <TextInput
+          <TextInput
             onChange={(avatarUrl) => {
               setAvatarUrl(avatarUrl);
             }}
             onSubmit={() => {}}
             placeholder="https://example.com/avatar.jpg"
-            hint={avatarUrlError ? (<p className={styles.error}>{avatarUrlError}</p>) : "Optional. A URL to your avatar image."}
+            hint={
+              avatarUrlError ? (
+                <p className={styles.error}>{avatarUrlError}</p>
+              ) : (
+                "Optional. A URL to your avatar image."
+              )
+            }
             title="Avatar URL"
             disabled={isLoading}
           />
         </div>
-
         <div className={styles.buttons}>
-          <LoginButton
-            procedure={async () => {
-              setIsLoading(true);
-              router.push("/login");
-            }}
-            isLoading={isLoading}
-            title="Back to Login"
-            svg={
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="var(--color-text-bold)"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={styles.logo}
-              >
-                <path d="m12 19-7-7 7-7"></path>
-                <path d="M19 12H5"></path>
-              </svg>
-            }
-          />
           <LoginButton
             procedure={async () => {
               if (!validateEmail(email)) {
@@ -128,7 +121,9 @@ export default function SignupPage() {
               }
 
               if (!validateUsername(username)) {
-                setUsernameError("Username must be between 3 and 16 characters long.");
+                setUsernameError(
+                  "Username must be between 3 and 16 characters long.",
+                );
               } else {
                 setUsernameError("");
               }
@@ -139,7 +134,11 @@ export default function SignupPage() {
                 setAvatarUrlError("");
               }
 
-              if (!validateEmail(email) || !validateUsername(username) || !validateAvatarUrl(avatarUrl)) {
+              if (
+                !validateEmail(email) ||
+                !validateUsername(username) ||
+                !validateAvatarUrl(avatarUrl)
+              ) {
                 return;
               }
 
@@ -215,7 +214,13 @@ export default function SignupPage() {
                 },
               };
 
-              let finishRes = await completeRegistration(user_id, username, email, avatarUrl, response);
+              let finishRes = await completeRegistration(
+                user_id,
+                username,
+                email,
+                avatarUrl,
+                response,
+              );
               if (finishRes.ok) {
                 document.dispatchEvent(new CustomEvent("reloadUser"));
               } else {
@@ -225,6 +230,7 @@ export default function SignupPage() {
             }}
             title="Sign up with a Passkey"
             isLoading={isLoading}
+            bold
             svg={
               <svg
                 version="1.1"
@@ -242,16 +248,21 @@ export default function SignupPage() {
                   />
                   <path
                     d="M17.6783 15.1277C17.7761 16.537 18.5147 17.7709 19.6582 18.5242L19.6582 21.3169C19.6551 21.3171 19.6518 21.3171 19.6484 21.3171L6.55273 21.3171C5.50781 21.3171 4.88281 20.8289 4.88281 20.0183C4.88281 17.4988 8.03711 14.0222 13.0957 14.0222C14.8809 14.0222 16.4286 14.4535 17.6783 15.1277ZM17.0117 7.95777C17.0117 10.3992 15.1953 12.2742 13.1055 12.2742C11.0059 12.2742 9.19922 10.3992 9.19922 7.9773C9.19922 5.58472 11.0156 3.75855 13.1055 3.75855C15.1953 3.75855 17.0117 5.54566 17.0117 7.95777Z"
-                    fill="var(--color-text-bold)"
+                    fill="var(--color-background)"
                   />
                   <path
                     d="M22.1191 11.698C20.3809 11.698 19.0039 13.0945 19.0039 14.8035C19.0039 16.1316 19.7852 17.2546 20.9863 17.7234L20.9863 22.5574C20.9863 22.6746 21.0449 22.7625 21.123 22.8601L21.9434 23.6804C22.041 23.7781 22.1777 23.7878 22.2852 23.6804L23.8379 22.1375C23.9355 22.03 23.9355 21.8933 23.8379 21.7957L22.8711 20.8289L24.209 19.5203C24.3066 19.4324 24.3066 19.2859 24.1895 19.1687L22.8809 17.8699C24.3848 17.2546 25.2246 16.1609 25.2246 14.8035C25.2246 13.0945 23.8379 11.698 22.1191 11.698ZM22.1094 12.9675C22.6367 12.9675 23.0566 13.3972 23.0566 13.9148C23.0566 14.4519 22.6367 14.8816 22.1094 14.8816C21.5918 14.8816 21.1523 14.4519 21.1523 13.9148C21.1523 13.3972 21.5723 12.9675 22.1094 12.9675Z"
-                    fill="var(--color-text-bold)"
+                    fill="var(--color-background)"
                   />
                 </g>
               </svg>
             }
           />
+          <div className={styles.backText}>
+            <Link href="/login" className={styles.backLink}>
+              Already have an account? Log in.
+            </Link>
+          </div>
         </div>
       </div>
     </div>

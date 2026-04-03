@@ -31,7 +31,7 @@
     flex-direction: column;
     align-items: center;
     gap: 2rem;
-    width: 600px;
+    width: 500px;
 }
 
 .signupForm {
@@ -43,12 +43,14 @@
 
 .buttons {
     display: flex;
+    flex-direction: column;
+    align-items: center;
     gap: 0.5rem;
     width: 100%;
 }
 
 .error {
-    font-size: 0.6rem;
+    font-size: 0.7rem;
     color: var(--color-error-foreground);
     margin-top: 4px;
     font-weight: 500;
@@ -70,4 +72,21 @@
 
 .top {
     width: 100%;
+}
+
+.backText {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.backLink {
+    color: var(--color-text-secondary);
+    text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+    .backText {
+        font-size: 0.7rem;
+    }
 }

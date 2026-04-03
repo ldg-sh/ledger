@@ -21,14 +21,14 @@
 
 .actionButton {
     border: none;
-    height: 36px;
-    padding: 0 40px;
+    height: 40px;
     border-radius: 8px;
     font-weight: 500;
     cursor: pointer;
     transition: background-color 0.2s ease;
     font-family: var(--font-family);
     font-size: 0.8rem;
+    width: 160px;
 }
 
 .submitButton {
@@ -88,6 +88,7 @@
     .actionButton {
         width: 100%;
         padding: 0 20px;
+        font-size: 0.7rem;
     }
 
     .createFolderContainer {

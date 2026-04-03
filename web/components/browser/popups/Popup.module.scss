@@ -4,16 +4,16 @@
     left: 50%;
     transform: translate(-50%, -50%);
     justify-content: center;
-    z-index: 5;
+    z-index: 6;
 }
 
 .popupChildren {
     background-color: var(--color-background);
     border: var(--border-style);
     border-radius: 12px;
-    padding: 25px;
+    padding: 20px;
     box-shadow: var(--box-shadow-standard);
-    min-width: 500px;
+    min-width: 550px;
     max-width: 90%;
     position: relative;
     z-index: 4;
@@ -22,8 +22,8 @@
 .close {
     cursor: pointer;
     position: absolute;
-    top: 25px;
-    right: 25px;
+    top: 20px;
+    right: 20px;
     z-index: 4;
 }
 
@@ -41,7 +41,7 @@
 @media (max-width: 600px) {
     .popupChildren {
         padding: 20px;
-        min-width: 300px;
+        min-width: calc(100vw - 80px);
         border-radius: 18px;
     }
 
