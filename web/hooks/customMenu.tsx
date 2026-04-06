@@ -15,22 +15,39 @@ export const useCustomMenu = (menuId: string) => {
 
   const isVisible = activeMenuId === menuId;
 
-  const showMenu = useCallback((event: React.MouseEvent) => {
-    let width = MENU_WIDTH;
-    if (window.innerWidth < 600) {
-      width = 120;
-    }
-    
-    event.preventDefault();
+  const showMenu = useCallback(
+    (event?: React.MouseEvent, element?: HTMLElement) => {
+      let width = MENU_WIDTH;
+      if (window.innerWidth < 600) {
+        width = 120;
+      }
 
-    if (event.pageX + width + 100 > window.innerWidth) {
-      setPosition({ x: event.pageX - width, y: event.pageY });
-    } else {
-      setPosition({ x: event.pageX, y: event.pageY });
-    }
-    
-    openMenu(menuId);
-  }, [menuId, openMenu]);
+      if (event) {
+        event.preventDefault();
+
+        if (event.pageX + width + 100 > window.innerWidth) {
+          setPosition({ x: event.pageX - width, y: event.pageY });
+        } else {
+          setPosition({ x: event.pageX, y: event.pageY });
+        }
+
+        openMenu(menuId);
+      } else if (element) {
+        const rect = element.getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height;
+
+        if (x + width + 100 > window.innerWidth) {
+          setPosition({ x: x - width, y });
+        } else {
+          setPosition({ x, y });
+        }
+        
+        openMenu(menuId);
+      }
+    },
+    [menuId, openMenu],
+  );
 
   useEffect(() => {
     if (!isVisible) return;
@@ -54,10 +71,10 @@ export const useCustomMenu = (menuId: string) => {
     };
   }, [isVisible, closeMenu]);
 
-  return { 
-    visible: isVisible, 
-    position, 
-    showMenu, 
-    hideMenu: closeMenu 
+  return {
+    visible: isVisible,
+    position,
+    showMenu,
+    hideMenu: closeMenu,
   };
 };

@@ -8,7 +8,7 @@ import { ContextMenu } from "../general/menu/ContextMenu";
 import { useCustomMenu } from "@/hooks/customMenu";
 import ContextMenuItem from "../general/menu/ContextMenuItem";
 import { AnimatePresence } from "motion/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import RenameFile from "./popups/RenameFile";
 import DeleteFile from "./popups/DeleteFile";
 import GlyphButton from "../general/GlyphButton";
@@ -51,6 +51,8 @@ export default function Row({
   const searchParams = useSearchParams();
   const loadingContext = useLoading();
 
+  const moreOptionsRef = useRef<HTMLDivElement>(null);
+
   const { visible, position, showMenu, hideMenu } = useCustomMenu(fileId);
 
   const [isRenamePopupOpen, setIsRenamePopupOpen] = useState(false);
@@ -86,7 +88,15 @@ export default function Row({
 
   return (
     <div className={styles.rowContainer}>
-      <div className={styles.moreOptions} onClick={showMenu}>
+      <div
+        className={styles.moreOptions}
+        ref={moreOptionsRef}
+        onClick={() => {
+          const element = moreOptionsRef.current;
+
+          showMenu(undefined, element || undefined);
+        }}
+      >
         <GlyphButton
           glyph="ellipsis-vertical"
           size={16}
