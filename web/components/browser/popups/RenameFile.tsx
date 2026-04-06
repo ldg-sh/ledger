@@ -13,7 +13,11 @@ interface RenameFileProps {
   fileId: string;
 }
 
-export default function RenameFile({ onClose, placeholder, fileId }: RenameFileProps) {
+export default function RenameFile({
+  onClose,
+  placeholder,
+  fileId,
+}: RenameFileProps) {
   const [value, setValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -25,9 +29,9 @@ export default function RenameFile({ onClose, placeholder, fileId }: RenameFileP
         detail: () => {
           setIsLoading(false);
           onClose();
-        }
+        },
       });
-      
+
       window.dispatchEvent(event);
     });
   }
@@ -68,7 +72,7 @@ export default function RenameFile({ onClose, placeholder, fileId }: RenameFileP
               className={cn(
                 styles.submitButton,
                 styles.actionButton,
-                isLoading && styles.loading
+                isLoading && styles.loading,
               )}
               disabled={!value}
               onClick={handleSubmit}

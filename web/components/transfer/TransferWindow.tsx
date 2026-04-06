@@ -109,6 +109,7 @@ export default function TransferWindow() {
       MAX_CONCURRENT_UPLOADS,
       taskQueue.current.length,
     );
+
     await Promise.all(Array.from({ length: workerCount }, runWorker));
   };
 
@@ -117,7 +118,7 @@ export default function TransferWindow() {
       const task = taskQueue.current.shift();
       if (!task) break;
 
-      upload(task)
+      await upload(task)
         .then((etag) => {
           setFileUploads((prev) => {
             const fileUpload = prev.find(

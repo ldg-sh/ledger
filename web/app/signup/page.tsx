@@ -227,7 +227,7 @@ export default function SignupPage() {
                 response,
               );
               if (finishRes.ok) {
-                document.dispatchEvent(new CustomEvent("reloadUser"));
+                document.dispatchEvent(new CustomEvent("reload-user"));
               } else {
                 alert("Passkey registration failed");
                 setIsLoading(false);

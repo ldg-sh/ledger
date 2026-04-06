@@ -198,7 +198,7 @@ export default function LoginPage() {
                 let result = await completeAuthentication(ticket, response);
 
                 if (result.ok) {
-                  document.dispatchEvent(new CustomEvent("reloadUser"));
+                  document.dispatchEvent(new CustomEvent("reload-user"));
                 } else {
                   alert("Passkey authentication failed");
                 }

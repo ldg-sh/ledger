@@ -66,10 +66,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     initAuth();
 
-    document.addEventListener("reloadUser", initAuth);
+    document.addEventListener("reload-user", initAuth);
 
     return () => {
-      document.removeEventListener("reloadUser", initAuth);
+      document.removeEventListener("reload-user", initAuth);
     };
   }, []);
 
@@ -107,5 +107,5 @@ export const logout = async () => {
     credentials: "include",
   });
 
-  document.dispatchEvent(new CustomEvent("reloadUser"));
+  document.dispatchEvent(new CustomEvent("reload-user"));
 };

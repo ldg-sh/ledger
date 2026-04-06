@@ -36,7 +36,7 @@ export default function CallbackPage() {
           throw new Error(errorText || "Failed to authenticate");
         }
 
-        document.dispatchEvent(new CustomEvent("reloadUser"));
+        document.dispatchEvent(new CustomEvent("reload-user"));
         router.push("/");
       } catch (err: any) {
         console.error("Authentication error:", err);
