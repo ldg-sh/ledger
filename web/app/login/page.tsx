@@ -171,8 +171,6 @@ export default function LoginPage() {
                 const authResponse =
                   assertion.response as AuthenticatorAssertionResponse;
 
-                console.log("Assertion obtained:", assertion);
-
                 const userHandleBase64 = authResponse.userHandle
                   ? Buffer.from(authResponse.userHandle).toString("base64")
                   : null;

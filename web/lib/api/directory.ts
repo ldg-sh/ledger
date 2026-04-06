@@ -4,7 +4,6 @@ import { DirectoryRequest } from "../types/generated/DirectoryRequest";
 import { authenticatedFetch } from "./apiClient";
 
 export async function createDirectory(path: string, folderName: string) {
-  console.log("Creating directory with path:", path, "and folderName:", folderName);
   const directoryRequest: DirectoryRequest = {
     path: path,
     name: folderName,

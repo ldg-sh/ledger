@@ -10,7 +10,12 @@ interface FileContextType {
   getPathFromUrl: () => string;
 }
 
-const FileContext = createContext<FileContextType | undefined>(undefined);
+const FileContext = createContext<FileContextType>({
+  currentPath: "",
+  breadcrumbs: [],
+  setBreadcrumbs: () => {},
+  getPathFromUrl: () => "",
+});
 
 export function FileProvider({
   children,
@@ -38,7 +43,7 @@ export function FileProvider({
 export const useFile = () => {
   const context = useContext(FileContext);
   if (!context) {
-    throw new Error("useFile must be used within a FileProvider");
+    console.error("useFile was used outside of FileProvider");
   }
   return context;
 };

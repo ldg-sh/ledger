@@ -256,9 +256,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
         setHasMore(true);
       }
 
-      console.log("Data loaded: ", res);
       setData(res);
-      console.log("Setting data: ", res);
 
       fileContext.setBreadcrumbs(res.breadcrumbs);
     } finally {
@@ -315,12 +313,9 @@ export default function FileList({ parentContainerRef }: FileListProps) {
   }, [fileContext, sort, currentOffset, authLoading, hasMore, isLoading]);
 
   useEffect(() => {
-    console.log("Folder ID changed, loading data...");
     setCurrentOffset(0);
-    console.log("User: ", user, "Auth Loading: ", authLoading);
 
     if (!authLoading && user) {
-      console.log("Loading data for folder: ", currentFolderId);
       loadData();
     }
   }, [loadData, authLoading]);
@@ -330,7 +325,6 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       const now = Date.now();
 
       if (isRefreshing || now - lastRefreshTime.current < THROTTLE_MS) {
-        console.log("Refresh throttled");
         return;
       }
 
