@@ -17,7 +17,7 @@ export default function MainPage({
   const resolvedParams = use(searchParams);
   const folder = resolvedParams.folder || "";
 
-  const parentContainerRef = useRef<HTMLDivElement>(null);
+  const parentContainerRef = useRef<HTMLDivElement>(null!);
 
   return (
     <FileProvider initialPath={folder}>
