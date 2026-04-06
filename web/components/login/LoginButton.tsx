@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import styles from "./LoginButton.module.scss";
 import { cn } from "@/lib/util/class";
 

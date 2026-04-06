@@ -3,8 +3,7 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import styles from "./Location.module.scss";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
-import Image from "next/image";
+import { useRef } from "react";
 import Spinner from "../svg/Spinner";
 import { useLoading } from "@/context/LoadingContext";
 import { useFile } from "@/context/FileExplorerContext";
@@ -24,7 +23,7 @@ export default function Location() {
       <div className={styles.left}>
         <span
           className={styles.pathSegment}
-          onClick={(_) => {
+          onClick={() => {
             const params = new URLSearchParams(searchParams.toString());
             params.set("folder", "");
 
@@ -39,7 +38,7 @@ export default function Location() {
             <span
               key={index}
               className={styles.pathSegment}
-              onClick={(_) => {
+              onClick={() => {
                 const params = new URLSearchParams(searchParams.toString());
                 params.set("folder", fileContext.breadcrumbs[index].id);
 
@@ -53,7 +52,7 @@ export default function Location() {
             <span
               key={index + "-sep"}
               className={styles.seperator}
-              onClick={(_) => {
+              onClick={() => {
                 const params = new URLSearchParams(searchParams.toString());
                 params.set("folder", fileContext.breadcrumbs[index].id);
                 router.push(`${pathname}?${params.toString()}`, {

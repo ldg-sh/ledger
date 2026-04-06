@@ -3,10 +3,12 @@
 import { useRouter } from "next/navigation";
 import {
   createContext,
-  useContext,
   useEffect,
   useState,
   ReactNode,
+  useCallback,
+  useMemo,
+  useContext,
 } from "react";
 
 interface User {
@@ -28,21 +30,24 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-
   const router = useRouter();
 
-  const initAuth = async () => {
+  const initAuth = useCallback(async () => {
     try {
-      let res = await fetch(`${EDGE_URL}/user/info`, { credentials: "include" });
+      setLoading(true);
+      let res = await fetch(`${EDGE_URL}/user/info`, {
+        credentials: "include",
+      });
 
       if (res.status === 401) {
         const refreshRes = await fetch(`/auth/refresh`, {
-          credentials: "include",
           method: "POST",
+          credentials: "include",
         });
-
         if (refreshRes.ok) {
-          res = await fetch(`${EDGE_URL}/user/info`, { credentials: "include" });
+          res = await fetch(`${EDGE_URL}/user/info`, {
+            credentials: "include",
+          });
         }
       }
 
@@ -50,35 +55,37 @@ export function UserProvider({ children }: { children: ReactNode }) {
         const data = await res.json();
         setUser(data);
       } else {
-        attemptRedirect();
-
         setUser(null);
+        attemptRedirect();
       }
-    } catch (err) {
+    } catch (error) {
       setUser(null);
-
       attemptRedirect();
+
+      console.error("Error fetching user info:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     initAuth();
 
-    document.addEventListener("reload-user", initAuth);
+    const handleReload = () => initAuth();
+    document.addEventListener("reload-user", handleReload);
 
     return () => {
-      document.removeEventListener("reload-user", initAuth);
+      document.removeEventListener("reload-user", handleReload);
     };
-  }, []);
+  }, [initAuth]);
+
+  const value = useMemo(() => ({ user, loading }), [user, loading]);
 
   function attemptRedirect() {
     const isBlacklisted = REDIRECT_BLACKLIST.some((pattern) => {
-      const regexPattern = pattern
-        .replace(/\*\*/g, ".*")
-        .replace(/\*/g, "[^/]*");
-      const regex = new RegExp(`^${regexPattern}$`);
+      const regex = new RegExp(
+        `^${pattern.replace(/\*\*/g, ".*").replace(/\*/g, "[^/]*")}$`,
+      );
       return regex.test(window.location.pathname);
     });
 
@@ -87,23 +94,21 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  return (
-    <UserContext.Provider value={{ user, loading }}>
-      {children}
-    </UserContext.Provider>
-  );
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }
 
 export const useUser = () => {
   const context = useContext(UserContext);
 
   if (!context) throw new Error("useUser must be used within a UserProvider");
+
   return context;
 };
 
 export const logout = async () => {
   await fetch(`/auth/logout`, {
     method: "POST",
+
     credentials: "include",
   });
 

@@ -6,7 +6,6 @@ import { cn } from "@/lib/util/class";
 import { useState } from "react";
 import { deleteFiles } from "@/lib/api/file";
 import { deleteDirectory } from "@/lib/api/directory";
-import { File } from "@/lib/types/generated/File";
 import { ListFileElement } from "@/lib/types/generated/ListFileElement";
 
 interface DeleteFileProps {

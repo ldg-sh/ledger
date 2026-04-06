@@ -8,7 +8,7 @@ import { ContextMenu } from "../general/menu/ContextMenu";
 import { useCustomMenu } from "@/hooks/customMenu";
 import ContextMenuItem from "../general/menu/ContextMenuItem";
 import { AnimatePresence } from "motion/react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import RenameFile from "./popups/RenameFile";
 import DeleteFile from "./popups/DeleteFile";
 import GlyphButton from "../general/GlyphButton";

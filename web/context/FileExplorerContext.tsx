@@ -1,7 +1,6 @@
 "use client";
 
 import { Breadcrumb } from "@/lib/types/generated/Breadcrumb";
-import { useSearchParams } from "next/navigation";
 import { createContext, ReactNode, useContext, useState, useMemo } from "react";
 
 interface FileContextType {
@@ -13,25 +12,24 @@ interface FileContextType {
 
 const FileContext = createContext<FileContextType | undefined>(undefined);
 
-export function FileProvider({ children }: { children: ReactNode }) {
+export function FileProvider({
+  children,
+  initialPath,
+}: {
+  children: ReactNode;
+  initialPath: string;
+}) {
   const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([]);
-  const searchParams = useSearchParams();
 
-  const currentPath = useMemo(() => {
-    return searchParams.get("folder") || "";
-  }, [searchParams]);
-
-  const getPathFromUrl = () => currentPath;
+  const value = useMemo(() => ({
+    currentPath: initialPath,
+    breadcrumbs,
+    setBreadcrumbs,
+    getPathFromUrl: () => initialPath,
+  }), [initialPath, breadcrumbs]); 
 
   return (
-    <FileContext.Provider
-      value={{
-        currentPath,
-        breadcrumbs,
-        setBreadcrumbs,
-        getPathFromUrl,
-      }}
-    >
+    <FileContext.Provider value={value}>
       {children}
     </FileContext.Provider>
   );

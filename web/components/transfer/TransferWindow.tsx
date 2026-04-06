@@ -184,7 +184,6 @@ export default function TransferWindow() {
 
     return uploadPart(
       task.uploadUrl,
-      task.chunkIndex,
       uint8Array,
       (bytesSent) => {
         const newAmount = bytesSent - uploadedBytes;
@@ -268,7 +267,7 @@ export default function TransferWindow() {
       });
       document.removeEventListener("drop", onDropHandler);
     };
-  }, []);
+  });
 
   return (
     <>

@@ -102,7 +102,6 @@ export async function createUpload(
 
 export function uploadPart(
   signedUrl: string,
-  partNumber: number,
   body: Uint8Array,
   onProgress?: (bytesSent: number) => void,
 ): Promise<string> {

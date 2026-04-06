@@ -2,7 +2,7 @@
 
 import { copyFiles, listFiles } from "@/lib/api/file";
 import Row from "./Row";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useUser } from "@/context/UserContext";
 import { useCustomMenu } from "@/hooks/customMenu";
@@ -29,7 +29,6 @@ const CHUNK_SIZE = 75;
 
 export default function FileList({ parentContainerRef }: FileListProps) {
   const { sort } = useSort();
-  const pathname = usePathname();
   const fileContext = useFile();
   const searchParams = useSearchParams();
   const currentFolderId = searchParams.get("folder") || "";
@@ -257,15 +256,16 @@ export default function FileList({ parentContainerRef }: FileListProps) {
         setHasMore(true);
       }
 
+      console.log("Data loaded: ", res);
       setData(res);
+      console.log("Setting data: ", res);
 
       fileContext.setBreadcrumbs(res.breadcrumbs);
     } finally {
       setIsLoading(false);
-      console.log("File list loaded");
       setGlobalLoading(false);
     } 
-  }, [authLoading, sort, currentFolderId]);
+  }, [authLoading, user, sort, fileContext.setBreadcrumbs, currentFolderId]);
 
   const loadMoreData = useCallback(async () => {
     if (authLoading || !hasMore || isLoading) return;
@@ -315,12 +315,15 @@ export default function FileList({ parentContainerRef }: FileListProps) {
   }, [fileContext, sort, currentOffset, authLoading, hasMore, isLoading]);
 
   useEffect(() => {
+    console.log("Folder ID changed, loading data...");
     setCurrentOffset(0);
+    console.log("User: ", user, "Auth Loading: ", authLoading);
 
     if (!authLoading && user) {
+      console.log("Loading data for folder: ", currentFolderId);
       loadData();
     }
-  }, [loadData, authLoading, user]);
+  }, [loadData, authLoading]);
 
   const refreshFileList = useCallback(
     async (event: Event) => {
