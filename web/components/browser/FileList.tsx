@@ -2,9 +2,8 @@
 
 import { copyFiles, listFiles } from "@/lib/api/file";
 import Row from "./Row";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState, useCallback, useRef } from "react";
-import { extractPathFromUrl } from "@/lib/util/url";
 import { useUser } from "@/context/UserContext";
 import { useCustomMenu } from "@/hooks/customMenu";
 import { AnimatePresence } from "motion/react";
@@ -14,7 +13,8 @@ import RenameFile from "./popups/RenameFile";
 import DeleteFile from "./popups/DeleteFile";
 import { ListFileElement } from "@/lib/types/generated/ListFileElement";
 import { useSort } from "@/context/SortContext";
-import { setGlobalLoading, useLoading } from "@/context/LoadingContext";
+import { setGlobalLoading } from "@/context/LoadingContext";
+import { useFile } from "@/context/FileExplorerContext";
 
 interface FileListData {
   folders: ListFileElement[];
@@ -30,6 +30,9 @@ const CHUNK_SIZE = 75;
 export default function FileList({ parentContainerRef }: FileListProps) {
   const { sort } = useSort();
   const pathname = usePathname();
+  const fileContext = useFile();
+  const searchParams = useSearchParams();
+  const currentFolderId = searchParams.get("folder") || "";
 
   const lastRefreshTime = useRef<number>(0);
   const THROTTLE_MS = 500;
@@ -95,15 +98,15 @@ export default function FileList({ parentContainerRef }: FileListProps) {
     async (fileId: string) => {
       await writeToClipboard(fileId);
     },
-    [selectedFiles],
+    [],
   );
 
   const pasteFileIdsFromClipboard = useCallback(
     async (ids: string[]) => {
-      let fileIdsToCopy: string[] = [];
+      const fileIdsToCopy: string[] = [];
 
       ids.forEach((id) => {
-        let file = data?.files.find((file) => file.id === id);
+        const file = data?.files.find((file) => file.id === id);
         if (file) {
           fileIdsToCopy.push(id);
         }
@@ -111,7 +114,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
 
       const fileIds = await copyFiles(
         fileIdsToCopy,
-        extractPathFromUrl(pathname),
+        fileContext.getPathFromUrl(),
       );
 
       const event = new CustomEvent("refresh-file-list", {
@@ -125,17 +128,17 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       });
       window.dispatchEvent(event);
     },
-    [pathname, data],
+    [data, fileContext],
   );
 
   const pasteFileIdFromClipboard = useCallback(
     async (id: string) => {
-      let file = data?.files.find((file) => file.id === id);
+      const file = data?.files.find((file) => file.id === id);
 
       let newId = "";
 
       if (file) {
-        newId = (await copyFiles([id.trim()], extractPathFromUrl(pathname)))[0];
+        newId = (await copyFiles([id.trim()], fileContext.getPathFromUrl()))[0];
       }
 
       const event = new CustomEvent("refresh-file-list", {
@@ -151,7 +154,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       });
       window.dispatchEvent(event);
     },
-    [data, pathname],
+    [data, fileContext],
   );
 
   const handleSelectAll = useCallback(() => {
@@ -202,7 +205,11 @@ export default function FileList({ parentContainerRef }: FileListProps) {
         const newSelected = new Set(prevSelected);
 
         if (isCommandKey) {
-          selected ? newSelected.delete(file) : newSelected.add(file);
+          if (selected) {
+            newSelected.delete(file);
+          } else {
+            newSelected.add(file);
+          }
         } else if (isShiftKey && lastDeliberateClick) {
           newSelected.clear();
           const allFiles = getAllFiles();
@@ -238,7 +245,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
     setGlobalLoading(true);
     try {
       const res = await listFiles(
-        extractPathFromUrl(pathname),
+        currentFolderId,
         sort,
         0,
         CHUNK_SIZE,
@@ -251,11 +258,14 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       }
 
       setData(res);
+
+      fileContext.setBreadcrumbs(res.breadcrumbs);
     } finally {
       setIsLoading(false);
+      console.log("File list loaded");
       setGlobalLoading(false);
-    }
-  }, [pathname, authLoading, sort]);
+    } 
+  }, [authLoading, sort, currentFolderId]);
 
   const loadMoreData = useCallback(async () => {
     if (authLoading || !hasMore || isLoading) return;
@@ -264,7 +274,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
     setGlobalLoading(true);
 
     const res = await listFiles(
-      extractPathFromUrl(pathname),
+      fileContext.getPathFromUrl(),
       sort,
       currentOffset,
       CHUNK_SIZE,
@@ -297,11 +307,12 @@ export default function FileList({ parentContainerRef }: FileListProps) {
         folders: [...prevData.folders, ...res.folders],
         files: [...prevData.files, ...res.files],
         hasMore: res.hasMore,
+        breadcrumbs: res.breadcrumbs,
       };
     });
     setIsLoading(false);
     setGlobalLoading(false);
-  }, [pathname, authLoading, sort, currentOffset]);
+  }, [fileContext, sort, currentOffset, authLoading, hasMore, isLoading]);
 
   useEffect(() => {
     setCurrentOffset(0);
@@ -477,7 +488,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
           const fileId = rowElement?.getAttribute("data-file-id");
           const fileName = rowElement?.getAttribute("data-file-name");
 
-          let file =
+          const file =
             data?.files.find((f) => f.id === fileId) ||
             data?.folders.find((f) => f.id === fileId);
 

@@ -8,7 +8,7 @@ import CreateFolder from "./popups/CreateFolder";
 import { AnimatePresence } from "motion/react";
 
 export default function Footer() {
-  let inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const [isFolderPopupOpen, setIsFolderPopupOpen] = useState(false);
 

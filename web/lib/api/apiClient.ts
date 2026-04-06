@@ -2,7 +2,7 @@
 
 import { handleRefresh } from "./refresh";
 
-let EDGE_URL = process.env.NEXT_PUBLIC_EDGE_URL || "http://localhost:8787";
+const EDGE_URL = process.env.NEXT_PUBLIC_EDGE_URL || "http://localhost:8787";
 
 export async function authenticatedFetch(
   endpoint: string,

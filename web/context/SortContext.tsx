@@ -1,5 +1,12 @@
 "use client";
-import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
 
 export type SortOption =
   | "name_desc"
@@ -21,30 +28,42 @@ const SortContext = createContext<SortContextType | undefined>(undefined);
 
 export function SortProvider({ children }: { children: ReactNode }) {
   const [sort, setSort] = useState<SortOption>("name_asc");
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    const savedSort = window.localStorage.getItem("sortPreference") as SortOption;
-    if (savedSort) {
-      setSort(savedSort);
+    const savedSort = window.localStorage.getItem(
+      "sortPreference",
+    ) as SortOption;
+    
+    if (savedSort && savedSort !== "name_asc") {
+      queueMicrotask(() => {
+        setSort(savedSort);
+      });
     }
+
+    queueMicrotask(() => {
+      setIsMounted(true);
+    });
   }, []);
 
   const toggleSort = (category: string) => {
     setSort((prev) => {
       const isCurrent = prev.startsWith(category);
       const isAsc = prev.endsWith("_asc");
-
-      window.localStorage.setItem("sortPreference", isCurrent && isAsc ? `${category}_desc` : `${category}_asc`);
-
-      return (
+      const nextSort = (
         isCurrent && isAsc ? `${category}_desc` : `${category}_asc`
       ) as SortOption;
+
+      window.localStorage.setItem("sortPreference", nextSort);
+      return nextSort;
     });
   };
 
   return (
     <SortContext.Provider value={{ sort, setSort, toggleSort }}>
-      {children}
+      <div style={{ visibility: isMounted ? "visible" : "hidden" }}>
+        {children}
+      </div>
     </SortContext.Provider>
   );
 }

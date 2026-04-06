@@ -1,26 +1,26 @@
 "use client";
-import { useSort, SortOption } from "@/context/SortContext";
+import { useSort } from "@/context/SortContext";
 import { cn } from "@/lib/util/class";
 import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import styles from "./TableHeader.module.scss";
 
+const SortIcon = ({ category, sort }: { category: string; sort: string }) => {
+  const isActive = sort.startsWith(category);
+  const isAsc = sort.endsWith("_asc");
+
+  if (!isActive) {
+    return <ChevronsUpDown className={styles.sortIcon} size={14} />;
+  }
+
+  return isAsc ? (
+    <ChevronUp className={styles.sortIconActive} size={14} />
+  ) : (
+    <ChevronDown className={styles.sortIconActive} size={14} />
+  );
+};
+
 export default function TableHeader() {
   const { sort, toggleSort } = useSort();
-
-  const SortIcon = ({ category }: { category: string }) => {
-    const isActive = sort.startsWith(category);
-    const isAsc = sort.endsWith("_asc");
-
-    if (!isActive) {
-      return <ChevronsUpDown className={styles.sortIcon} size={14} />;
-    }
-
-    return isAsc ? (
-      <ChevronUp className={styles.sortIconActive} size={14} />
-    ) : (
-      <ChevronDown className={styles.sortIconActive} size={14} />
-    );
-  };
 
   return (
     <header className={styles.tableHeader}>
@@ -31,7 +31,7 @@ export default function TableHeader() {
         onClick={() => toggleSort("name")}
       >
         <span>Name</span>
-        <SortIcon category="name" />
+        <SortIcon category="name" sort={sort} />
       </button>
 
       <button
@@ -39,7 +39,7 @@ export default function TableHeader() {
         onClick={() => toggleSort("size")}
       >
         <span>Size</span>
-        <SortIcon category="size" />
+        <SortIcon category="size" sort={sort} />
       </button>
 
       <button
@@ -47,7 +47,7 @@ export default function TableHeader() {
         onClick={() => toggleSort("type")}
       >
         <span>Type</span>
-        <SortIcon category="type" />
+        <SortIcon category="type" sort={sort} />
       </button>
 
       <button
@@ -55,7 +55,7 @@ export default function TableHeader() {
         onClick={() => toggleSort("date")}
       >
         <span>Date Created</span>
-        <SortIcon category="date" />
+        <SortIcon category="date" sort={sort} />
       </button>
     </header>
   );

@@ -1,20 +1,21 @@
 "use client";
 
 import styles from "./Row.module.scss";
-import { getFileIcon } from "@/lib/util/icon";
-import { usePathname, useRouter } from "next/navigation";
-import { extractPathFromUrl } from "@/lib/util/url";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { pretifyFileSize } from "@/lib/util/file";
 import { cn } from "@/lib/util/class";
 import { ContextMenu } from "../general/menu/ContextMenu";
 import { useCustomMenu } from "@/hooks/customMenu";
 import ContextMenuItem from "../general/menu/ContextMenuItem";
 import { AnimatePresence } from "motion/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import RenameFile from "./popups/RenameFile";
 import DeleteFile from "./popups/DeleteFile";
 import GlyphButton from "../general/GlyphButton";
 import { ListFileElement } from "@/lib/types/generated/ListFileElement";
+import { useFile } from "@/context/FileExplorerContext";
+import * as Icons from "lucide-react";
+import { useLoading } from "@/context/LoadingContext";
 
 interface RowProps {
   fileName: string;
@@ -44,16 +45,20 @@ export default function Row({
   clickCallback,
   file,
 }: RowProps) {
-  let router = useRouter();
-  let pathname = usePathname();
+  const router = useRouter();
+  const pathname = usePathname();
+  const fileContext = useFile();
+  const searchParams = useSearchParams();
+  const loadingContext = useLoading();
+
   const { visible, position, showMenu, hideMenu } = useCustomMenu(fileId);
 
   const [isRenamePopupOpen, setIsRenamePopupOpen] = useState(false);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
 
-  let date = new Date(createdAt);
+  const date = new Date(createdAt);
 
-  let formattedDate = createdAt
+  const formattedDate = createdAt
     ? date.toLocaleString(undefined, {
         year: "numeric",
         month: "long",
@@ -63,11 +68,21 @@ export default function Row({
       })
     : "";
 
+  const ICON_MAP: Record<string, Icons.LucideIcon> = {
+    folder: Icons.Folder,
+    zip: Icons.FileArchive,
+    image: Icons.Image,
+    video: Icons.FileVideo,
+    pdf: Icons.FileText,
+    default: Icons.File,
+  };
+
+  const iconKey = folder ? "folder" : fileType.split("/")[0] || "default";
+  const IconComponent = ICON_MAP[iconKey] || ICON_MAP.default;
+
   function handleDownload() {
     window.location.assign(`/api/download/${fileId}`);
   }
-
-  const Icon = getFileIcon(folder ? "folder" : fileType);
 
   return (
     <div className={styles.rowContainer}>
@@ -86,37 +101,41 @@ export default function Row({
         data-context-boundary="true"
         onClick={(event) => {
           if (clickCallback) {
-            let isShiftKey = event.shiftKey;
-            let isCommandKey = event.metaKey || event.ctrlKey;
+            const isShiftKey = event.shiftKey;
+            const isCommandKey = event.metaKey || event.ctrlKey;
 
             clickCallback(file, selected, isShiftKey, isCommandKey);
           }
         }}
         onDoubleClick={() => {
-          let currentPath = extractPathFromUrl(pathname);
+          loadingContext.setLoading(true);
+          const currentPath = fileContext.getPathFromUrl();
 
           if (folder) {
-            router.push(`/${currentPath}/${fileName}`.replace(/\/+/g, "/"));
+            fileContext.setBreadcrumbs([
+              ...fileContext.breadcrumbs,
+              {
+                id: fileId,
+                name: fileName,
+              },
+            ]);
+
+            const params = new URLSearchParams(searchParams.toString());
+            params.set("folder", fileId);
+
+            router.push(`${pathname}?${params.toString()}`, { scroll: false });
           } else {
             window.open(`/preview/${currentPath}/${fileId}`, "_blank");
           }
         }}
       >
-        {folder ? (
-          <Icon
-            size={16}
-            strokeWidth={1.6}
-            color={"var(--color-text-secondary)"}
-            className={styles.rowElement}
-          />
-        ) : (
-          <Icon
-            size={16}
-            strokeWidth={1.6}
-            color={"var(--color-text-secondary)"}
-            className={styles.rowElement}
-          />
-        )}
+        <IconComponent
+          size={16}
+          strokeWidth={1.6}
+          color={"var(--color-text-secondary)"}
+          className={styles.rowElement}
+        />
+
         <span
           className={cn(
             styles.fileName,

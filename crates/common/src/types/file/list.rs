@@ -1,7 +1,7 @@
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 #[derive(ts_rs::TS)]
 #[ts(export)]
 pub struct ListFilesRequest {
@@ -28,7 +28,16 @@ pub struct ListFileElement {
 #[derive(Serialize, Deserialize)]
 #[derive(ts_rs::TS)]
 #[ts(export)]
+pub struct Breadcrumb {
+    pub id: String,
+    pub name: String,
+}
+
+#[derive(Serialize, Deserialize)]
+#[derive(ts_rs::TS)]
+#[ts(export)]
 pub struct ListFilesResponse {
+    pub breadcrumbs: Vec<Breadcrumb>,
     pub files: Vec<ListFileElement>,
     pub has_more: bool
 }

@@ -5,25 +5,32 @@ import styles from "./CreateFolder.module.scss";
 import TextInput from "./TextInput";
 import { cn } from "@/lib/util/class";
 import { useState } from "react";
-import { extractPathFromUrl } from "@/lib/util/url";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createDirectory } from "@/lib/api/directory";
+import { useFile } from "@/context/FileExplorerContext";
+import { DirectoryResponse } from "@/lib/types/generated/DirectoryResponse";
+import { Breadcrumb } from "@/lib/types/generated/Breadcrumb";
 
 interface CreateFolderProps {
   onClose: () => void;
 }
 
 export default function CreateFolder({ onClose }: CreateFolderProps) {
-  let pathname = usePathname();
-  let router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const fileContext = useFile();
 
   const [value, setValue] = useState("");
   const [errorText, setErrorText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const breadcrumbs = fileContext.breadcrumbs;
+
   function validateFolderName(name: string) {
-    let folders = name.split("/").filter((part) => part.trim() !== "");
-    let invalidChars = /[<>:"|?*]/;
+    const folders = name.split("/").filter((part) => part.trim() !== "");
+    const invalidChars = /[<>:"|?*]/;
 
     if (invalidChars.test(name)) {
       return "Folder name contains invalid characters.";
@@ -46,9 +53,14 @@ export default function CreateFolder({ onClose }: CreateFolderProps) {
     return null;
   }
 
+  function collectBreadcrumbsToPath(breadcrumbs: Breadcrumb[]) {
+    return breadcrumbs.reduce((path, folder) => {
+      return path + "/" + folder.name;
+    }, "");
+  }
+
   function handleSubmit() {
-    let path = extractPathFromUrl(pathname);
-    let validationError = validateFolderName(value);
+    const validationError = validateFolderName(value);
 
     if (validationError) {
       setErrorText(validationError);
@@ -62,7 +74,7 @@ export default function CreateFolder({ onClose }: CreateFolderProps) {
 
     setIsLoading(true);
 
-    createDirectory(path, value).then((res) => {
+    createDirectory(fileContext.getPathFromUrl(), value).then(async (res) => {
       if (res.status === 409) {
         setIsLoading(false);
         setErrorText("A folder with that name already exists.");
@@ -76,7 +88,13 @@ export default function CreateFolder({ onClose }: CreateFolderProps) {
 
       setIsLoading(false);
 
-      router.push(pathname + (pathname.endsWith("/") ? "" : "/") + value);
+      const responseData: DirectoryResponse = await res.json();
+
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("folder", responseData.file_id);
+
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      onClose();
     });
   }
 
@@ -111,9 +129,8 @@ export default function CreateFolder({ onClose }: CreateFolderProps) {
                   Your folder will be created at
                   <strong>
                     {" home" +
-                      (extractPathFromUrl(pathname) == ""
-                        ? "/"
-                        : "" + extractPathFromUrl(pathname)) +
+                      collectBreadcrumbsToPath(breadcrumbs) +
+                      "/" +
                       value}
                   </strong>
                 </p>

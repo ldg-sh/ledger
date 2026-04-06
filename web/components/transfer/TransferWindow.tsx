@@ -6,11 +6,10 @@ import { completeUpload, createUpload, uploadPart } from "@/lib/api/file";
 import { pretifyFileSize } from "@/lib/util/file";
 import GlyphButton from "../general/GlyphButton";
 import { cn } from "@/lib/util/class";
-import { usePathname } from "next/navigation";
-import { extractPathFromUrl } from "@/lib/util/url";
 import { InitUploadResponse } from "@/lib/types/generated/InitUploadResponse";
 import { FileUpload, UploadTask } from "@/lib/types/upload";
 import formatDuration from "@/lib/util/time";
+import { useFile } from "@/context/FileExplorerContext";
 
 const CHUNK_SIZE = 5 * 1024 * 1024;
 const MAX_CONCURRENT_UPLOADS = 3;
@@ -21,24 +20,24 @@ export default function TransferWindow() {
   const [targetSize, setTargetSize] = useState(0);
   const [totalUploadedSize, setTotalUploadedSize] = useState(0);
 
-  const path = usePathname();
+  const fileContext = useFile();
 
   const overlayRef = useRef<HTMLDivElement>(null);
 
   const taskQueue = useRef<UploadTask[]>([]);
   const [fileUploads, setFileUploads] = useState<FileUpload[]>([]);
 
-  useEffect(() => {
-    const handleExternalUpload = async (e: Event) => {
-      const files = (e as CustomEvent).detail as FileList;
-      if (files.length > 0) await handleDrop(files);
-    };
+  const createNewUpload = async (file: File) => {
+    const uploadResponse: InitUploadResponse = await createUpload(
+      file.name,
+      file.size,
+      file.type,
+      fileContext.getPathFromUrl(),
+      CHUNK_SIZE,
+    );
 
-    window.addEventListener("trigger-upload", handleExternalUpload);
-
-    return () =>
-      window.removeEventListener("trigger-upload", handleExternalUpload);
-  }, []);
+    return uploadResponse;
+  };
 
   const handleDrop = async (e: React.DragEvent<HTMLDivElement> | FileList) => {
     const files: File[] =
@@ -49,6 +48,7 @@ export default function TransferWindow() {
       const totalChunks = Math.ceil(size / CHUNK_SIZE);
 
       const stateUuid = crypto.randomUUID();
+      const date = new Date();
 
       const fileUpload: FileUpload = {
         stateId: stateUuid,
@@ -58,7 +58,7 @@ export default function TransferWindow() {
         uploadId: "",
         fileName: file.name,
         bytesUploaded: 0,
-        startTime: Date.now(),
+        startTime: date.getTime(),
         totalBytes: size,
         status: "Waiting...",
         etags: new Map<number, string>(),
@@ -166,17 +166,17 @@ export default function TransferWindow() {
     }
   };
 
-  const createNewUpload = async (file: File) => {
-    const uploadResponse: InitUploadResponse = await createUpload(
-      file.name,
-      file.size,
-      file.type,
-      extractPathFromUrl(path),
-      CHUNK_SIZE,
-    );
+  useEffect(() => {
+    const handleExternalUpload = async (e: Event) => {
+      const files = (e as CustomEvent).detail as FileList;
+      if (files.length > 0) await handleDrop(files);
+    };
 
-    return uploadResponse;
-  };
+    window.addEventListener("trigger-upload", handleExternalUpload);
+
+    return () =>
+      window.removeEventListener("trigger-upload", handleExternalUpload);
+  });
 
   const upload = async (task: UploadTask) => {
     const uint8Array = new Uint8Array(await task.chunk.arrayBuffer());
@@ -301,9 +301,7 @@ export default function TransferWindow() {
         </div>
       </div>
 
-      <div
-        className={styles.transferWindow}
-      >
+      <div className={styles.transferWindow}>
         <div className={styles.popupContent}>
           <div className={styles.header}>
             <div className={styles.left}>
@@ -357,9 +355,7 @@ export default function TransferWindow() {
               .filter((fileProg) => fileProg.uploadId)
               .map((fileProg) => (
                 <div
-                  className={cn(
-                    styles.fileProgress
-                  )}
+                  className={cn(styles.fileProgress)}
                   key={fileProg.uploadId}
                 >
                   <div className={styles.progressBar}>

@@ -14,7 +14,9 @@ export default function Popup({ children, onClosePopup }: PopupProps) {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        onClosePopup && onClosePopup();
+        if (onClosePopup) {
+          onClosePopup();
+        }
       }
     };
 
@@ -29,7 +31,9 @@ export default function Popup({ children, onClosePopup }: PopupProps) {
       <motion.div
         className={styles.popupBackdrop}
         onClick={(event) => {
-          onClosePopup && onClosePopup();
+          if (onClosePopup) {
+            onClosePopup();
+          }
           event.stopPropagation();
         }}
         initial={{ opacity: 0 }}
@@ -54,7 +58,9 @@ export default function Popup({ children, onClosePopup }: PopupProps) {
           <div
             className={styles.close}
             onClick={() => {
-              onClosePopup && onClosePopup();
+              if (onClosePopup) {
+                onClosePopup();
+              }
             }}
           >
             <GlyphButton glyph={"x"} size={20} fullSize={"40px"} />

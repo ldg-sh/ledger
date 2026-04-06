@@ -1,11 +1,10 @@
 use crate::middleware::middleware::AuthenticatedUser;
-use actix_web::{HttpResponse, post, web};
+use actix_web::{post, web, HttpResponse};
 use common::entities::file;
 use common::entities::prelude::File;
 use common::types::file::directory::{DirectoryRequest, DirectoryResponse};
-use sea_orm::ColumnTrait;
 use sea_orm::prelude::DateTimeWithTimeZone;
-use sea_orm::{DatabaseConnection, EntityTrait, QueryFilter, Set};
+use sea_orm::{DatabaseConnection, EntityTrait, Set};
 use storage::s3_manager::S3StorageManager;
 
 #[post("create")]
@@ -18,24 +17,8 @@ pub async fn directory(
     let directories = payload.name.split("/").collect::<Vec<&str>>();
 
     let mut inserts = Vec::new();
-    let mut current_base = String::from("/");
     let mut current_id = String::from("");
-
-    let existing_directory = File::find()
-        .filter(file::Column::OwnerId.eq(authenticated_user.id.clone()))
-        .filter(file::Column::FileName.eq(directories[0].to_string()))
-        .filter(file::Column::FileType.eq("directory".to_string()))
-        .all(database.get_ref())
-        .await;
-
-    if existing_directory.is_err() {
-        println!("Database error: {:?}", existing_directory.err());
-        return HttpResponse::InternalServerError().finish();
-    }
-
-    if existing_directory.unwrap().len() >= 1 {
-        return HttpResponse::Conflict().finish();
-    }
+    let mut base_path = payload.path.clone();
 
     if directories.len() == 0 {
         return HttpResponse::BadRequest().finish();
@@ -61,16 +44,13 @@ pub async fn directory(
                 upload_completed: Set(true),
                 file_type: Set("directory".to_string()),
                 file_size: Set(0),
-                path: Set(current_base.clone()),
+                path: Set(base_path.clone()),
+                is_directory: Set(true),
             };
 
             inserts.push(insert);
 
-            current_base = if current_base == "/" {
-                format!("{}{}", current_base, dir)
-            } else {
-                format!("{}/{}", current_base, dir)
-            };
+            base_path = dir.to_string();
             current_id = id;
         }
     });

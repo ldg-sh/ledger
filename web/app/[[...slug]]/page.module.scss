@@ -48,3 +48,17 @@
     height: 50px;
   }
 }
+
+@media (max-width: 1100px) {
+  .centerpiece {
+    width: 100%;
+    border: none;
+  }
+
+  .footer {
+    left: 0;
+    width: 100%;
+    border: none;
+  }
+  
+}

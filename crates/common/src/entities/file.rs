@@ -20,6 +20,7 @@ pub struct Model {
     pub upload_completed: bool,
     pub file_type: String,
     pub path: String,
+    pub is_directory: bool,
 }
 
 #[cfg(feature = "ssr")]

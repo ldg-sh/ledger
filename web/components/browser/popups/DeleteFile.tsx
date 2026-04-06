@@ -21,14 +21,14 @@ export default function DeleteFile({ onClose, files }: DeleteFileProps) {
   function handleSubmit() {
     setIsLoading(true);
 
-    let directories = files.filter((file) => file.file_type === "directory");
-    let regularFiles = files.filter((file) => file.file_type !== "directory");
+    const directories = files.filter((file) => file.file_type === "directory");
+    const regularFiles = files.filter((file) => file.file_type !== "directory");
 
-    let promises = [];
+    const promises = [];
 
     if (directories.length > 0) {
-      for (let dir of directories) {
-        let basePath = dir.path.endsWith("/")
+      for (const dir of directories) {
+        const basePath = dir.path.endsWith("/")
           ? dir.path.slice(0, -1)
           : dir.path;
         promises.push(deleteDirectory(basePath + "/" + dir.file_name, dir.id));
@@ -42,7 +42,7 @@ export default function DeleteFile({ onClose, files }: DeleteFileProps) {
     }
 
     Promise.all(promises).then(() => {
-      let event = new CustomEvent("refresh-file-list", {
+      const event = new CustomEvent("refresh-file-list", {
         detail: () => {
           setIsLoading(false);
           onClose();

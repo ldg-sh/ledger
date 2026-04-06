@@ -14,7 +14,7 @@ import { CopyFilesResponse } from "../types/generated/CopyFilesResponse";
 import { CompleteUploadRequest } from "../types/generated/CompleteUploadRequest";
 
 export async function listFiles(directoryPath: string, sort: string, offset: number = 0, limit: number = 1000) {
-  let request: ListFilesRequest = {
+  const request: ListFilesRequest = {
     path: directoryPath,
     sort: sort,
     limit: limit,
@@ -27,9 +27,9 @@ export async function listFiles(directoryPath: string, sort: string, offset: num
   });
 
   if (!res.ok) throw new Error("Failed to fetch file list");
-  let json: ListFilesResponse = await res.json();
+  const json: ListFilesResponse = await res.json();
 
-  let files = json.files;
+  const files = json.files;
   let folders: ListFileElement[] = [];
   let fileList: ListFileElement[] = [];
 
@@ -39,7 +39,7 @@ export async function listFiles(directoryPath: string, sort: string, offset: num
 
   fileList = fileList.map((file) => {
     if (!file.upload_completed) {
-      let newFile: ListFileElement = {
+      const newFile: ListFileElement = {
         ...file,
         file_size: 0,
       };
@@ -50,11 +50,11 @@ export async function listFiles(directoryPath: string, sort: string, offset: num
     }
   });
 
-  return { files: fileList, folders: folders, hasMore: json.has_more };
+  return { files: fileList, folders: folders, hasMore: json.has_more, breadcrumbs: json.breadcrumbs };
 }
 
 export async function fetchUrl(fileId: string) {
-  let request: InitDownloadRequest = {
+  const request: InitDownloadRequest = {
     file_id: fileId,
   };
 
@@ -63,7 +63,7 @@ export async function fetchUrl(fileId: string) {
     body: JSON.stringify(request),
   });
 
-  let json: InitDownloadResponse = await res.json();
+  const json: InitDownloadResponse = await res.json();
 
   if (!res.ok) throw new Error("Failed to fetch download URL");
 
@@ -77,7 +77,7 @@ export async function createUpload(
   path: string,
   chunk_size: number,
 ): Promise<InitUploadResponse> {
-  let request: InitUploadRequest = {
+  const request: InitUploadRequest = {
     filename: fileName,
     size: fileSize,
     content_type: contentType,
@@ -90,9 +90,9 @@ export async function createUpload(
     body: JSON.stringify(request),
   });
 
-  let body = await res.text();
+  const body = await res.text();
 
-  let json: InitUploadResponse = JSON.parse(body);
+  const json: InitUploadResponse = JSON.parse(body);
 
   if (!res.ok)
     throw new Error("Failed to create upload: " + JSON.stringify(res));
@@ -143,7 +143,7 @@ export async function completeUpload(
   fileId: string,
   etags: Map<number, string>,
 ) {
-  let request: CompleteUploadRequest = {
+  const request: CompleteUploadRequest = {
     upload_id: uploadId,
     file_id: fileId,
     parts: Array.from(etags.entries())
@@ -165,7 +165,7 @@ export async function completeUpload(
 }
 
 export async function renameFile(fileId: string, newFileName: string) {
-  let request: RenameFileRequest = {
+  const request: RenameFileRequest = {
     file_id: fileId,
     file_name: newFileName,
   };
@@ -179,7 +179,7 @@ export async function renameFile(fileId: string, newFileName: string) {
 }
 
 export async function deleteFiles(fileIds: string[]) {
-  let request: DeleteFilesRequest = {
+  const request: DeleteFilesRequest = {
     file_ids: fileIds,
   };
 
@@ -192,11 +192,11 @@ export async function deleteFiles(fileIds: string[]) {
 }
 
 export async function copyFiles(fileIds: string[], destinationPath: string) {
-  let destPath = destinationPath.startsWith("/")
+  const destPath = destinationPath.startsWith("/")
     ? destinationPath.slice(1)
     : destinationPath;
 
-  let request: CopyFilesRequest = {
+  const request: CopyFilesRequest = {
     file_ids: fileIds,
     destination_path: destPath,
   };
@@ -206,7 +206,7 @@ export async function copyFiles(fileIds: string[], destinationPath: string) {
     body: JSON.stringify(request),
   });
 
-  let json: CopyFilesResponse = await res.json();
+  const json: CopyFilesResponse = await res.json();
 
   if (!res.ok) throw new Error("Failed to copy file");
 

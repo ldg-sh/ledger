@@ -148,9 +148,9 @@ export default function SignupPage() {
               }
 
               setIsLoading(true);
-              let existing_id = null;
+              const existing_id = null;
 
-              let res = await beginRegistration(username, email, existing_id);
+              const res = await beginRegistration(username, email, existing_id);
 
               if (!res.ok) {
                 if (res.status === 409) {
@@ -161,9 +161,9 @@ export default function SignupPage() {
                 return;
               }
 
-              let object = (await res.json()) as PasskeyInitResponse;
-              let creds = object.response as CredentialCreationOptions;
-              let user_id = object.user_id;
+              const object = (await res.json()) as PasskeyInitResponse;
+              const creds = object.response as CredentialCreationOptions;
+              const user_id = object.user_id;
 
               if (creds.publicKey == undefined) {
                 return;
@@ -189,7 +189,7 @@ export default function SignupPage() {
                 );
               });
 
-              let assertion: any = await window.navigator.credentials
+              const assertion: any = await window.navigator.credentials
                 .create({
                   publicKey: creds.publicKey,
                 })
@@ -203,7 +203,7 @@ export default function SignupPage() {
                 return;
               }
 
-              let response = {
+              const response = {
                 id: assertion.id,
                 rawId: Buffer.from(assertion.rawId).toString("base64"),
                 type: assertion.type,
@@ -219,7 +219,7 @@ export default function SignupPage() {
                 },
               };
 
-              let finishRes = await completeRegistration(
+              const finishRes = await completeRegistration(
                 user_id,
                 username,
                 email,

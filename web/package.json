@@ -17,12 +17,17 @@
     "sass": "^1.97.2"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "3.1.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.1.1",
-    "typescript": "^5"
+    "@typescript-eslint/eslint-plugin": "8.10.0",
+    "@typescript-eslint/parser": "8.10.0",
+    "@typescript-eslint/utils": "^8.58.0",
+    "eslint": "9.12.0",
+    "eslint-config-next": "^16.2.2",
+    "typescript": "^5",
+    "typescript-eslint": "8.10.0"
   },
   "ignoreScripts": [
     "sharp",

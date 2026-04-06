@@ -3,8 +3,7 @@ use actix_web::{delete, web, HttpResponse, Responder};
 use common::entities::file;
 use common::entities::prelude::File;
 use common::types::file::directory_delete::DeleteDirectoryRequest;
-use sea_orm::{Condition, QueryFilter};
-use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait};
+use sea_orm::{ColumnTrait, ConnectionTrait, DatabaseConnection, EntityTrait, QueryFilter, Statement};
 use storage::s3_manager::S3StorageManager;
 use storage::s3_scoped_storage::S3ScopedStorage;
 use storage::StorageBackend;
@@ -16,39 +15,47 @@ pub async fn delete(
     payload: web::Json<DeleteDirectoryRequest>,
     authenticated_user: AuthenticatedUser,
 ) -> impl Responder {
-    let files_to_delete = File::find()
-        .filter(file::Column::Path.starts_with(payload.path.clone()))
-        .all(database.get_ref())
-        .await
-        .map_err(|err| HttpResponse::InternalServerError().body(err.to_string()));
+    let backend = database.get_database_backend();
+    let sql = r#"
+        WITH RECURSIVE subordinates AS (
+            SELECT id, is_directory FROM file WHERE id = $1 AND owner_id = $2
+            UNION ALL
+            SELECT f.id, f.is_directory FROM file f
+            INNER JOIN subordinates s ON f.path = s.id
+            WHERE f.owner_id = $2
+        )
+        SELECT id, is_directory FROM subordinates;
+    "#;
 
-    let files_to_delete = match files_to_delete {
-        Ok(files) => {
-            files
-        }
-        Err(err) => {
-            return err
+    let rows = match database
+        .query_all_raw(Statement::from_sql_and_values(
+            backend,
+            sql,
+            [payload.directory_id.clone().into(), authenticated_user.id.clone().into()],
+        ))
+        .await
+    {
+        Ok(rows) => rows,
+        Err(e) => {
+            log::error!("Recursive fetch error: {:?}", e);
+            return HttpResponse::InternalServerError().finish();
         }
     };
 
-    let condition = Condition::any()
-        .add(file::Column::Id.eq(payload.directory_id.clone()))
-        .add(file::Column::Path.starts_with(payload.path.clone()));
+    let mut all_ids = Vec::new();
+    let mut file_ids_for_s3 = Vec::new();
 
-    let delete_result = File::delete_many()
-        .filter(condition)
-        .exec(database.get_ref())
-        .await
-        .map_err(|err| HttpResponse::InternalServerError().body(err.to_string()));
+    for row in rows {
+        let id = row.try_get::<String>("", "id").unwrap_or_default();
+        let is_dir = row.try_get::<bool>("", "is_directory").unwrap_or_default();
 
-    let delete_result = match delete_result {
-        Ok(delete_result) => delete_result,
-        Err(err) => {
-            return err
+        all_ids.push(id.clone());
+        if !is_dir {
+            file_ids_for_s3.push(id);
         }
-    };
+    }
 
-    if delete_result.rows_affected == 0 {
+    if all_ids.is_empty() {
         return HttpResponse::NotFound().finish();
     }
 
@@ -58,14 +65,22 @@ pub async fn delete(
         client: s3_manager.client.clone(),
     };
 
-    match storage.delete_many(
-        files_to_delete.iter().map(|f| f.id.clone()).collect(),
-    ).await {
-        Ok(_) => {}
-        Err(err) => {
-            return HttpResponse::InternalServerError().body(format!("Failed to delete files from S3: {}", err));
+    if !file_ids_for_s3.is_empty() {
+        if let Err(e) = storage.delete_many(file_ids_for_s3).await {
+            log::error!("S3 delete error: {:?}", e);
+            return HttpResponse::InternalServerError().body("Failed to sync with storage");
         }
     }
 
-    HttpResponse::Ok().finish()
+    match File::delete_many()
+        .filter(file::Column::Id.is_in(all_ids))
+        .exec(database.get_ref())
+        .await
+    {
+        Ok(_) => HttpResponse::Ok().finish(),
+        Err(e) => {
+            log::error!("Database delete error: {:?}", e);
+            HttpResponse::InternalServerError().finish()
+        }
+    }
 }

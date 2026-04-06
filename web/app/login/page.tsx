@@ -19,7 +19,7 @@ export default function LoginPage() {
   const user = useUser();
 
   if (user.user) {
-    window.location.href = "/";
+    router.push("/");
     return null;
   }
 
@@ -126,11 +126,11 @@ export default function LoginPage() {
             <LoginButton
               procedure={async () => {
                 setIsLoading(true);
-                let res = await beginAuthentication();
-                let data = await res.json();
-
-                let creds = data.ccr as CredentialRequestOptions;
-                let ticket = data.ticket as string;
+                const res = await beginAuthentication();
+                const data = await res.json();
+                
+                const creds = data.ccr as CredentialRequestOptions;
+                const ticket = data.ticket as string;
 
                 if (!creds.publicKey) {
                   console.error("No publicKey in credential request options");
@@ -150,7 +150,7 @@ export default function LoginPage() {
 
                 creds.mediation = "optional";
 
-                let assertion = (await window.navigator.credentials
+                const assertion = (await window.navigator.credentials
                   .get({
                     publicKey: creds.publicKey,
                     mediation:
@@ -173,11 +173,11 @@ export default function LoginPage() {
 
                 console.log("Assertion obtained:", assertion);
 
-                let userHandleBase64 = authResponse.userHandle
+                const userHandleBase64 = authResponse.userHandle
                   ? Buffer.from(authResponse.userHandle).toString("base64")
                   : null;
 
-                let response = {
+                const response = {
                   id: assertion.id,
                   rawId: Buffer.from(assertion.rawId).toString("base64"),
                   type: assertion.type,
@@ -195,7 +195,7 @@ export default function LoginPage() {
                   },
                 };
 
-                let result = await completeAuthentication(ticket, response);
+                const result = await completeAuthentication(ticket, response);
 
                 if (result.ok) {
                   document.dispatchEvent(new CustomEvent("reload-user"));

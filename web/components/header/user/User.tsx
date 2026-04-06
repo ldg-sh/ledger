@@ -7,13 +7,15 @@ import { AnimatePresence } from "motion/react";
 import { ContextMenu } from "@/components/general/menu/ContextMenu";
 import ContextMenuItem from "@/components/general/menu/ContextMenuItem";
 import { useCustomMenu } from "@/hooks/customMenu";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { cn } from "@/lib/util/class";
 
 export default function User() {
-  let user = useUser();
+  const user = useUser();
   const { visible, showMenu, hideMenu } = useCustomMenu("user-menu");
   const container = useRef<HTMLDivElement>(null);
+
+  const [coords, setCoords] = useState({ x: 0, y: 0 });
 
   if (user.loading) {
     return <div className={styles.container}></div>;
@@ -23,11 +25,19 @@ export default function User() {
     return;
   }
 
+  const onLoad = () => {
+    if (container.current) {
+      const rect = container.current.getBoundingClientRect();
+      setCoords({ x: rect.left, y: rect.bottom });
+    }
+  };
+
   return (
     <div
       className={styles.container}
       ref={container}
       onClick={(event) => showMenu(event)}
+      onLoad={onLoad}
     >
       {user.user?.avatar_url ? (
         <Image
@@ -53,12 +63,8 @@ export default function User() {
         {visible && (
           <div>
             <ContextMenu
-              x={(container.current?.offsetLeft || 0) + 5}
-              y={
-                (container.current?.offsetTop || 0) +
-                (container.current?.offsetHeight || 0) +
-                5
-              }
+              x={coords.x + 5}
+              y={coords.y + 5}
             >
               <ContextMenuItem
                 label="Log Out"

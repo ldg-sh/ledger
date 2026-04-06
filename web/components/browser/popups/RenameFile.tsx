@@ -25,7 +25,7 @@ export default function RenameFile({
     setIsLoading(true);
 
     renameFile(fileId, value).then(() => {
-      let event = new CustomEvent("refresh-file-list", {
+      const event = new CustomEvent("refresh-file-list", {
         detail: () => {
           setIsLoading(false);
           onClose();

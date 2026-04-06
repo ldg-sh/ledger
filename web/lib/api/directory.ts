@@ -4,7 +4,8 @@ import { DirectoryRequest } from "../types/generated/DirectoryRequest";
 import { authenticatedFetch } from "./apiClient";
 
 export async function createDirectory(path: string, folderName: string) {
-  let directoryRequest: DirectoryRequest = {
+  console.log("Creating directory with path:", path, "and folderName:", folderName);
+  const directoryRequest: DirectoryRequest = {
     path: path,
     name: folderName,
   };
@@ -18,7 +19,7 @@ export async function createDirectory(path: string, folderName: string) {
 }
 
 export async function deleteDirectory(directoryPath: string, directoryId: string) {
-  let directoryDeleteRequest: DeleteDirectoryRequest = {
+  const directoryDeleteRequest: DeleteDirectoryRequest = {
     path: directoryPath,
     directory_id: directoryId,
   };
@@ -35,11 +36,11 @@ export async function copyDirectory(
   directoryPath: string,
   destinationPath: string,
 ) {
-  let destPath = destinationPath.startsWith("/")
+  const destPath = destinationPath.startsWith("/")
     ? destinationPath.slice(1)
     : destinationPath;
 
-  let jsonData = {
+  const jsonData = {
     destinationPath: destPath,
   };
 
@@ -48,7 +49,7 @@ export async function copyDirectory(
     body: JSON.stringify(jsonData),
   });
 
-  let json = await res.json();
+  const json = await res.json();
 
   return json.directory_id;
 }
@@ -57,11 +58,11 @@ export async function moveDirectory(
   directoryPath: string,
   destinationPath: string,
 ) {
-  let destPath = destinationPath.startsWith("/")
+  const destPath = destinationPath.startsWith("/")
     ? destinationPath.slice(1)
     : destinationPath;
 
-  let jsonData = {
+  const jsonData = {
     destinationPath: destPath,
   };
 
@@ -70,12 +71,12 @@ export async function moveDirectory(
     body: JSON.stringify(jsonData),
   });
 
-  let json = await res.json();
+  const json = await res.json();
   return json.success;
 }
 
 export async function renameDirectory(directoryPath: string, newName: string) {
-  let jsonData = {
+  const jsonData = {
     newName: newName,
   };
 
@@ -84,6 +85,6 @@ export async function renameDirectory(directoryPath: string, newName: string) {
     body: JSON.stringify(jsonData),
   });
 
-  let json = await res.json();
+  const json = await res.json();
   return json.success;
 }

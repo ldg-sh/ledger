@@ -29,7 +29,7 @@ export default function TextInput({
   formType = "text",
   required = false,
 }: TextInputProps) {
-  let [value, setValue] = useState(originalValue || "");
+  const [value, setValue] = useState(originalValue || "");
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -39,7 +39,7 @@ export default function TextInput({
     }
   }, [select]);
 
-  let isReactNodeHint = typeof hint !== "string";
+  const isReactNodeHint = typeof hint !== "string";
 
   return (
     <div className={styles.textInputContainer}>

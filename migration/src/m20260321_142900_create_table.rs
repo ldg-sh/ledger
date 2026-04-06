@@ -28,6 +28,7 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(File::FileType).string().not_null())
                     .col(ColumnDef::new(File::Path).string().not_null())
+                    .col(ColumnDef::new(File::IsDirectory).boolean().not_null())
                     .to_owned(),
             )
             .await
@@ -53,5 +54,6 @@ enum File {
     CreatedAt,
     UploadCompleted,
     FileType,
-    Path
+    Path,
+    IsDirectory
 }

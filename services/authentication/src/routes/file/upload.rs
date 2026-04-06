@@ -29,6 +29,7 @@ pub async fn init(
         file_type: Set(payload.content_type.clone()),
         file_size: Set(payload.size as i64),
         path: Set(payload.path.clone()),
+        is_directory: Set(false),
     })
     .exec(database.get_ref())
     .await;

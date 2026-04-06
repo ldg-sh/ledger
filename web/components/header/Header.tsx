@@ -5,7 +5,7 @@ import styles from "./Header.module.scss";
 import User from "./user/User";
 
 export default function Header() {
-  let pathName = usePathname();
+  const pathName = usePathname();
 
   if (pathName === "/about") {
     return null;

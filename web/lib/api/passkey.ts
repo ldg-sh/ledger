@@ -7,7 +7,7 @@ export async function beginRegistration(
   email: string,
   user_id: string | null,
 ) {
-  let request: PasskeyInitRequest = {
+  const request: PasskeyInitRequest = {
     username,
     existing_id: user_id,
     email
@@ -25,7 +25,7 @@ export async function beginRegistration(
 }
 
 export async function completeRegistration(user_id: string, username: string, email: string, avatar_url: string, data: any) {
-  let request: PasskeyCompleteRequest = {
+  const request: PasskeyCompleteRequest = {
     user_id,
     username,
     email,
@@ -54,7 +54,7 @@ export async function beginAuthentication() {
 }
 
 export async function completeAuthentication(ticket: string, data: any) {
-  let request: PasskeyAuthCompleteRequest = {
+  const request: PasskeyAuthCompleteRequest = {
     ticket,
     data,
   };
