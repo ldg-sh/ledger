@@ -33,7 +33,7 @@ export default function Location() {
           {"home"}
         </span>
         <span className={styles.seperator}>{" / "}</span>
-        {fileContext.breadcrumbs.map((_, index) => (
+        {(fileContext.breadcrumbs || []).map((_, index) => (
           <div className={styles.pathGrouping} key={index + "-container"}>
             <span
               key={index}
