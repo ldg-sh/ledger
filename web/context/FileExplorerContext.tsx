@@ -3,7 +3,7 @@
 import { Breadcrumb } from "@/lib/types/generated/Breadcrumb";
 import { ListFileElement } from "@/lib/types/generated/ListFileElement";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { get, set } from "idb-keyval";
+import { createStore, get, set } from "idb-keyval";
 import {
   createContext,
   ReactNode,
@@ -16,6 +16,8 @@ import {
   useEffect,
 } from "react";
 
+const ledgerStore = createStore("ledger", "folder-cache");
+  
 interface FileListData {
   folders: ListFileElement[];
   files: ListFileElement[];
@@ -58,7 +60,7 @@ export function FileProvider({
   useEffect(() => {
     async function initCache() {
       try {
-        const saved = await get<Record<string, FileListData>>("fc_cache");
+        const saved = await get<Record<string, FileListData>>("fc_cache", ledgerStore);
         if (saved) {
           setFolderCache(saved);
         }
@@ -76,7 +78,7 @@ export function FileProvider({
 
     const timer = setTimeout(async () => {
       try {
-        await set("fc_cache", folderCache);
+        await set("fc_cache", folderCache, ledgerStore);
       } catch (e) {
         console.error("IndexedDB Save Error:", e);
       }
