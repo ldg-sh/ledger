@@ -154,7 +154,7 @@ export default function Row({
         }}
         onDoubleClick={() => {
           loadingContext.setLoading(true);
-          const currentPath = fileContext.getPathFromUrl();
+          const currentPath = fileContext.currentFolderId;
 
           if (folder) {
             fileContext.setBreadcrumbs([

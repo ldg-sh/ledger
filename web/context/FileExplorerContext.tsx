@@ -34,7 +34,7 @@ interface FileContextType {
   setBreadcrumbs: Dispatch<SetStateAction<Breadcrumb[]>>;
   setFileData: Dispatch<SetStateAction<FileListData>>;
   setFolderCache: Dispatch<SetStateAction<Record<string, FileListData>>>;
-  getPathFromUrl: () => string;
+  currentFolderId: string;
   gotoPath: (id: string) => void;
   prefetchFolder: (id: string) => void;
 }
@@ -53,17 +53,20 @@ export function FileProvider({
     {},
   );
   const [isHydrated, setIsHydrated] = useState(false);
+  const [currentFolderId, setCurrentFolderId] = useState<string>("");
 
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
   const sort = useSort().sort;
-
-  const currentFolderId = searchParams.get("folder") || "";
-
+  
   useEffect(() => {
     async function initCurrentFolder() {
       try {
+        const folderId = searchParams.get("folder") || "";
+
+        setCurrentFolderId(folderId);
+
         const saved = await get<FileListData>(currentFolderId, ledgerStore);
 
         if (saved) {
@@ -75,8 +78,9 @@ export function FileProvider({
         setIsHydrated(true);
       }
     }
+
     initCurrentFolder();
-  }, [currentFolderId]);
+  }, []);
 
   const fileData = useMemo(() => {
     if (!isHydrated) return { folders: [], files: [] };
@@ -106,11 +110,15 @@ export function FileProvider({
       if (id === "") {
         setBreadcrumbs([]);
         window.history.pushState({}, "", "/");
+
+        setCurrentFolderId("");
       } else {
         const params = new URLSearchParams(searchParams.toString());
         params.set("folder", id);
         const newUrl = `${pathname}?${params.toString()}`;
         window.history.pushState({}, "", newUrl);
+
+        setCurrentFolderId(id);
       }
     },
     [pathname, router, searchParams, currentFolderId],
@@ -148,7 +156,7 @@ export function FileProvider({
       folderCache,
       setFolderCache,
       isHydrated,
-      getPathFromUrl: () => initialPath,
+      currentFolderId,
       gotoPath,
       prefetchFolder,
     }),
@@ -159,6 +167,7 @@ export function FileProvider({
       folderCache,
       setFileData,
       gotoPath,
+      currentFolderId,
       isHydrated,
       prefetchFolder,
     ],

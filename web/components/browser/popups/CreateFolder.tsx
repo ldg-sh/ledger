@@ -5,7 +5,6 @@ import styles from "./CreateFolder.module.scss";
 import TextInput from "./TextInput";
 import { cn } from "@/lib/util/class";
 import { useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createDirectory } from "@/lib/api/directory";
 import { useFile } from "@/context/FileExplorerContext";
 import { DirectoryResponse } from "@/lib/types/generated/DirectoryResponse";
@@ -70,7 +69,7 @@ export default function CreateFolder({ onClose }: CreateFolderProps) {
 
     setIsLoading(true);
 
-    createDirectory(fileContext.getPathFromUrl(), value).then(async (res) => {
+    createDirectory(fileContext.currentFolderId, value).then(async (res) => {
       if (res.status === 409) {
         setIsLoading(false);
         setErrorText("A folder with that name already exists.");

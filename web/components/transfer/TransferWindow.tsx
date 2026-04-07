@@ -32,7 +32,7 @@ export default function TransferWindow() {
       file.name,
       file.size,
       file.type,
-      fileContext.getPathFromUrl(),
+      fileContext.currentFolderId,
       CHUNK_SIZE,
     );
 

@@ -26,8 +26,6 @@ const CHUNK_SIZE = 75;
 export default function FileList({ parentContainerRef }: FileListProps) {
   const { sort } = useSort();
   const fileContext = useFile();
-  const searchParams = useSearchParams();
-  const currentFolderId = searchParams.get("folder") || "";
 
   const lastRefreshTime = useRef<number>(0);
   const THROTTLE_MS = 500;
@@ -105,7 +103,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
 
       const fileIds = await copyFiles(
         fileIdsToCopy,
-        fileContext.getPathFromUrl(),
+        fileContext.currentFolderId
       );
 
       const event = new CustomEvent("refresh-file-list", {
@@ -131,7 +129,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       let newId = "";
 
       if (file) {
-        newId = (await copyFiles([id.trim()], fileContext.getPathFromUrl()))[0];
+        newId = (await copyFiles([id.trim()], fileContext.currentFolderId))[0];
       }
 
       const event = new CustomEvent("refresh-file-list", {
@@ -240,7 +238,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
     setIsLoading(true);
     setGlobalLoading(true);
     try {
-      const res = await listFiles(currentFolderId, sort, 0, CHUNK_SIZE);
+      const res = await listFiles(fileContext.currentFolderId, sort, 0, CHUNK_SIZE);
 
       if (!res.hasMore) {
         setHasMore(false);
@@ -255,7 +253,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       setIsLoading(false);
       setGlobalLoading(false);
     }
-  }, [authLoading, user, sort, fileContext.setBreadcrumbs, currentFolderId]);
+  }, [authLoading, user, sort, fileContext.setBreadcrumbs, fileContext.currentFolderId]);
 
   const loadMoreData = useCallback(async () => {
     if (authLoading || !hasMore || isLoading) return;
@@ -264,7 +262,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
     setGlobalLoading(true);
 
     const res = await listFiles(
-      fileContext.getPathFromUrl(),
+      fileContext.currentFolderId,
       sort,
       currentOffset,
       CHUNK_SIZE,
