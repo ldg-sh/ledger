@@ -62,14 +62,12 @@ export function FileProvider({
   const currentFolderId = searchParams.get("folder") || "";
 
   useEffect(() => {
-    async function initCache() {
+    async function initCurrentFolder() {
       try {
-        const saved = await get<Record<string, FileListData>>(
-          "fc_cache",
-          ledgerStore,
-        );
+        const saved = await get<FileListData>(currentFolderId, ledgerStore);
+
         if (saved) {
-          setFolderCache(saved);
+          setFolderCache((prev) => ({ ...prev, [currentFolderId]: saved }));
         }
       } catch (e) {
         console.error("IndexedDB Load Error:", e);
@@ -77,22 +75,8 @@ export function FileProvider({
         setIsHydrated(true);
       }
     }
-    initCache();
-  }, []);
-
-  useEffect(() => {
-    if (!isHydrated) return;
-
-    const timer = setTimeout(async () => {
-      try {
-        await set("fc_cache", folderCache, ledgerStore);
-      } catch (e) {
-        console.error("IndexedDB Save Error:", e);
-      }
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [folderCache, isHydrated]);
+    initCurrentFolder();
+  }, [currentFolderId]);
 
   const fileData = useMemo(() => {
     if (!isHydrated) return { folders: [], files: [] };
@@ -106,10 +90,10 @@ export function FileProvider({
           typeof newData === "function"
             ? newData(prev[currentFolderId] || { folders: [], files: [] })
             : newData;
-        return {
-          ...prev,
-          [currentFolderId]: data,
-        };
+
+        set(currentFolderId, data, ledgerStore);
+
+        return { ...prev, [currentFolderId]: data };
       });
     },
     [currentFolderId],
@@ -175,7 +159,7 @@ export function FileProvider({
       setFileData,
       gotoPath,
       isHydrated,
-      prefetchFolder
+      prefetchFolder,
     ],
   );
 

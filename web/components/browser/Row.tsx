@@ -58,7 +58,6 @@ export default function Row({
   const date = new Date(createdAt);
 
   const handleMouseEnter = () => {
-    console.log("Mouse entered row for file:", fileName);
     if (!folder) {
       return;
     }
