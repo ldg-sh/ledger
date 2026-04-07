@@ -2,7 +2,6 @@
 
 import { copyFiles, listFiles } from "@/lib/api/file";
 import Row from "./Row";
-import { useSearchParams } from "next/navigation";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useUser } from "@/context/UserContext";
 import { useCustomMenu } from "@/hooks/customMenu";
@@ -21,7 +20,7 @@ interface FileListProps {
   parentContainerRef?: React.RefObject<HTMLDivElement>;
 }
 
-const CHUNK_SIZE = 75;
+const CHUNK_SIZE = 150;
 
 export default function FileList({ parentContainerRef }: FileListProps) {
   const { sort } = useSort();

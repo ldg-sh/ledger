@@ -135,7 +135,7 @@ export function FileProvider({
           return;
         }
 
-        const response = await listFiles(id, sort, 0, 75);
+        const response = await listFiles(id, sort, 0, 150);
 
         setFolderCache((prev) => ({ ...prev, [id]: response }));
         await set(id, response, ledgerStore);
