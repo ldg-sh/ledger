@@ -7,7 +7,7 @@ import { ContextMenu } from "../general/menu/ContextMenu";
 import { useCustomMenu } from "@/hooks/customMenu";
 import ContextMenuItem from "../general/menu/ContextMenuItem";
 import { AnimatePresence } from "motion/react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import RenameFile from "./popups/RenameFile";
 import DeleteFile from "./popups/DeleteFile";
 import GlyphButton from "../general/GlyphButton";
@@ -48,13 +48,14 @@ export default function Row({
   const loadingContext = useLoading();
 
   const moreOptionsRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState({ x: 0, y: 0 });
 
-  const { visible, position, showMenu, hideMenu } = useCustomMenu(fileId);
+  const { visible, showMenu, hideMenu } = useCustomMenu(fileId);
 
   const [isRenamePopupOpen, setIsRenamePopupOpen] = useState(false);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
   const prefetchTimerRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   const date = new Date(createdAt);
 
   const handleMouseEnter = () => {
@@ -93,6 +94,24 @@ export default function Row({
     audio: Icons.FileAudio,
   };
 
+  useEffect(() => {
+    if (moreOptionsRef.current) {
+      const rect = moreOptionsRef.current.getBoundingClientRect();
+      setCoords({ x: rect.left, y: rect.bottom });
+    }
+
+    window.addEventListener("resize", () => {
+      if (moreOptionsRef.current) {
+        const rect = moreOptionsRef.current.getBoundingClientRect();
+        setCoords({ x: rect.left, y: rect.bottom });
+      }
+    });
+
+    return () => {
+      window.removeEventListener("resize", () => {});
+    };
+  }, []);
+
   const iconKey = folder ? "folder" : fileType.split("/")[0] || "default";
   const IconComponent = ICON_MAP[iconKey] || ICON_MAP.default;
 
@@ -110,9 +129,7 @@ export default function Row({
         className={styles.moreOptions}
         ref={moreOptionsRef}
         onClick={() => {
-          const element = moreOptionsRef.current;
-
-          showMenu(undefined, element || undefined);
+          showMenu(undefined, moreOptionsRef.current || undefined);
         }}
       >
         <GlyphButton
@@ -183,7 +200,7 @@ export default function Row({
       <AnimatePresence>
         {visible && (
           <div>
-            <ContextMenu x={position.x} y={position.y}>
+            <ContextMenu x={coords.x} y={coords.y}>
               <ContextMenuItem
                 label="Copy"
                 glyph="copy"

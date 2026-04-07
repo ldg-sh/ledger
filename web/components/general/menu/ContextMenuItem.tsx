@@ -20,7 +20,7 @@ export default function ContextMenuItem({
   disabled = false,
   hotkey,
 }: ContextMenuItemProps) {
-  let button = useRef<HTMLButtonElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
 
   if (hotkey) {
     if (navigator.userAgent.toUpperCase().includes("MAC")) {

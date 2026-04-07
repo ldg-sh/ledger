@@ -30,6 +30,13 @@ export default function User() {
       const rect = container.current.getBoundingClientRect();
       setCoords({ x: rect.left, y: rect.bottom });
     }
+
+    window.addEventListener("resize", () => {
+      if (container.current) {
+        const rect = container.current.getBoundingClientRect();
+        setCoords({ x: rect.left, y: rect.bottom });
+      }
+    });
   };
 
   return (
