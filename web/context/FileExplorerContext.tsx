@@ -2,7 +2,7 @@
 
 import { Breadcrumb } from "@/lib/types/generated/Breadcrumb";
 import { ListFileElement } from "@/lib/types/generated/ListFileElement";
-import { usePathname, useSearchParams, useRouter } from "next/navigation"; // Note: useRouter from navigation for App Router
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import {
   createContext,
   ReactNode,
@@ -23,8 +23,10 @@ interface FileContextType {
   currentPath: string;
   breadcrumbs: Breadcrumb[];
   fileData: FileListData;
+  folderCache: Record<string, FileListData>;
   setBreadcrumbs: Dispatch<SetStateAction<Breadcrumb[]>>;
   setFileData: Dispatch<SetStateAction<FileListData>>;
+  setFolderCache: Dispatch<SetStateAction<Record<string, FileListData>>>;
   getPathFromUrl: () => string;
   gotoPath: (id: string) => void;
 }
@@ -39,36 +41,44 @@ export function FileProvider({
   initialPath: string;
 }) {
   const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([]);
-  const [fileData, setFileData] = useState<FileListData>({
-    folders: [],
-    files: [],
-  });
-
+  const [folderCache, setFolderCache] = useState<Record<string, FileListData>>({});
+  
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
 
+  const currentFolderId = searchParams.get("folder") || "";
+
+  const fileData = useMemo(() => {
+    return folderCache[currentFolderId] || { folders: [], files: [] };
+  }, [folderCache, currentFolderId]);
+
+  const setFileData = useCallback((newData: FileListData | ((prev: FileListData) => FileListData)) => {
+    setFolderCache((prev) => {
+      const data = typeof newData === "function" ? newData(prev[currentFolderId] || { folders: [], files: [] }) : newData;
+      return {
+        ...prev,
+        [currentFolderId]: data,
+      };
+    });
+  }, [currentFolderId]);
+
   const gotoPath = useCallback(
     (id: string) => {
-      const currentFolderId = searchParams.get("folder") || "";
       if (currentFolderId === id) {
         return;
       }
 
-      setFileData({ folders: [], files: [] });
-
       if (id === "") {
         setBreadcrumbs([]);
-
         router.push(`${pathname}`);
       } else {
         const params = new URLSearchParams(searchParams.toString());
         params.set("folder", id);
-
         router.push(`${pathname}?${params.toString()}`);
       }
     },
-    [pathname, router, searchParams],
+    [pathname, router, searchParams, currentFolderId],
   );
 
   const value = useMemo(
@@ -78,11 +88,14 @@ export function FileProvider({
       setBreadcrumbs,
       fileData,
       setFileData,
+      folderCache,
+      setFolderCache,
       getPathFromUrl: () => initialPath,
       gotoPath,
     }),
-    [initialPath, breadcrumbs, fileData, gotoPath],
+    [initialPath, breadcrumbs, fileData, folderCache, setFileData, gotoPath],
   );
+
   return <FileContext.Provider value={value}>{children}</FileContext.Provider>;
 }
 
