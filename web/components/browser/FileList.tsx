@@ -234,6 +234,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
 
   const loadData = useCallback(async () => {
     if (authLoading) return;
+    setSelectedFiles(new Set());
 
     setIsLoading(true);
     setGlobalLoading(true);
