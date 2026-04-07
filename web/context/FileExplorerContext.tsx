@@ -15,9 +15,11 @@ import {
   useCallback,
   useEffect,
 } from "react";
+import { listFiles } from "@/lib/api/file";
+import { useSort } from "./SortContext";
 
 const ledgerStore = createStore("ledger", "folder-cache");
-  
+
 interface FileListData {
   folders: ListFileElement[];
   files: ListFileElement[];
@@ -34,6 +36,7 @@ interface FileContextType {
   setFolderCache: Dispatch<SetStateAction<Record<string, FileListData>>>;
   getPathFromUrl: () => string;
   gotoPath: (id: string) => void;
+  prefetchFolder: (id: string) => void;
 }
 
 const FileContext = createContext<FileContextType | undefined>(undefined);
@@ -54,13 +57,17 @@ export function FileProvider({
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const sort = useSort().sort;
 
   const currentFolderId = searchParams.get("folder") || "";
 
   useEffect(() => {
     async function initCache() {
       try {
-        const saved = await get<Record<string, FileListData>>("fc_cache", ledgerStore);
+        const saved = await get<Record<string, FileListData>>(
+          "fc_cache",
+          ledgerStore,
+        );
         if (saved) {
           setFolderCache(saved);
         }
@@ -124,6 +131,28 @@ export function FileProvider({
     [pathname, router, searchParams, currentFolderId],
   );
 
+  const prefetchFolder = useCallback(
+    async (id: string) => {
+      if (folderCache[id]) return;
+
+      try {
+        const cached = await get(id, ledgerStore);
+        if (cached) {
+          setFolderCache((prev) => ({ ...prev, [id]: cached }));
+          return;
+        }
+
+        const response = await listFiles(id, sort, 0, 75);
+
+        setFolderCache((prev) => ({ ...prev, [id]: response }));
+        await set(id, response, ledgerStore);
+      } catch (e) {
+        console.warn("Prefetch failed", e);
+      }
+    },
+    [folderCache, sort],
+  );
+
   const value = useMemo(
     () => ({
       currentPath: initialPath,
@@ -136,6 +165,7 @@ export function FileProvider({
       isHydrated,
       getPathFromUrl: () => initialPath,
       gotoPath,
+      prefetchFolder,
     }),
     [
       initialPath,
@@ -145,6 +175,7 @@ export function FileProvider({
       setFileData,
       gotoPath,
       isHydrated,
+      prefetchFolder
     ],
   );
 

@@ -1,7 +1,6 @@
 "use client";
 
 import styles from "./Row.module.scss";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { pretifyFileSize } from "@/lib/util/file";
 import { cn } from "@/lib/util/class";
 import { ContextMenu } from "../general/menu/ContextMenu";
@@ -54,8 +53,26 @@ export default function Row({
 
   const [isRenamePopupOpen, setIsRenamePopupOpen] = useState(false);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
-
+  const prefetchTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
   const date = new Date(createdAt);
+
+  const handleMouseEnter = () => {
+    console.log("Mouse entered row for file:", fileName);
+    if (!folder) {
+      return;
+    }
+
+    prefetchTimerRef.current = setTimeout(() => {
+      fileContext.prefetchFolder(fileId);
+    }, 100);
+  };
+
+  const handleMouseLeave = () => {
+    if (prefetchTimerRef.current) {
+      clearTimeout(prefetchTimerRef.current);
+    }
+  };
 
   const formattedDate = createdAt
     ? date.toLocaleString(undefined, {
@@ -85,7 +102,11 @@ export default function Row({
   }
 
   return (
-    <div className={styles.rowContainer}>
+    <div
+      className={styles.rowContainer}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <div
         className={styles.moreOptions}
         ref={moreOptionsRef}
