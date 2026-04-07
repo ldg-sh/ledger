@@ -105,11 +105,12 @@ export function FileProvider({
 
       if (id === "") {
         setBreadcrumbs([]);
-        router.push(`${pathname}`);
+        window.history.pushState({}, "", "/");
       } else {
         const params = new URLSearchParams(searchParams.toString());
         params.set("folder", id);
-        router.push(`${pathname}?${params.toString()}`);
+        const newUrl = `${pathname}?${params.toString()}`;
+        window.history.pushState({}, "", newUrl);
       }
     },
     [pathname, router, searchParams, currentFolderId],
