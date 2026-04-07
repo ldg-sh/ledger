@@ -32,6 +32,7 @@
     gap: 12px;
     align-items: center;
     padding: 10px;
+    background-color: var(--color-background);
 }
 
 .createFolder {
@@ -43,7 +44,7 @@
 
 .nonPrimaryElement {
     background-color: var(--color-button-background);
-    border: var(--border-style)
+    border: var(--border-style);
 }
 
 .nonPrimaryElement:hover {

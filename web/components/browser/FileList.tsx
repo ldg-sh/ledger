@@ -15,6 +15,7 @@ import { ListFileElement } from "@/lib/types/generated/ListFileElement";
 import { useSort } from "@/context/SortContext";
 import { setGlobalLoading } from "@/context/LoadingContext";
 import { useFile } from "@/context/FileExplorerContext";
+import styles from "./FileList.module.scss";
 
 interface FileListProps {
   parentContainerRef?: React.RefObject<HTMLDivElement>;
@@ -513,7 +514,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
             file={file}
           />
         ))}
-        <div style={{ height: "100px", width: "100%" }} />
+        <div className={styles.spacer} />
       </div>
       <AnimatePresence>
         {visible && (
