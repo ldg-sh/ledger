@@ -10,6 +10,7 @@ import { InitUploadResponse } from "@/lib/types/generated/InitUploadResponse";
 import { FileUpload, UploadTask } from "@/lib/types/upload";
 import formatDuration from "@/lib/util/time";
 import { useFile } from "@/context/FileExplorerContext";
+import { ListFileElement } from "@/lib/types/generated/ListFileElement";
 
 const CHUNK_SIZE = 5 * 1024 * 1024;
 const MAX_CONCURRENT_UPLOADS = 3;
@@ -35,6 +36,20 @@ export default function TransferWindow() {
       fileContext.currentFolderId,
       CHUNK_SIZE,
     );
+
+    fileContext.setFileData((prev) => {
+      const newFile: ListFileElement = {
+        id: uploadResponse.file_id,
+        file_name: file.name,
+        file_type: "",
+        file_size: 0,
+        created_at: new Date().toISOString(),
+        upload_completed: false,
+        path: fileContext.currentPath,
+      };
+
+      return { ...prev, files: [...prev.files, newFile] };
+    });
 
     return uploadResponse;
   };
@@ -141,6 +156,24 @@ export default function TransferWindow() {
                 fileUpload.etags,
               )
                 .then(() => {
+                  fileContext.setFileData((prev) => {
+                    const updatedFiles = prev.files.map((f) => {
+                      if (f.id === fileUpload.fileId) {
+                        return {
+                          ...f,
+                          file_size: fileUpload.totalBytes,
+                          upload_completed: true,
+                        };
+                      }
+                      return f;
+                    });
+
+                    return {
+                      ...prev,
+                      files: updatedFiles,
+                    };
+                  });
+
                   setTimeout(() => {
                     window.dispatchEvent(
                       new CustomEvent("refresh-file-list", {

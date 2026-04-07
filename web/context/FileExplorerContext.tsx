@@ -84,6 +84,7 @@ export function FileProvider({
 
   const fileData = useMemo(() => {
     if (!isHydrated) return { folders: [], files: [] };
+
     return folderCache[currentFolderId] || { folders: [], files: [] };
   }, [folderCache, currentFolderId, isHydrated]);
 

@@ -1,10 +1,14 @@
 import styles from "./Spinner.module.scss";
 
-export default function Spinner() {
+interface SpinnerProps {
+  height?: number;
+}
+
+export default function Spinner({ height }: SpinnerProps) {
   return (
     <svg
-      width="20"
-      height="20"
+      width={height || 20}
+      height={height || 20}
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
     >

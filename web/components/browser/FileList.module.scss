@@ -3,6 +3,29 @@
     width: 100%;
 }
 
+.emptyState {
+    width: 100%;
+    height: calc(100% - 150px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    font-size: .9rem;
+    color: var(--color-text-secondary);
+    font-weight: 400;
+}
+
+.rowsContainer {
+    height: 100%;
+}
+
+.svg {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 1rem;
+}
+
 @media (max-width: 600px) {
     .spacer {
         height: 200px;

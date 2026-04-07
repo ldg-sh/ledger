@@ -102,7 +102,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
 
       const fileIds = await copyFiles(
         fileIdsToCopy,
-        fileContext.currentFolderId
+        fileContext.currentFolderId,
       );
 
       const event = new CustomEvent("refresh-file-list", {
@@ -237,7 +237,12 @@ export default function FileList({ parentContainerRef }: FileListProps) {
     setIsLoading(true);
     setGlobalLoading(true);
     try {
-      const res = await listFiles(fileContext.currentFolderId, sort, 0, CHUNK_SIZE);
+      const res = await listFiles(
+        fileContext.currentFolderId,
+        sort,
+        0,
+        CHUNK_SIZE,
+      );
 
       if (!res.hasMore) {
         setHasMore(false);
@@ -252,7 +257,13 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       setIsLoading(false);
       setGlobalLoading(false);
     }
-  }, [authLoading, user, sort, fileContext.setBreadcrumbs, fileContext.currentFolderId]);
+  }, [
+    authLoading,
+    user,
+    sort,
+    fileContext.setBreadcrumbs,
+    fileContext.currentFolderId,
+  ]);
 
   const loadMoreData = useCallback(async () => {
     if (authLoading || !hasMore || isLoading) return;
@@ -280,7 +291,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
         (newFile) =>
           !prevData.files.some(
             (existingFile) => existingFile.id === newFile.id,
-          ),
+          ) && newFile.upload_completed,
       );
 
       res.folders = res.folders.filter(
@@ -460,6 +471,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
   return (
     <>
       <div
+        className={styles.rowsContainer}
         onContextMenu={(event) => {
           const target = event.target as HTMLElement;
 
@@ -511,7 +523,29 @@ export default function FileList({ parentContainerRef }: FileListProps) {
             file={file}
           />
         ))}
-        <div className={styles.spacer} />
+        {!isLoading &&
+        fileContext.fileData &&
+        fileContext.fileData.files.length === 0 &&
+        fileContext.fileData.folders.length === 0 ? (
+          <div className={styles.emptyState}>
+            <svg
+              className={styles.svg}
+              width="35"
+              height="35"
+              viewBox="0 0 514 514"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M308.906 43.0439H357.015V156.985H465.892V200.029H514V357.015H205.094V514H43.0439V465.892H0V308.906H156.985V351.951H200.029V308.906H156.985V0H308.906V43.0439ZM156.985 465.892H48.1084V508.936H200.029V357.015H156.985V46.892ZM465.892 308.906H205.094V351.951H508.936V205.094H465.892V308.906ZM308.906 156.985H351.951V48.1084H308.906V156.985Z"
+                fill="var(--color-text-secondary)"
+              />
+            </svg>
+            This folder is empty.
+          </div>
+        ) : (
+          <div className={styles.spacer} />
+        )}
       </div>
       <AnimatePresence>
         {visible && (

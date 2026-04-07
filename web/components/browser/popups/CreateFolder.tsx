@@ -84,6 +84,26 @@ export default function CreateFolder({ onClose }: CreateFolderProps) {
       setIsLoading(false);
 
       const responseData: DirectoryResponse = await res.json();
+      fileContext.setFileData((prevData) => {
+        const newFolders = [...prevData.folders];
+
+        const currentMillis = Date.now().toString();
+
+        newFolders.push({
+          id: responseData.file_id,
+          file_name: value,
+          file_type: "directory",
+          created_at: currentMillis,
+          file_size: 0,
+          upload_completed: true,
+          path: fileContext.currentFolderId,
+        });
+
+        return {
+          ...prevData,
+          folders: newFolders,
+        };
+      });
 
       fileContext.gotoPath(responseData.file_id);
       onClose();
