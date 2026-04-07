@@ -7,7 +7,7 @@ import { AnimatePresence } from "motion/react";
 import { ContextMenu } from "@/components/general/menu/ContextMenu";
 import ContextMenuItem from "@/components/general/menu/ContextMenuItem";
 import { useCustomMenu } from "@/hooks/customMenu";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/util/class";
 
 export default function User() {
@@ -17,34 +17,36 @@ export default function User() {
 
   const [coords, setCoords] = useState({ x: 0, y: 0 });
 
-  if (user.loading) {
-    return <div className={styles.container}></div>;
-  }
+  useEffect(() => {
+    const updateCoords = () => {
+      if (container.current) {
+        const rect = container.current.getBoundingClientRect();
+        setCoords({ x: rect.left, y: rect.bottom });
+      } else {
+        console.warn("User menu container not found for positioning.");
+      }
+    };
+
+    updateCoords();
+
+    window.addEventListener("resize", updateCoords);
+    window.addEventListener("scroll", updateCoords, true);
+
+    return () => {
+      window.removeEventListener("resize", updateCoords);
+      window.removeEventListener("scroll", updateCoords, true);
+    };
+  }, [user.loading]);
 
   if (!user.user) {
     return;
   }
-
-  const onLoad = () => {
-    if (container.current) {
-      const rect = container.current.getBoundingClientRect();
-      setCoords({ x: rect.left, y: rect.bottom });
-    }
-
-    window.addEventListener("resize", () => {
-      if (container.current) {
-        const rect = container.current.getBoundingClientRect();
-        setCoords({ x: rect.left, y: rect.bottom });
-      }
-    });
-  };
 
   return (
     <div
       className={styles.container}
       ref={container}
       onClick={(event) => showMenu(event)}
-      onLoad={onLoad}
     >
       {user.user?.avatar_url ? (
         <Image
@@ -54,9 +56,7 @@ export default function User() {
           width={52}
           height={52}
         />
-      ) : (
-        null
-      )}
+      ) : null}
       <button
         className={cn(styles.info, !user.user?.avatar_url && styles.noAvatar)}
         onClick={(event: React.MouseEvent<HTMLButtonElement>) =>
@@ -69,10 +69,7 @@ export default function User() {
       <AnimatePresence>
         {visible && (
           <div>
-            <ContextMenu
-              x={coords.x + 10}
-              y={coords.y + 10}
-            >
+            <ContextMenu x={coords.x + 10} y={coords.y + 10}>
               <ContextMenuItem
                 label="Log Out"
                 glyph="log-out"
