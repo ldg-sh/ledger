@@ -27,8 +27,6 @@ pub async fn list(
         "type_desc" => (file::Column::FileType, Order::Desc),
         _ => (file::Column::Id, Order::Desc),
     };
-    
-    println!("{:?}", payload);
 
     let files_query = File::find()
         .filter(file::Column::OwnerId.eq(authenticated_user.id.clone()))
@@ -101,6 +99,10 @@ pub async fn list(
         }
     };
     breadcrumbs.reverse();
+
+    if breadcrumbs.is_empty() && !payload.path.is_empty() {
+        return HttpResponse::NotFound().finish();
+    }
 
     HttpResponse::Ok().json(ListFilesResponse {
         breadcrumbs,
