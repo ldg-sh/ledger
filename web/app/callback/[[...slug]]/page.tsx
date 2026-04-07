@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import styles from "./page.module.scss";
+import Spinner from "@/components/svg/Spinner";
 
 export default function CallbackPage() {
   const searchParams = useSearchParams();
@@ -52,7 +53,7 @@ export default function CallbackPage() {
       {error ? (
         <div className={styles.error}><strong>Failed to authenticate:</strong> {error}</div>
       ) : (
-        <div className={styles.loading}>Authenticating...</div>
+        <Spinner height={30} />
       )}
     </div>
   );
