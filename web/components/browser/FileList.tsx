@@ -87,12 +87,9 @@ export default function FileList({ parentContainerRef }: FileListProps) {
     }
   }, [selectedFiles, lastDeliberateClick]);
 
-  const copyFileIdToClipboard = useCallback(
-    async (fileId: string) => {
-      await writeToClipboard(fileId);
-    },
-    [],
-  );
+  const copyFileIdToClipboard = useCallback(async (fileId: string) => {
+    await writeToClipboard(fileId);
+  }, []);
 
   const pasteFileIdsFromClipboard = useCallback(
     async (ids: string[]) => {
@@ -113,7 +110,9 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       const event = new CustomEvent("refresh-file-list", {
         detail: () => {
           const newlyCopiedFiles = fileIds
-            .map((id) => fileContext.fileData?.files.find((file) => file.id === id))
+            .map((id) =>
+              fileContext.fileData?.files.find((file) => file.id === id),
+            )
             .filter((f): f is ListFileElement => !!f);
 
           setSelectedFiles(new Set(newlyCopiedFiles));
@@ -136,7 +135,9 @@ export default function FileList({ parentContainerRef }: FileListProps) {
 
       const event = new CustomEvent("refresh-file-list", {
         detail: () => {
-          const newFile = fileContext.fileData?.files.find((f) => f.id === newId);
+          const newFile = fileContext.fileData?.files.find(
+            (f) => f.id === newId,
+          );
 
           if (newFile) {
             setSelectedFiles(new Set([newFile]));
@@ -237,12 +238,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
     setIsLoading(true);
     setGlobalLoading(true);
     try {
-      const res = await listFiles(
-        currentFolderId,
-        sort,
-        0,
-        CHUNK_SIZE,
-      );
+      const res = await listFiles(currentFolderId, sort, 0, CHUNK_SIZE);
 
       if (!res.hasMore) {
         setHasMore(false);
@@ -256,7 +252,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
     } finally {
       setIsLoading(false);
       setGlobalLoading(false);
-    } 
+    }
   }, [authLoading, user, sort, fileContext.setBreadcrumbs, currentFolderId]);
 
   const loadMoreData = useCallback(async () => {
@@ -465,10 +461,6 @@ export default function FileList({ parentContainerRef }: FileListProps) {
   return (
     <>
       <div
-        style={{
-          opacity: isLoading ? ".5" : "1",
-          transition: "opacity 0.2s",
-        }}
         onContextMenu={(event) => {
           const target = event.target as HTMLElement;
 
