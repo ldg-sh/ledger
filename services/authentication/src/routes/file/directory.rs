@@ -50,7 +50,7 @@ pub async fn directory(
 
             inserts.push(insert);
 
-            base_path = dir.to_string();
+            base_path = id.clone();
             current_id = id;
         }
     });

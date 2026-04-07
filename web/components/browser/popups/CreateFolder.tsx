@@ -109,7 +109,7 @@ export default function CreateFolder({ onClose }: CreateFolderProps) {
           <div className={styles.text}>
             <h1 className={styles.title}>Create New Folder</h1>
             <p className={styles.description}>
-              Folders are created relative to the current path.
+              Folders are created from the current path.
             </p>
           </div>
           <TextInput
