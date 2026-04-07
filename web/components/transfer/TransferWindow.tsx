@@ -102,6 +102,8 @@ export default function TransferWindow() {
         launchWorkers();
       });
     }
+
+    setIsExpanded(true);
   };
 
   const launchWorkers = async () => {
@@ -182,31 +184,27 @@ export default function TransferWindow() {
     const uint8Array = new Uint8Array(await task.chunk.arrayBuffer());
     let uploadedBytes = 0;
 
-    return uploadPart(
-      task.uploadUrl,
-      uint8Array,
-      (bytesSent) => {
-        const newAmount = bytesSent - uploadedBytes;
+    return uploadPart(task.uploadUrl, uint8Array, (bytesSent) => {
+      const newAmount = bytesSent - uploadedBytes;
 
-        if (newAmount > 0) {
-          setTotalUploadedSize((prev) => prev + newAmount);
-        }
+      if (newAmount > 0) {
+        setTotalUploadedSize((prev) => prev + newAmount);
+      }
 
-        setFileUploads((prev) =>
-          prev.map((upload) => {
-            if (upload.fileId === task.fileId) {
-              return {
-                ...upload,
-                bytesUploaded: upload.bytesUploaded + newAmount,
-              };
-            }
-            return upload;
-          }),
-        );
+      setFileUploads((prev) =>
+        prev.map((upload) => {
+          if (upload.fileId === task.fileId) {
+            return {
+              ...upload,
+              bytesUploaded: upload.bytesUploaded + newAmount,
+            };
+          }
+          return upload;
+        }),
+      );
 
-        uploadedBytes = bytesSent;
-      },
-    ).then((etag) => {
+      uploadedBytes = bytesSent;
+    }).then((etag) => {
       return etag;
     });
   };
