@@ -9,14 +9,9 @@ import { useLoading } from "@/context/LoadingContext";
 import { useFile } from "@/context/FileExplorerContext";
 
 export default function Location() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const fileContext = useFile();
-
   const { loading } = useLoading();
-
   const scrollRef = useRef<HTMLDivElement>(null);
-  const pathname = usePathname();
 
   return (
     <div className={styles.locationBar} ref={scrollRef}>
@@ -24,10 +19,7 @@ export default function Location() {
         <span
           className={styles.pathSegment}
           onClick={() => {
-            const params = new URLSearchParams(searchParams.toString());
-            params.set("folder", "");
-
-            router.push(`${pathname}?${params.toString()}`, { scroll: false });
+            fileContext.gotoPath("");
           }}
         >
           {"home"}
@@ -39,12 +31,7 @@ export default function Location() {
               key={index}
               className={styles.pathSegment}
               onClick={() => {
-                const params = new URLSearchParams(searchParams.toString());
-                params.set("folder", fileContext.breadcrumbs[index].id);
-
-                router.push(`${pathname}?${params.toString()}`, {
-                  scroll: false,
-                });
+                fileContext.gotoPath(fileContext.breadcrumbs[index].id);
               }}
             >
               {decodeURIComponent(fileContext.breadcrumbs[index].name)}
@@ -53,11 +40,7 @@ export default function Location() {
               key={index + "-sep"}
               className={styles.seperator}
               onClick={() => {
-                const params = new URLSearchParams(searchParams.toString());
-                params.set("folder", fileContext.breadcrumbs[index].id);
-                router.push(`${pathname}?${params.toString()}`, {
-                  scroll: false,
-                });
+                fileContext.gotoPath(fileContext.breadcrumbs[index].id);
               }}
             >
               {"/"}

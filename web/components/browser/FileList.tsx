@@ -16,11 +16,6 @@ import { useSort } from "@/context/SortContext";
 import { setGlobalLoading } from "@/context/LoadingContext";
 import { useFile } from "@/context/FileExplorerContext";
 
-interface FileListData {
-  folders: ListFileElement[];
-  files: ListFileElement[];
-}
-
 interface FileListProps {
   parentContainerRef?: React.RefObject<HTMLDivElement>;
 }
@@ -36,7 +31,6 @@ export default function FileList({ parentContainerRef }: FileListProps) {
   const lastRefreshTime = useRef<number>(0);
   const THROTTLE_MS = 500;
 
-  const [data, setData] = useState<FileListData | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<Set<ListFileElement>>(
     new Set(),
   );
@@ -59,9 +53,9 @@ export default function FileList({ parentContainerRef }: FileListProps) {
   const { user, loading: authLoading } = useUser();
 
   const getAllFiles = useCallback((): ListFileElement[] => {
-    if (!data) return [];
-    return [...data.folders, ...data.files];
-  }, [data]);
+    if (!fileContext.fileData) return [];
+    return [...fileContext.fileData.folders, ...fileContext.fileData.files];
+  }, [fileContext.fileData]);
 
   const getClipboardData = async (): Promise<string[]> => {
     try {
@@ -105,7 +99,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       const fileIdsToCopy: string[] = [];
 
       ids.forEach((id) => {
-        const file = data?.files.find((file) => file.id === id);
+        const file = fileContext.fileData?.files.find((file) => file.id === id);
         if (file) {
           fileIdsToCopy.push(id);
         }
@@ -119,7 +113,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       const event = new CustomEvent("refresh-file-list", {
         detail: () => {
           const newlyCopiedFiles = fileIds
-            .map((id) => data?.files.find((file) => file.id === id))
+            .map((id) => fileContext.fileData?.files.find((file) => file.id === id))
             .filter((f): f is ListFileElement => !!f);
 
           setSelectedFiles(new Set(newlyCopiedFiles));
@@ -127,12 +121,12 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       });
       window.dispatchEvent(event);
     },
-    [data, fileContext],
+    [fileContext],
   );
 
   const pasteFileIdFromClipboard = useCallback(
     async (id: string) => {
-      const file = data?.files.find((file) => file.id === id);
+      const file = fileContext.fileData?.files.find((file) => file.id === id);
 
       let newId = "";
 
@@ -142,7 +136,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
 
       const event = new CustomEvent("refresh-file-list", {
         detail: () => {
-          const newFile = data?.files.find((f) => f.id === newId);
+          const newFile = fileContext.fileData?.files.find((f) => f.id === newId);
 
           if (newFile) {
             setSelectedFiles(new Set([newFile]));
@@ -153,7 +147,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       });
       window.dispatchEvent(event);
     },
-    [data, fileContext],
+    [fileContext],
   );
 
   const handleSelectAll = useCallback(() => {
@@ -256,7 +250,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
         setHasMore(true);
       }
 
-      setData(res);
+      fileContext.setFileData(res);
 
       fileContext.setBreadcrumbs(res.breadcrumbs);
     } finally {
@@ -284,7 +278,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       setHasMore(true);
     }
 
-    setData((prevData) => {
+    fileContext.setFileData((prevData) => {
       if (!prevData) return res;
 
       res.files = res.files.filter(
@@ -344,8 +338,8 @@ export default function FileList({ parentContainerRef }: FileListProps) {
           typeof event.detail === "string"
         ) {
           const file =
-            data?.files.find((f) => f.id === event.detail) ||
-            data?.folders.find((f) => f.id === event.detail);
+            fileContext.fileData?.files.find((f) => f.id === event.detail) ||
+            fileContext.fileData?.folders.find((f) => f.id === event.detail);
 
           if (selectedFiles.size === 0 && file) {
             setSelectedFiles(new Set([file]));
@@ -355,7 +349,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
         setIsRefreshing(false);
       }
     },
-    [isRefreshing, loadData, data, selectedFiles.size],
+    [isRefreshing, loadData, fileContext.fileData, selectedFiles.size],
   );
 
   useEffect(() => {
@@ -486,8 +480,8 @@ export default function FileList({ parentContainerRef }: FileListProps) {
           const fileName = rowElement?.getAttribute("data-file-name");
 
           const file =
-            data?.files.find((f) => f.id === fileId) ||
-            data?.folders.find((f) => f.id === fileId);
+            fileContext.fileData?.files.find((f) => f.id === fileId) ||
+            fileContext.fileData?.folders.find((f) => f.id === fileId);
 
           if (fileId && fileName) {
             setRightClickedFile(file || null);
@@ -499,7 +493,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
           showMenu(event);
         }}
       >
-        {data?.folders.map((folder) => (
+        {fileContext.fileData?.folders.map((folder) => (
           <Row
             key={folder.id}
             fileId={folder.id}
@@ -513,7 +507,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
             file={folder}
           />
         ))}
-        {data?.files.map((file) => (
+        {fileContext.fileData?.files.map((file) => (
           <Row
             key={file.id}
             fileName={file.file_name}

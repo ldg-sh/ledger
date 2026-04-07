@@ -1,21 +1,35 @@
 "use client";
 
 import { Breadcrumb } from "@/lib/types/generated/Breadcrumb";
-import { createContext, ReactNode, useContext, useState, useMemo } from "react";
+import { ListFileElement } from "@/lib/types/generated/ListFileElement";
+import { usePathname, useSearchParams, useRouter } from "next/navigation"; // Note: useRouter from navigation for App Router
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useState,
+  useMemo,
+  Dispatch,
+  SetStateAction,
+  useCallback,
+} from "react";
+
+interface FileListData {
+  folders: ListFileElement[];
+  files: ListFileElement[];
+}
 
 interface FileContextType {
   currentPath: string;
   breadcrumbs: Breadcrumb[];
-  setBreadcrumbs: (crumbs: Breadcrumb[]) => void;
+  fileData: FileListData;
+  setBreadcrumbs: Dispatch<SetStateAction<Breadcrumb[]>>;
+  setFileData: Dispatch<SetStateAction<FileListData>>;
   getPathFromUrl: () => string;
+  gotoPath: (id: string) => void;
 }
 
-const FileContext = createContext<FileContextType>({
-  currentPath: "",
-  breadcrumbs: [],
-  setBreadcrumbs: () => {},
-  getPathFromUrl: () => "",
-});
+const FileContext = createContext<FileContextType | undefined>(undefined);
 
 export function FileProvider({
   children,
@@ -25,25 +39,57 @@ export function FileProvider({
   initialPath: string;
 }) {
   const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([]);
+  const [fileData, setFileData] = useState<FileListData>({
+    folders: [],
+    files: [],
+  });
 
-  const value = useMemo(() => ({
-    currentPath: initialPath,
-    breadcrumbs,
-    setBreadcrumbs,
-    getPathFromUrl: () => initialPath,
-  }), [initialPath, breadcrumbs]); 
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
-  return (
-    <FileContext.Provider value={value}>
-      {children}
-    </FileContext.Provider>
+  const gotoPath = useCallback(
+    (id: string) => {
+      const currentFolderId = searchParams.get("folder") || "";
+      if (currentFolderId === id) {
+        return;
+      }
+
+      setFileData({ folders: [], files: [] });
+
+      if (id === "") {
+        setBreadcrumbs([]);
+
+        router.push(`${pathname}`);
+      } else {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set("folder", id);
+
+        router.push(`${pathname}?${params.toString()}`);
+      }
+    },
+    [pathname, router, searchParams],
   );
+
+  const value = useMemo(
+    () => ({
+      currentPath: initialPath,
+      breadcrumbs,
+      setBreadcrumbs,
+      fileData,
+      setFileData,
+      getPathFromUrl: () => initialPath,
+      gotoPath,
+    }),
+    [initialPath, breadcrumbs, fileData, gotoPath],
+  );
+  return <FileContext.Provider value={value}>{children}</FileContext.Provider>;
 }
 
 export const useFile = () => {
   const context = useContext(FileContext);
   if (!context) {
-    console.error("useFile was used outside of FileProvider");
+    throw new Error("useFile must be used within a FileProvider");
   }
   return context;
 };

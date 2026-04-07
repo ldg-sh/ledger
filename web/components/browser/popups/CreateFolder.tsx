@@ -16,10 +16,6 @@ interface CreateFolderProps {
 }
 
 export default function CreateFolder({ onClose }: CreateFolderProps) {
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const router = useRouter();
-
   const fileContext = useFile();
 
   const [value, setValue] = useState("");
@@ -90,10 +86,7 @@ export default function CreateFolder({ onClose }: CreateFolderProps) {
 
       const responseData: DirectoryResponse = await res.json();
 
-      const params = new URLSearchParams(searchParams.toString());
-      params.set("folder", responseData.file_id);
-
-      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      fileContext.gotoPath(responseData.file_id);
       onClose();
     });
   }

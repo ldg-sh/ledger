@@ -45,10 +45,7 @@ export default function Row({
   clickCallback,
   file,
 }: RowProps) {
-  const router = useRouter();
-  const pathname = usePathname();
   const fileContext = useFile();
-  const searchParams = useSearchParams();
   const loadingContext = useLoading();
 
   const moreOptionsRef = useRef<HTMLDivElement>(null);
@@ -130,10 +127,7 @@ export default function Row({
               },
             ]);
 
-            const params = new URLSearchParams(searchParams.toString());
-            params.set("folder", fileId);
-
-            router.push(`${pathname}?${params.toString()}`, { scroll: false });
+            fileContext.gotoPath(fileId);
           } else {
             window.open(`/preview/${currentPath}/${fileId}`, "_blank");
           }
