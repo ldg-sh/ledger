@@ -74,6 +74,7 @@ export default function Row({
     video: Icons.FileVideo,
     pdf: Icons.FileText,
     default: Icons.File,
+    audio: Icons.FileAudio,
   };
 
   const iconKey = folder ? "folder" : fileType.split("/")[0] || "default";
