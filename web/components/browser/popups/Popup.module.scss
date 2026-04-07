@@ -40,13 +40,13 @@
 
 @media (max-width: 600px) {
     .popupChildren {
-        padding: 20px;
-        min-width: calc(100vw - 80px);
-        border-radius: 18px;
+        padding: 15px;
+        max-width: calc(100vw - 60px);
+        border-radius: 12px;
     }
 
     .close {
-        top: 20px;
-        right: 20px;
+        top: 15px;
+        right: 15px;
     }
 }
