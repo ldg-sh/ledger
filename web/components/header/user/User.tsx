@@ -70,8 +70,8 @@ export default function User() {
         {visible && (
           <div>
             <ContextMenu
-              x={coords.x + 5}
-              y={coords.y + 5}
+              x={coords.x + 10}
+              y={coords.y + 10}
             >
               <ContextMenuItem
                 label="Log Out"
