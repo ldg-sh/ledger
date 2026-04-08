@@ -3,7 +3,7 @@ import { authenticatedFetch } from "../api/apiClient";
 export const handleClientDownload = async (fileIds: string[], fileName?: string) => {
   if (fileIds.length === 0) return;
 
-  if (fileIds.length === 1) {
+  if (fileIds.length === 1 && fileName) {
     const res = await authenticatedFetch(`/download/create`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -43,7 +43,7 @@ export const handleClientDownload = async (fileIds: string[], fileName?: string)
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = fileName || "archive.zip";
+      a.download = fileName || "ledger-archive-" + new Date().toISOString() + ".zip";
       a.click();
       window.URL.revokeObjectURL(url);
     }

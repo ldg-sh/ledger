@@ -627,7 +627,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
                       ? [rightClickedFile]
                       : [];
 
-                  if (files.length == 1) {
+                  if (files.length == 1 && files[0].file_type !== "directory") {
                     handleClientDownload([files[0].id], files[0].file_name);
                   } else {
                     handleClientDownload(files.map((f) => f.id));
