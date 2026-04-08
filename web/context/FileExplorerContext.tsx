@@ -18,7 +18,7 @@ import {
 import { listFiles } from "@/lib/api/file";
 import { useSort } from "./SortContext";
 
-const ledgerStore = createStore("ledger", "folder-cache");
+const ledgerStore = createStore("ledger-folder", "folder-cache");
 
 interface FileListData {
   folders: ListFileElement[];

@@ -1,5 +1,6 @@
 "use client";
 
+import { createStore, del, get, set } from "idb-keyval";
 import { useRouter } from "next/navigation";
 import {
   createContext,
@@ -27,12 +28,21 @@ const EDGE_URL = process.env.NEXT_PUBLIC_EDGE_URL || "http://localhost:8787";
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
+const ledgerStore = createStore("ledger-user", "user-cache");
+
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   const initAuth = useCallback(async () => {
+    const potentialCache = await get<User>("user", ledgerStore);
+    if (potentialCache) {
+      setUser(potentialCache);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       let res = await fetch(`${EDGE_URL}/user/info`, {
@@ -54,13 +64,19 @@ export function UserProvider({ children }: { children: ReactNode }) {
       if (res.ok) {
         const data = await res.json();
         setUser(data);
+
+        await set("user", data, ledgerStore);
       } else {
         setUser(null);
         attemptRedirect();
+
+        await del("user", ledgerStore);
       }
     } catch (error) {
       setUser(null);
       attemptRedirect();
+
+      await del("user", ledgerStore);
 
       console.error("Error fetching user info:", error);
     } finally {
@@ -111,6 +127,8 @@ export const logout = async () => {
 
     credentials: "include",
   });
+
+  await del("user", ledgerStore);
 
   document.dispatchEvent(new CustomEvent("reload-user"));
 };
