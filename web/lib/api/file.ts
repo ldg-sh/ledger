@@ -53,23 +53,6 @@ export async function listFiles(directoryPath: string, sort: string, offset: num
   return { files: fileList, folders: folders, hasMore: json.has_more, breadcrumbs: json.breadcrumbs };
 }
 
-export async function fetchUrl(fileId: string) {
-  const request: InitDownloadRequest = {
-    file_id: fileId,
-  };
-
-  const res = await authenticatedFetch(`/download/create`, {
-    method: "POST",
-    body: JSON.stringify(request),
-  });
-
-  const json: InitDownloadResponse = await res.json();
-
-  if (!res.ok) throw new Error("Failed to fetch download URL");
-
-  return json.download_url;
-}
-
 export async function createUpload(
   fileName: string,
   fileSize: number,
