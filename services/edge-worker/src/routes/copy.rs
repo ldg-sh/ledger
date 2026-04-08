@@ -12,7 +12,7 @@ pub async fn handle_copy(mut req: Request, ctx: RouteContext<Arc<AppState>>) -> 
 
     let response = state.config.make_internal_request::<_, Value>(
         "/internal/file/copy",
-        &user.id,
+        &user,
         Method::Post,
         &payload
     ).await?;

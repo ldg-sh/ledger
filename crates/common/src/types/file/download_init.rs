@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 #[ts(export)]
 pub struct InitDownloadRequest {
     pub file_id: String,
+    pub file_name: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

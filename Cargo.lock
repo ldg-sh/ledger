@@ -555,6 +555,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "async_zip"
+version = "0.0.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0d8c50d65ce1b0e0cb65a785ff615f78860d7754290647d3b983208daa4f85e6"
+dependencies = [
+ "crc32fast",
+ "futures-lite",
+ "pin-project",
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "atoi"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -581,6 +593,7 @@ dependencies = [
  "dotenv",
  "env_logger",
  "futures",
+ "jsonwebtoken",
  "log",
  "migration",
  "reqwest",
@@ -1773,6 +1786,7 @@ dependencies = [
 name = "edge-worker"
 version = "0.1.0"
 dependencies = [
+ "async_zip",
  "common",
  "getrandom 0.2.17",
  "getrandom 0.3.4",
@@ -1783,6 +1797,8 @@ dependencies = [
  "serde_json",
  "uuid",
  "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
  "worker",
 ]
 
@@ -2077,6 +2093,19 @@ name = "futures-io"
 version = "0.3.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cecba35d7ad927e23624b22ad55235f2239cfa44fd10428eecbeba6d6a717718"
+
+[[package]]
+name = "futures-lite"
+version = "2.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f78e10609fe0e0b3f4157ffab1876319b5b0db102a2c60dc4626306dc46b44ad"
+dependencies = [
+ "fastrand",
+ "futures-core",
+ "futures-io",
+ "parking",
+ "pin-project-lite",
+]
 
 [[package]]
 name = "futures-macro"

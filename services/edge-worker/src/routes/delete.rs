@@ -11,7 +11,7 @@ pub async fn handle_delete(mut req: Request, ctx: RouteContext<Arc<AppState>>) -
 
     let _response = state.config.make_internal_request::<_, serde_json::Value>(
         "/internal/file/delete",
-        &user.id,
+        &user,
         Method::Delete,
         &payload
     ).await?;

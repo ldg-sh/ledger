@@ -13,7 +13,7 @@ pub async fn handle_directory(mut req: Request, ctx: RouteContext<Arc<AppState>>
 
     let response = state.config.make_internal_request::<_, Value>(
         "/internal/file/directory/create",
-        &user.id,
+        &user,
         Method::Post,
         &payload
     ).await?;
@@ -34,7 +34,7 @@ pub async fn handle_directory_delete(mut req: Request, ctx: RouteContext<Arc<App
 
     let response = state.config.make_internal_request::<_, ()>(
         "/internal/file/directory/delete",
-        &user.id,
+        &user,
         Method::Delete,
         &payload
     ).await?;

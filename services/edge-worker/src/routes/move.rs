@@ -11,7 +11,7 @@ pub async fn handle_move(mut req: Request, ctx: RouteContext<Arc<AppState>>) -> 
 
     let response = state.config.make_internal_request::<_, serde_json::Value>(
         "/internal/file/move",
-        &user.id,
+        &user,
         Method::Post,
         &payload
     ).await?;

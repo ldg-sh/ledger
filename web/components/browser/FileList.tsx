@@ -15,6 +15,7 @@ import { useSort } from "@/context/SortContext";
 import { setGlobalLoading } from "@/context/LoadingContext";
 import { useFile } from "@/context/FileExplorerContext";
 import styles from "./FileList.module.scss";
+import { handleClientDownload } from "@/lib/util/download";
 
 interface FileListProps {
   parentContainerRef?: React.RefObject<HTMLDivElement>;
@@ -618,15 +619,19 @@ export default function FileList({ parentContainerRef }: FileListProps) {
                 label="Download"
                 glyph="download"
                 onClick={() => {
-                  const fileIds = Array.from(selectedFiles);
-                  fileIds.forEach((fileId) => {
-                    const link = document.createElement("a");
-                    link.href = `/api/download/${fileId}`;
-                    link.download = "";
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                  });
+                  const files = Array.from(selectedFiles).some(
+                    (f) => f.id === rightClickedFile?.id,
+                  )
+                    ? Array.from(selectedFiles)
+                    : rightClickedFile
+                      ? [rightClickedFile]
+                      : [];
+
+                  if (files.length == 1) {
+                    handleClientDownload([files[0].id], files[0].file_name);
+                  } else {
+                    handleClientDownload(files.map((f) => f.id));
+                  }
                   hideMenu();
                 }}
               />

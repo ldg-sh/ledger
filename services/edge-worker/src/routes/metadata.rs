@@ -22,7 +22,7 @@ pub async fn handle_metadata(
 
     let metadata = state
         .config
-        .make_internal_request::<_, Value>("/internal/file/metadata", &user.id, Method::Post, &payload)
+        .make_internal_request::<_, Value>("/internal/file/metadata", &user, Method::Post, &payload)
         .await?;
 
     kv.put(&cache_key, &metadata.1)?

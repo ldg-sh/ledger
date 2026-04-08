@@ -8,7 +8,7 @@ use worker::*;
 #[derive(Debug, Clone)]
 pub struct AuthenticatedUser {
     pub id: String,
-
+    pub session_token: String,
 }
 
 pub(crate) async fn get_authenticated_user(req: &Request, ctx: &RouteContext<Arc<AppState>>) -> Result<AuthenticatedUser, AuthError> {
@@ -35,5 +35,6 @@ pub(crate) async fn get_authenticated_user(req: &Request, ctx: &RouteContext<Arc
 
     Ok(AuthenticatedUser {
         id: token_data.claims.user_id.to_string(),
+        session_token: session_token.to_string(),
     })
 }

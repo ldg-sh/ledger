@@ -11,7 +11,7 @@ pub async fn handle_rename(mut req: Request, ctx: RouteContext<Arc<AppState>>) -
 
     let _response = state.config.make_internal_request::<_, serde_json::Value>(
         "/internal/file/rename",
-        &user.id,
+        &user,
         Method::Post,
         &payload
     ).await?;

@@ -21,7 +21,7 @@ pub async fn handle_info(req: Request, ctx: RouteContext<Arc<AppState>>) -> Resu
 
     let metadata = state
         .config
-        .make_internal_request::<_, Value>("/internal/user/info", &user.id, Method::Post, &user_request)
+        .make_internal_request::<_, Value>("/internal/user/info", &user, Method::Post, &user_request)
         .await?;
 
     if metadata.0 != 200 {

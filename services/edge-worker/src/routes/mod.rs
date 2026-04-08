@@ -8,3 +8,4 @@ pub(crate) mod delete;
 pub(crate) mod r#move;
 pub(crate) mod directory;
 pub(crate) mod list;
+pub(crate) mod zip;

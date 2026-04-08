@@ -15,6 +15,7 @@ import { ListFileElement } from "@/lib/types/generated/ListFileElement";
 import { useFile } from "@/context/FileExplorerContext";
 import * as Icons from "lucide-react";
 import { useLoading } from "@/context/LoadingContext";
+import { handleClientDownload } from "@/lib/util/download";
 
 interface RowProps {
   fileName: string;
@@ -116,7 +117,7 @@ export default function Row({
   const IconComponent = ICON_MAP[iconKey] || ICON_MAP.default;
 
   function handleDownload() {
-    window.location.assign(`/api/download/${fileId}`);
+    handleClientDownload([fileId], fileName);
   }
 
   return (

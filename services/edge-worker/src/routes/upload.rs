@@ -40,7 +40,7 @@ pub async fn handle_create(mut req: Request, ctx: RouteContext<Arc<AppState>>) -
         .config
         .make_internal_request::<_, Value>(
             "/internal/upload/init",
-            &user.id,
+            &user,
             Method::Post,
             &internal_req,
         )
@@ -96,7 +96,7 @@ pub async fn handle_complete(
         .config
         .make_internal_request::<_, ()>(
             "/internal/upload/complete",
-            &user.id,
+            &user,
             Method::Post,
             &req_body,
         )

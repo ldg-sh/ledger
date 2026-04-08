@@ -1,6 +1,7 @@
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use worker::{Env, Fetch, Headers, Method, Request, RequestInit};
+use crate::authentication::authentication::AuthenticatedUser;
 
 #[derive(Debug, Clone)]
 pub struct Configuration {
@@ -34,14 +35,17 @@ impl Configuration {
     pub async fn make_internal_request<T: Serialize, R: DeserializeOwned>(
         &self,
         path: &str,
-        user_id: &str,
+        user: &AuthenticatedUser,
         method: Method,
         payload: &T,
     ) -> Result<(u16, serde_json::Value), worker::Error> {
         let headers = Headers::new();
         headers.set("Content-Type", "application/json")?;
-        headers.set("x-user-id", user_id)?;
+        headers.set("x-user-id", user.id.as_str())?;
 
+        let cookie_value = format!("session={}", user.session_token);
+        headers.set("Cookie", &cookie_value)?;
+        
         let url = format!("{}{}", self.auth_server_uri, path);
 
         let request = Request::new_with_init(

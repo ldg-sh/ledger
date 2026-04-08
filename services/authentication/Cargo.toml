@@ -26,3 +26,4 @@ chrono = "0.4.44"
 aws-sdk-s3 = "1.127.0"
 webauthn-rs = { version = "0.5.4", features = ["danger-allow-state-serialisation", "conditional-ui"] }
 base64 = "0.22.1"
+jsonwebtoken = "10.3.0"

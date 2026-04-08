@@ -26,7 +26,10 @@ pub async fn handle_create(mut req: Request, ctx: RouteContext<Arc<AppState>>) -
 
     let url = format!("{}/{}", authenticated_user.id, req_body.file_id);
 
-    let action = bucket.get_object(Some(&credentials), url.as_str());
+    let mut action = bucket.get_object(Some(&credentials), url.as_str());
+    action.query_mut()
+        .insert("response-content-disposition", format!("attachment; filename=\"{}\"", req_body.file_name));
+
     let presigned_url = action.sign(presigned_url_duration);
 
     Response::from_json(&InitDownloadResponse {
