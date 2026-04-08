@@ -7,3 +7,4 @@ pub mod metadata;
 pub mod upload;
 pub mod directory;
 pub mod delete_directory;
+pub mod explode;

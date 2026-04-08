@@ -68,11 +68,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
         await set("user", data, ledgerStore);
       } else {
         setUser(null);
+        console.error("Failed to fetch user info, status:", res.status);
         attemptRedirect();
 
         await del("user", ledgerStore);
       }
     } catch (error) {
+      console.error("Error during authentication:", error);
       setUser(null);
       attemptRedirect();
 

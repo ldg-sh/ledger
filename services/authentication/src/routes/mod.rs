@@ -15,6 +15,7 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
             )
             .service(
                 web::scope("/file")
+                    .service(explode::explode)
                     .service(list::list)
                     .service(copy::copy)
                     .service(delete::delete)
