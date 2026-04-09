@@ -37,6 +37,8 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, wor
         .post_async("/upload/create", routes::upload::handle_create)
         .post_async("/upload/complete", routes::upload::handle_complete)
         .post_async("/download/create", routes::download::handle_create)
+        .post_async("/download/share/create", routes::share_download::handle_share_download)
+        .post_async("/file/share", routes::share::handle_share)
         .post_async("/file/metadata", routes::metadata::handle_metadata)
         .post_async("/file/copy", routes::copy::handle_copy)
         .delete_async("/file/delete", routes::delete::handle_delete)

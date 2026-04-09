@@ -1,6 +1,6 @@
 "use client";
 
-import { copyFiles, listFiles } from "@/lib/api/file";
+import { copyFiles, getShareLink, listFiles } from "@/lib/api/file";
 import Row from "./Row";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useUser } from "@/context/UserContext";
@@ -604,13 +604,26 @@ export default function FileList({ parentContainerRef }: FileListProps) {
                   }}
                 />
               )}
-              {selectedFiles.size === 1 && (
+              {(selectedFiles.size === 1 || rightClickedFile != null) && (
                 <ContextMenuItem
-                  label="Copy Link"
+                  label="Copy Shareable Link"
                   glyph="link"
-                  onClick={() => {
-                    const fileId = Array.from(selectedFiles)[0].id;
-                    copyFileIdToClipboard(fileId);
+                  onClick={async () => {
+                    const targetFile =
+                      rightClickedFile ?? selectedFiles.values().next().value;
+
+                    if (targetFile?.id) {
+                      try {
+                        const url = await getShareLink(
+                          targetFile.id,
+                          targetFile.file_name,
+                        );
+                        await navigator.clipboard.writeText(url);
+                      } catch (err) {
+                        console.error("Failed to copy share link:", err);
+                      }
+                    }
+
                     hideMenu();
                   }}
                 />

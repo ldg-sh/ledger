@@ -24,6 +24,10 @@ id = "acf6f93fc500499eab68e751b377f54a"
 binding = "USER_CACHE"
 id = "423b2f30666c496a846a4782f0e00c5b"
 
+[[env.production.kv_namespaces]]
+binding = "DOWNLOAD_SESSIONS"
+id = "d1e7b1cf0bb64150be0c94ecb0845576"
+
 [[env.production.routes]]
 pattern = "api.ldg.sh"
 custom_domain = true
@@ -47,3 +51,7 @@ id = "acf6f93fc500499eab68e751b377f54a"
 [[env.dev.kv_namespaces]]
 binding = "USER_CACHE"
 id = "423b2f30666c496a846a4782f0e00c5b"
+
+[[env.dev.kv_namespaces]]
+binding = "DOWNLOAD_SESSIONS"
+id = "d1e7b1cf0bb64150be0c94ecb0845576"

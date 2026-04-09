@@ -16,6 +16,7 @@ import { useFile } from "@/context/FileExplorerContext";
 import * as Icons from "lucide-react";
 import { useLoading } from "@/context/LoadingContext";
 import { handleClientDownload } from "@/lib/util/download";
+import { getShareLink } from "@/lib/api/file";
 
 interface RowProps {
   fileName: string;
@@ -236,11 +237,11 @@ export default function Row({
                 }}
               />
               <ContextMenuItem
-                label="Copy Link"
+                label="Copy Shareable Link"
                 glyph="link"
-                onClick={() => {
-                  const link = `${window.location.origin}/api/download/${fileId}`;
-                  navigator.clipboard.writeText(link);
+                onClick={async () => {
+                  const url = await getShareLink(fileId, fileName)
+                  navigator.clipboard.writeText(url);
                   hideMenu();
                 }}
               />

@@ -1,17 +1,17 @@
 "use client";
-import { authenticatedFetch } from "./apiClient";
-import { ListFilesRequest } from "../types/generated/ListFilesRequest";
-import { ListFilesResponse } from "../types/generated/ListFilesResponse";
-import { ListFileElement } from "../types/generated/ListFileElement";
-import { InitDownloadRequest } from "../types/generated/InitDownloadRequest";
-import { InitDownloadResponse } from "../types/generated/InitDownloadResponse";
-import { InitUploadRequest } from "../types/generated/InitUploadRequest";
-import { InitUploadResponse } from "../types/generated/InitUploadResponse";
-import { RenameFileRequest } from "../types/generated/RenameFileRequest";
-import { DeleteFilesRequest } from "../types/generated/DeleteFilesRequest";
-import { CopyFilesRequest } from "../types/generated/CopyFilesRequest";
-import { CopyFilesResponse } from "../types/generated/CopyFilesResponse";
-import { CompleteUploadRequest } from "../types/generated/CompleteUploadRequest";
+import {authenticatedFetch} from "./apiClient";
+import {ListFilesRequest} from "../types/generated/ListFilesRequest";
+import {ListFilesResponse} from "../types/generated/ListFilesResponse";
+import {ListFileElement} from "../types/generated/ListFileElement";
+import {InitUploadRequest} from "../types/generated/InitUploadRequest";
+import {InitUploadResponse} from "../types/generated/InitUploadResponse";
+import {RenameFileRequest} from "../types/generated/RenameFileRequest";
+import {DeleteFilesRequest} from "../types/generated/DeleteFilesRequest";
+import {CopyFilesRequest} from "../types/generated/CopyFilesRequest";
+import {CopyFilesResponse} from "../types/generated/CopyFilesResponse";
+import {CompleteUploadRequest} from "../types/generated/CompleteUploadRequest";
+import {ShareRequest} from "../types/generated/ShareRequest";
+import {ShareResponse} from "../types/generated/ShareResponse";
 
 export async function listFiles(directoryPath: string, sort: string, offset: number = 0, limit: number = 1000) {
   const request: ListFilesRequest = {
@@ -193,4 +193,24 @@ export async function copyFiles(fileIds: string[], destinationPath: string) {
   if (!res.ok) throw new Error("Failed to copy file");
 
   return json.file_ids;
+}
+
+
+export async function getShareLink(fileId: string, fileName: string) {
+  const request: ShareRequest = {
+    file_id: fileId,
+    file_name: fileName,
+  };
+
+  const res = await authenticatedFetch(`/file/share`, {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+
+  const json: ShareResponse = await res.json();
+
+  if (!res.ok) throw new Error("Failed to create share token");
+
+  const baseUrl = window.location.origin;
+  return `${baseUrl}/api/download?t=${json.token}`;
 }

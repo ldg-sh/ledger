@@ -1,89 +1,44 @@
-"use client";
+import { ShareDownloadRequest } from "@/lib/types/generated/ShareDownloadRequest";
+import { ShareDownloadResponse } from "@/lib/types/generated/ShareDownloadResponse";
 
-import { authenticatedFetch } from "@/lib/api/apiClient";
-
-import { InitDownloadRequest } from "@/lib/types/generated/InitDownloadRequest";
-
-import { ZipRequest } from "@/lib/types/generated/ZipRequest";
+const EDGE_URL = process.env.NEXT_PUBLIC_EDGE_URL || "http://localhost:8787";
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const preview = searchParams.get("preview") === "true";
-  const idsParam = searchParams.get("ids");
-  const fileIds = idsParam ? idsParam.split(",") : [];
+    const { searchParams } = new URL(request.url);
+  const token = searchParams.get("t");
 
-  if (fileIds.length === 0) {
-    return new Response("No file specified", { status: 400 });
-  }
+  if (!token) return new Response("Unauthorized", { status: 401 });
 
-  let res: Response;
+  const req: ShareDownloadRequest = {
+    token,
+  };
 
-  if (fileIds.length === 1) {
-    const fileName = searchParams.get("name") || "file";
+  const presignRes = await fetch(`${EDGE_URL}/download/share/create`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(req),
+  });
 
-    const req: InitDownloadRequest = {
-      file_id: fileIds[0],
-      file_name: fileName,
-    };
-
-    const presignRes = await authenticatedFetch(`/download/create`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(req),
+  if (!presignRes.ok)
+    return new Response("Failed to get link: " + (await presignRes.text()), {
+      status: 500,
     });
 
-    if (!presignRes.ok) {
-      return new Response("Error", { status: presignRes.status });
-    }
+  const res: ShareDownloadResponse = await presignRes.json();
 
-    const { download_url } = await presignRes.json();
+  const fileRes = await fetch(res.presigned_url);
 
-    res = await fetch(download_url);
-  } else {
-    const req: ZipRequest = {
-      item_ids: fileIds,
-    };
+  const contentDisposition = fileRes.headers.get("Content-Disposition");
+  const fileNameMatch = contentDisposition?.match(/filename="(.+)"/);
+  const fileName = fileNameMatch ? fileNameMatch[1] : "ledger-download-" + new Date().toISOString();
 
-    res = await authenticatedFetch(`/file/zip`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(req),
-    });
-  }
-
-  if (!res.ok) return new Response("Error", { status: res.status });
-
-  const headers = new Headers();
-
-  headers.set(
-    "Content-Type",
-    res.headers.get("Content-Type") || "application/octet-stream",
-  );
-
-  const totalSize = res.headers.get("Content-Length");
-
-  if (totalSize) {
-    headers.set("Content-Length", totalSize);
-  }
-
-  const fileName =
-    res.headers
-      .get("Content-Disposition")
-      ?.split("filename=")[1]
-      ?.replace(/"/g, "") || "file";
-
-  headers.set(
-    "Content-Disposition",
-    preview ? "inline" : `attachment; filename="${fileName}"`,
-  );
-
-  headers.set("X-Content-Type-Options", "nosniff");
-  headers.set("X-Accel-Buffering", "no");
-  headers.set("Cache-Control", "no-transform");
-
-  return new Response(res.body, { headers });
+  return new Response(fileRes.body, {
+    headers: {
+      "Content-Type":
+        fileRes.headers.get("Content-Type") || "application/octet-stream",
+      "Content-Disposition": `attachment; filename="${fileName}"`,
+      "Content-Length": fileRes.headers.get("Content-Length") || "0",
+      "Cache-Control": "no-store",
+    },
+  });
 }

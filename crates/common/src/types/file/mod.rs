@@ -10,3 +10,4 @@ pub mod download_init;
 pub mod directory;
 pub mod directory_delete;
 pub mod explode;
+pub mod share;

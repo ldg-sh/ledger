@@ -9,3 +9,5 @@ pub(crate) mod r#move;
 pub(crate) mod directory;
 pub(crate) mod list;
 pub(crate) mod zip;
+pub(crate) mod share;
+pub(crate) mod share_download;

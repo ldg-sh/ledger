@@ -10,6 +10,7 @@ pub struct Configuration {
     pub endpoint: String,
     pub bucket: String,
     pub jwt_secret: String,
+    pub share_secret: String,
     pub auth_server_uri: String,
 }
 
@@ -26,6 +27,7 @@ impl Configuration {
             endpoint: env.var("ENDPOINT").unwrap().to_string(),
             bucket: env.var("BUCKET").unwrap().to_string(),
             jwt_secret: env.var("JWT_SECRET").unwrap().to_string(),
+            share_secret: env.var("SHARE_SECRET").unwrap().to_string(),
             auth_server_uri: env.var("AUTH_SERVER_URI").unwrap().to_string(),
         };
 
