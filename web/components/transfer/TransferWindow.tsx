@@ -41,7 +41,7 @@ export default function TransferWindow() {
       const newFile: ListFileElement = {
         id: uploadResponse.file_id,
         file_name: file.name,
-        file_type: "",
+        file_type: file.type,
         file_size: 0,
         created_at: new Date().toISOString(),
         upload_completed: false,
@@ -95,6 +95,7 @@ export default function TransferWindow() {
                 fileId: fileId,
                 uploadUrls: uploadUrls,
                 uploadId: uploadResponse.upload_id,
+                
                 status: "Uploading...",
               };
             }
