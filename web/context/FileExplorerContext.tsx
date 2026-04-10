@@ -80,7 +80,7 @@ export function FileProvider({
     }
 
     initCurrentFolder();
-  }, []);
+  }, [searchParams]);
 
   const fileData = useMemo(() => {
     if (!isHydrated) return { folders: [], files: [] };
