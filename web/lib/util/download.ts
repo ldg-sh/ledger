@@ -1,12 +1,19 @@
 "use client";
 
 import { authenticatedFetch } from "../api/apiClient";
-import streamSaver from "streamsaver";
 
 export const handleClientDownload = async (
   fileIds: string[],
   fileName?: string,
 ) => {
+  if (typeof window === "undefined") return;
+
+  const streamSaver = (await import("streamsaver")).default;
+
+  if (!document) {
+    console.error("Document is not defined. Cannot initiate download.");
+  }
+
   if (fileIds.length === 0) return;
 
   if (fileIds.length === 1 && fileName) {
@@ -44,7 +51,7 @@ export const handleClientDownload = async (
     );
 
     if (res.body.pipeTo) {
-      return res.body.pipeTo(fileStream)
+      return res.body.pipeTo(fileStream);
     }
 
     const writer = fileStream.getWriter();
