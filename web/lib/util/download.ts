@@ -1,6 +1,10 @@
 import { authenticatedFetch } from "../api/apiClient";
+import streamSaver from "streamsaver";
 
-export const handleClientDownload = async (fileIds: string[], fileName?: string) => {
+export const handleClientDownload = async (
+  fileIds: string[],
+  fileName?: string,
+) => {
   if (fileIds.length === 0) return;
 
   if (fileIds.length === 1 && fileName) {
@@ -21,31 +25,36 @@ export const handleClientDownload = async (fileIds: string[], fileName?: string)
       body: JSON.stringify({ item_ids: fileIds }),
     });
 
-    if (res.ok && res.body) {
-      const reader = res.body.getReader();
-      const stream = new ReadableStream({
-        start(controller) {
-          function push() {
-            reader.read().then(({ done, value }) => {
-              if (done) {
-                controller.close();
-                return;
-              }
-              controller.enqueue(value);
-              push();
-            });
-          }
-          push();
-        },
-      });
-
-      const blob = await new Response(stream).blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = fileName || "ledger-archive-" + new Date().toISOString() + ".zip";
-      a.click();
-      window.URL.revokeObjectURL(url);
+    if (!res.ok || !res.body) {
+      console.error("Failed to start download stream");
+      return;
     }
+
+    const totalSize = Number(res.headers.get("x-archive-size")) || 0;
+    console.log(Object.fromEntries(res.headers.entries()));
+
+    const fileStream = streamSaver.createWriteStream(
+      fileName || "ledger-archive-" + new Date().toISOString() + ".zip",
+      {
+        size: totalSize,
+        writableStrategy: undefined,
+        readableStrategy: undefined,
+      },
+    );
+
+    if (res.body.pipeTo) {
+      return res.body.pipeTo(fileStream)
+    }
+
+    const writer = fileStream.getWriter();
+    const reader = res.body.getReader();
+    const pump: () => Promise<void> = () =>
+      reader
+        .read()
+        .then((res) =>
+          res.done ? writer.close() : writer.write(res.value).then(pump),
+        );
+
+    return pump();
   }
 };

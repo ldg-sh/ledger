@@ -1,3 +1,4 @@
+use chrono::{DateTime, FixedOffset};
 #[cfg(feature = "ssr")]
 use sea_orm::{FromQueryResult};
 
@@ -11,9 +12,12 @@ pub struct ExplodedItem {
     pub id: String,
     pub file_name: String,
     pub virtual_path: String,
+    pub file_size: i64,
+    #[ts(type = "string")]
+    pub created_at: DateTime<FixedOffset>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 #[derive(ts_rs::TS)]
 #[ts(export)]
 pub struct PresignedExplodedItem {
@@ -21,6 +25,9 @@ pub struct PresignedExplodedItem {
     pub file_name: String,
     pub virtual_path: String,
     pub presign_url: String,
+    pub size: i64,
+    #[ts(type = "string")]
+    pub created_at: DateTime<FixedOffset>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -30,7 +37,7 @@ pub struct ZipRequest {
     pub item_ids: Vec<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 #[derive(ts_rs::TS)]
 #[ts(export)]
 pub struct ExplodeResponse {

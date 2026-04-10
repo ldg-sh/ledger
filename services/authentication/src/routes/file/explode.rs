@@ -23,6 +23,8 @@ pub async fn explode(
             file_name,
             is_directory,
             path,
+            file_size,
+            created_at,
             file_name::text as virtual_path
         FROM "file"
         WHERE id = ANY($1)
@@ -34,11 +36,13 @@ pub async fn explode(
             i.file_name,
             i.is_directory,
             i.path,
+            i.file_size,
+            i.created_at,
             t.virtual_path || '/' || i.file_name
         FROM "file" i
         INNER JOIN tree t ON i.path = t.id
     )
-    SELECT id, is_directory, file_name, virtual_path FROM tree WHERE is_directory = false;
+    SELECT id, is_directory, file_name, file_size, created_at, virtual_path FROM tree WHERE is_directory = false;
 "#;
 
     let exploded_items: Vec<ExplodedItem> = match ExplodedItem::find_by_statement(
@@ -85,6 +89,8 @@ pub async fn explode(
             file_name: item.file_name.clone(),
             virtual_path: item.virtual_path.clone(),
             presign_url: res.unwrap().uri().to_string(),
+            size: item.file_size,
+            created_at: item.created_at.clone(),
         });
     }
 

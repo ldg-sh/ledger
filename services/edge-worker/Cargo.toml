@@ -20,5 +20,6 @@ getrandom_02 = { package = "getrandom", version = "0.2", features = ["js"] }
 jiff = { version = "0.2", features = ["js"] }
 wasm-bindgen = "=0.2.114"
 wasm-bindgen-futures = "0.4.64"
-async_zip = "0.0.18"
+async_zip = { version = "0.0.18", features = ["tokio", "deflate", "chrono"] }
 web-sys = "0.3.91"
+futures-util = "0.3.32"
