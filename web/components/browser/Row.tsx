@@ -94,8 +94,9 @@ export default function Row({
     image: Icons.Image,
     video: Icons.FileVideo,
     pdf: Icons.FileText,
-    default: Icons.File,
     audio: Icons.FileAudio,
+    application: Icons.FileArchive,
+    default: Icons.File,
   };
 
   useEffect(() => {
