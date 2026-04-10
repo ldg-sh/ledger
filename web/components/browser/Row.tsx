@@ -244,7 +244,7 @@ export default function Row({
                 isLoading={isCopyLinkLoading}
                 onClick={async () => {
                   setIsCopyLinkLoading(true);
-                  const url = await getShareLink(fileId, fileName)
+                  const url = await getShareLink(fileId, fileName, fileType)
                   navigator.clipboard.writeText(url);
                   hideMenu();
                   setIsCopyLinkLoading(false);

@@ -48,5 +48,6 @@ pub async fn handle_share_download(
 
     Response::from_json(&ShareDownloadResponse {
         presigned_url: presigned_url.to_string(),
+        file_type: claims.file_type
     })
 }

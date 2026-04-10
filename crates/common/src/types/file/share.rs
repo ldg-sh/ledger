@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 pub struct ShareRequest {
     pub file_id: String,
     pub file_name: String,
+    pub file_type: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -26,6 +27,7 @@ pub struct ShareDownloadRequest {
 #[derive(ts_rs::TS)]
 #[ts(export)]
 pub struct ShareDownloadResponse {
-    pub presigned_url: String
+    pub presigned_url: String,
+    pub file_type: String,
 }
 

@@ -196,10 +196,11 @@ export async function copyFiles(fileIds: string[], destinationPath: string) {
 }
 
 
-export async function getShareLink(fileId: string, fileName: string) {
+export async function getShareLink(fileId: string, fileName: string, fileType: string) {
   const request: ShareRequest = {
     file_id: fileId,
     file_name: fileName,
+    file_type: fileType,
   };
 
   const res = await authenticatedFetch(`/file/share`, {

@@ -620,6 +620,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
                         const url = await getShareLink(
                           targetFile.id,
                           targetFile.file_name,
+                          targetFile.file_type,
                         );
                         await navigator.clipboard.writeText(url);
                       } catch (err) {
