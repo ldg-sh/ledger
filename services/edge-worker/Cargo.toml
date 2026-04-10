@@ -23,3 +23,4 @@ wasm-bindgen-futures = "0.4.64"
 async_zip = { version = "0.0.18", features = ["tokio", "deflate", "chrono"] }
 web-sys = "0.3.91"
 futures-util = "0.3.32"
+nanoid = "0.4.0"

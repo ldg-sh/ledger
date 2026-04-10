@@ -1,8 +1,7 @@
-use crate::{AppState, authenticate};
+use crate::{authenticate, AppState};
 use common::types::file::share::{ShareRequest, ShareResponse};
 use common::types::file_claims::FileClaims;
 use std::sync::Arc;
-use uuid::Uuid;
 use worker::{Request, Response, RouteContext};
 
 pub async fn handle_share(
@@ -13,7 +12,7 @@ pub async fn handle_share(
 
     let payload: ShareRequest = req.json().await?;
 
-    let download_id = Uuid::new_v4().to_string();
+    let download_id = nanoid::nanoid!(8);
 
     let claims = FileClaims {
         file_id: payload.file_id,
