@@ -2,15 +2,24 @@
 
 import { FolderPlus, Upload } from "lucide-react";
 import styles from "./Footer.module.scss";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/util/class";
 import CreateFolder from "./popups/CreateFolder";
 import { AnimatePresence } from "motion/react";
+import { createPortal } from "react-dom";
 
 export default function Footer() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [isFolderPopupOpen, setIsFolderPopupOpen] = useState(false);
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    queueMicrotask(() => {
+      setMounted(true);
+    });
+    return () => setMounted(false);
+  }, []);
 
   return (
     <>
@@ -54,15 +63,15 @@ export default function Footer() {
         </div>
       </div>
 
-      <AnimatePresence>
-        {isFolderPopupOpen && (
-          <CreateFolder
-            onClose={() => {
-              setIsFolderPopupOpen(false);
-            }}
-          />
+      {mounted &&
+        createPortal(
+          <AnimatePresence>
+            {isFolderPopupOpen && (
+              <CreateFolder onClose={() => setIsFolderPopupOpen(false)} />
+            )}
+          </AnimatePresence>,
+          document.body,
         )}
-      </AnimatePresence>
     </>
   );
 }
