@@ -3,6 +3,15 @@
     animation: spin 0.75s infinite linear;
 }
 
+.destructive {
+    fill: var(--color-error-foreground);
+}
+
+.destructiveBackground {
+    fill: var(--color-error-background-active);
+}
+
+
 @keyframes spin {
     100% {
         transform: rotate(360deg);

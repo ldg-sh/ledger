@@ -1,7 +1,6 @@
 "use client";
 
 import { createStore, del, get, set } from "idb-keyval";
-import { useRouter } from "next/navigation";
 import {
   createContext,
   useEffect,

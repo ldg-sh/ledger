@@ -9,11 +9,14 @@ import ContextMenuItem from "@/components/general/menu/ContextMenuItem";
 import { useCustomMenu } from "@/hooks/customMenu";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/util/class";
+import { useRouter } from "next/navigation";
 
 export default function User() {
   const user = useUser();
+  const router = useRouter();
   const { visible, showMenu, hideMenu } = useCustomMenu("user-menu");
   const container = useRef<HTMLDivElement>(null);
+  const [isLoadingLogout, setIsLoadingLogout] = useState(false);
 
   const [coords, setCoords] = useState({ x: 0, y: 0 });
 
@@ -74,8 +77,13 @@ export default function User() {
                 label="Log Out"
                 glyph="log-out"
                 destructive
-                onClick={() => {
-                  logout();
+                isLoading={isLoadingLogout}
+                onClick={async () => {
+                  setIsLoadingLogout(true);
+                  await logout();
+                  router.push("/login");
+                  setIsLoadingLogout(false);
+
                   hideMenu();
                 }}
               />
