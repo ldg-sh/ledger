@@ -296,11 +296,19 @@ export async function GET(request: Request) {
       return new Response(
         `<html>
         <head>
-          <meta property="og:site_name" content=" " /> 
-          ${isImage ? `<meta property="og:image" content="${res.presigned_url}" />` : ""}
+          ${
+            isImage
+              ? `
+          <meta property="og:type" content="website" />
+          <meta property="og:image" content="${res.presigned_url}" />
+          <meta name="twitter:card" content="summary_large_image" />
+        `
+              : ""
+          }
           ${
             isVideo
               ? `
+            <meta property="og:site_name" content=" " /> 
             <meta property="og:type" content="video.other" />
             <meta property="og:video" content="${res.presigned_url}" />
             <meta property="og:video:type" content="${res.file_type}" />
