@@ -7,6 +7,8 @@ pub struct ShareRequest {
     pub file_id: String,
     pub file_name: String,
     pub file_type: String,
+    pub file_size: u64,
+    pub created_at: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -29,5 +31,8 @@ pub struct ShareDownloadRequest {
 pub struct ShareDownloadResponse {
     pub presigned_url: String,
     pub file_type: String,
+    pub file_name: String,
+    pub file_size: u64,
+    pub created_at: String,
 }
 

@@ -621,6 +621,8 @@ export default function FileList({ parentContainerRef }: FileListProps) {
                           targetFile.id,
                           targetFile.file_name,
                           targetFile.file_type,
+                          targetFile.file_size,
+                          targetFile.created_at,
                         );
                         await navigator.clipboard.writeText(url);
                       } catch (err) {

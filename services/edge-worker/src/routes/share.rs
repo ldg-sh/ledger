@@ -19,6 +19,8 @@ pub async fn handle_share(
         file_name: payload.file_name,
         owner_id: user.id,
         file_type: payload.file_type,
+        file_size: payload.file_size,
+        created_at: payload.created_at,
     };
 
     let kv = ctx.kv("DOWNLOAD_SESSIONS")?;
