@@ -36,8 +36,8 @@ export async function GET(request: Request) {
             <meta property="og:type" content="video.other" />
             <meta property="og:video" content="${res.presigned_url}" />
             <meta property="og:video:type" content="${res.file_type}" />
-            <meta property="og:video:width" content="1280" />
-            <meta property="og:video:height" content="720" />
+            <meta property="og:video:width" content="auto" />
+            <meta property="og:video:height" content="auto" />
           `
               : ""
           }
