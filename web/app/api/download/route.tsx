@@ -115,7 +115,7 @@ export async function GET(request: Request) {
               display: "flex",
               position: "absolute",
               left: 94,
-              top: 350,
+              top: 370,
             }}
           >
             <div
@@ -196,7 +196,7 @@ export async function GET(request: Request) {
                 display: "flex",
                 position: "absolute",
                 left: 94,
-                top: 440,
+                top: 460,
               }}
             >
               <div
