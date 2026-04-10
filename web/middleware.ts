@@ -7,7 +7,7 @@ export function middleware(request: NextRequest) {
 
   const validSession = (refreshToken && refreshToken.value != "");
 
-  if (!validSession && !pathname.startsWith("/login")) {
+  if (!validSession && !pathname.startsWith("/login") && !pathname.startsWith("/signup")) {
     const response = NextResponse.redirect(new URL("/login", request.url));
     response.cookies.set("session_exists", "false", { path: "/" });
     return response;
@@ -35,6 +35,6 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/', 
-    '/((?!api|auth|about|callback|_next/static|_next/image|favicon.ico|sw.js|mitm.js).*)'
+    '/((?!api|login|signup|auth|about|callback|_next/static|_next/image|favicon.ico|sw.js|mitm.js).*)'
   ],
 };
