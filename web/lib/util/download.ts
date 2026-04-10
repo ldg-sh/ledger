@@ -9,6 +9,7 @@ export const handleClientDownload = async (
   if (typeof window === "undefined") return;
 
   const streamSaver = (await import("streamsaver")).default;
+  streamSaver.mitm = window.location.origin + "/mitm.html";
 
   if (!document) {
     console.error("Document is not defined. Cannot initiate download.");
