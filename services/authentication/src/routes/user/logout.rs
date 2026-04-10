@@ -17,7 +17,7 @@ pub async fn logout(
         .finish();
 
     let refresh_cookie = actix_web::cookie::Cookie::build("refresh_token", "")
-        .path("/auth/refresh")
+        .path("/")
         .secure(true)
         .domain(&provider_config.domain_root)
         .max_age(actix_web::cookie::time::Duration::days(30))

@@ -23,7 +23,6 @@ interface UserContextType {
   loading: boolean;
 }
 
-const REDIRECT_BLACKLIST = ["/login", "/signup", "/callback/**", "/about"];
 const EDGE_URL = process.env.NEXT_PUBLIC_EDGE_URL || "http://localhost:8787";
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -33,14 +32,18 @@ const ledgerStore = createStore("ledger-user", "user-cache");
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   const initAuth = useCallback(async () => {
+    const sessionExists = document.cookie.includes("session_exists=true");
+
     const potentialCache = await get<User>("user", ledgerStore);
-    if (potentialCache) {
+
+    if (potentialCache && sessionExists) {
       setUser(potentialCache);
       setLoading(false);
       return;
+    } else if (potentialCache && !sessionExists) {
+      await del("user", ledgerStore);
     }
 
     try {
@@ -69,14 +72,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
       } else {
         setUser(null);
         console.error("Failed to fetch user info, status:", res.status);
-        attemptRedirect();
 
         await del("user", ledgerStore);
       }
     } catch (error) {
       console.error("Error during authentication:", error);
       setUser(null);
-      attemptRedirect();
 
       await del("user", ledgerStore);
 
@@ -98,19 +99,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }, [initAuth]);
 
   const value = useMemo(() => ({ user, loading }), [user, loading]);
-
-  function attemptRedirect() {
-    const isBlacklisted = REDIRECT_BLACKLIST.some((pattern) => {
-      const regex = new RegExp(
-        `^${pattern.replace(/\*\*/g, ".*").replace(/\*/g, "[^/]*")}$`,
-      );
-      return regex.test(window.location.pathname);
-    });
-
-    if (!isBlacklisted) {
-      router.push("/login");
-    }
-  }
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }

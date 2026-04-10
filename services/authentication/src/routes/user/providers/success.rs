@@ -21,7 +21,7 @@ pub async fn login_success(user_id: String, jwt_secret: String, domain_root: Str
         .finish();
 
     let refresh_cookie = actix_web::cookie::Cookie::build("refresh_token", raw_refresh_token.clone())
-        .path("/auth/refresh")
+        .path("/")
         .secure(true)
         .domain(&domain_root)
         .http_only(true)

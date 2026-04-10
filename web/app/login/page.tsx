@@ -2,7 +2,6 @@
 
 import LoginButton from "@/components/login/LoginButton";
 import styles from "./page.module.scss";
-import { useUser } from "@/context/UserContext";
 import {
   beginAuthentication,
   completeAuthentication,
@@ -15,13 +14,6 @@ export default function LoginPage() {
   const GOOGLE_AUTH_URL = process.env.NEXT_PUBLIC_GOOGLE_URL || "";
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-
-  const user = useUser();
-
-  if (user.user) {
-    router.push("/");
-    return null;
-  }
 
   return (
     <div className={styles.loginPage}>
