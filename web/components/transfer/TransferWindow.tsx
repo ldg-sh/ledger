@@ -58,6 +58,9 @@ export default function TransferWindow() {
     const files: File[] =
       e instanceof FileList ? Array.from(e) : Array.from(e.dataTransfer.files);
 
+    const creationPromises = [];
+    setIsExpanded(true);
+
     for (const file of files) {
       const size = file.size;
       const totalChunks = Math.ceil(size / CHUNK_SIZE);
@@ -83,7 +86,7 @@ export default function TransferWindow() {
 
       setFileUploads((prev) => [...prev, fileUpload]);
 
-      createNewUpload(file).then((uploadResponse) => {
+      const promise = createNewUpload(file).then((uploadResponse) => {
         const fileId = uploadResponse.file_id;
         const uploadUrls = uploadResponse.upload_urls;
 
@@ -95,7 +98,7 @@ export default function TransferWindow() {
                 fileId: fileId,
                 uploadUrls: uploadUrls,
                 uploadId: uploadResponse.upload_id,
-                
+
                 status: "Uploading...",
               };
             }
@@ -114,12 +117,13 @@ export default function TransferWindow() {
             chunk: chunk,
           });
         }
-
-        launchWorkers();
       });
+
+      creationPromises.push(promise);
     }
 
-    setIsExpanded(true);
+    await Promise.all(creationPromises);
+    launchWorkers();
   };
 
   const launchWorkers = async () => {
