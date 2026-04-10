@@ -37,7 +37,11 @@ export async function GET(request: Request) {
       })
     : "";
 
-  if (userAgent.includes("Discordbot") || userAgent.includes("Twitterbot") || render === "true") {
+  if (
+    userAgent.includes("Discordbot") ||
+    userAgent.includes("Twitterbot") ||
+    render === "true"
+  ) {
     const isVideo = res.file_type?.startsWith("video/");
     const isImage = res.file_type?.startsWith("image/");
 
@@ -112,6 +116,17 @@ export async function GET(request: Request) {
 
           <div
             style={{
+              top: 325,
+              left: 0,
+              position: "absolute",
+              width: "100%",
+              height: "2px",
+              backgroundColor: "#F0F0F0",
+            }}
+          />
+
+          <div
+            style={{
               display: "flex",
               position: "absolute",
               left: 94,
@@ -126,9 +141,14 @@ export async function GET(request: Request) {
               }}
             >
               <span
-                style={{ fontSize: 24, fontWeight: 800, fontFamily: "Inter", color: "#404040" }}
+                style={{
+                  fontSize: 22,
+                  fontWeight: 800,
+                  fontFamily: "Inter",
+                  color: "#404040",
+                }}
               >
-                FILE NAME
+                File Name
               </span>
               <span
                 style={{
@@ -152,9 +172,14 @@ export async function GET(request: Request) {
               }}
             >
               <span
-                style={{ fontSize: 22, fontWeight: 800, fontFamily: "Inter", color: "#404040" }}
+                style={{
+                  fontSize: 22,
+                  fontWeight: 800,
+                  fontFamily: "Inter",
+                  color: "#404040",
+                }}
               >
-                CREATED AT
+                Created at
               </span>
               <span
                 style={{
@@ -174,9 +199,14 @@ export async function GET(request: Request) {
               }}
             >
               <span
-                style={{ fontSize: 22, fontWeight: 800, fontFamily: "Inter", color: "#404040" }}
+                style={{
+                  fontSize: 22,
+                  fontWeight: 800,
+                  fontFamily: "Inter",
+                  color: "#404040",
+                }}
               >
-                FILE SIZE
+                File Size
               </span>
               <span
                 style={{
@@ -214,7 +244,7 @@ export async function GET(request: Request) {
                     color: "#404040",
                   }}
                 >
-                  FILE TYPE
+                  File Type
                 </span>
                 <span
                   style={{
