@@ -23,8 +23,6 @@ export async function GET(request: Request) {
     body: JSON.stringify(req),
   });
 
-  console.log("Presign response status:", presignRes.status);
-
   if (!presignRes.ok)
     return new Response("Error fetching metadata", { status: 500 });
   const res: ShareDownloadResponse = await presignRes.json();
@@ -73,14 +71,14 @@ export async function GET(request: Request) {
             style={{
               display: "flex",
               flexDirection: "column",
-              padding: "84px",
+              padding: "94px",
             }}
           >
             <span
               style={{
                 fontSize: 100,
-                marginTop: -40,
-                marginBottom: -10,
+                marginTop: -30,
+                marginBottom: -20,
                 fontWeight: 900,
                 color: "#2A2A2A",
                 fontFamily: "Overused Grotesk",
@@ -116,8 +114,8 @@ export async function GET(request: Request) {
             style={{
               display: "flex",
               position: "absolute",
-              left: 84,
-              top: 380,
+              left: 94,
+              top: 350,
             }}
           >
             <div
@@ -197,8 +195,8 @@ export async function GET(request: Request) {
               style={{
                 display: "flex",
                 position: "absolute",
-                left: 84,
-                top: 460,
+                left: 94,
+                top: 440,
               }}
             >
               <div
@@ -289,7 +287,7 @@ export async function GET(request: Request) {
       const host =
         request.headers.get("x-forwarded-host") || request.headers.get("host");
       const protocol = request.headers.get("x-forwarded-proto") || "https";
-      const publicUrl = `${protocol}://${host}${new URL(request.url).pathname}?t=${token}`;
+      const publicUrl = `${protocol}://${host}${new URL(request.url).pathname}?t=${token}&render=true`;
 
       return new Response(
         `<!DOCTYPE html>
