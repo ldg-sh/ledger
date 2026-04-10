@@ -54,7 +54,7 @@ export default function ContextMenuItem({
     >
       <div className={styles.left}>
         {isLoading ? (
-          <Spinner height={16} destructive />
+          <Spinner height={16} destructive={destructive} />
         ) : (
           <DynamicIcon name={glyph as any} className={styles.icon} />
         )}
