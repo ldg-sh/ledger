@@ -12,6 +12,7 @@ export async function GET(request: Request) {
   const token = searchParams.get("t");
   const accept = request.headers.get("accept") || "";
   const userAgent = request.headers.get("user-agent") || "";
+  const render = searchParams.get("render") || "";
 
   if (!token) return new Response("Unauthorized", { status: 401 });
 
@@ -38,11 +39,11 @@ export async function GET(request: Request) {
       })
     : "";
 
-  if (userAgent.includes("Discordbot") || userAgent.includes("Twitterbot")) {
+  if (userAgent.includes("Discordbot") || userAgent.includes("Twitterbot") || render === "true") {
     const isVideo = res.file_type?.startsWith("video/");
     const isImage = res.file_type?.startsWith("image/");
 
-    if (accept.includes("image/")) {
+    if (accept.includes("image/") || render === "true") {
       return new ImageResponse(
         <div
           style={{
@@ -77,7 +78,7 @@ export async function GET(request: Request) {
           >
             <span
               style={{
-                fontSize: 119,
+                fontSize: 100,
                 marginTop: -40,
                 marginBottom: -10,
                 fontWeight: 900,
@@ -89,9 +90,9 @@ export async function GET(request: Request) {
             </span>
             <span
               style={{
-                fontSize: 21,
+                fontSize: 26,
                 fontWeight: "bold",
-                color: "#2A2A2A",
+                color: "#404040",
                 marginTop: 10,
                 fontFamily: "Inter",
               }}
@@ -100,7 +101,7 @@ export async function GET(request: Request) {
             </span>
             <span
               style={{
-                fontSize: 21,
+                fontSize: 26,
                 color: "#858585",
                 maxWidth: "600px",
                 fontFamily: "Inter",
@@ -127,13 +128,13 @@ export async function GET(request: Request) {
               }}
             >
               <span
-                style={{ fontSize: 16, fontWeight: 800, fontFamily: "Inter" }}
+                style={{ fontSize: 24, fontWeight: 800, fontFamily: "Inter", color: "#404040" }}
               >
                 FILE NAME
               </span>
               <span
                 style={{
-                  fontSize: 21,
+                  fontSize: 26,
                   color: "#858585",
                   fontFamily: "Inter",
                   overflow: "hidden",
@@ -153,13 +154,13 @@ export async function GET(request: Request) {
               }}
             >
               <span
-                style={{ fontSize: 16, fontWeight: 800, fontFamily: "Inter" }}
+                style={{ fontSize: 22, fontWeight: 800, fontFamily: "Inter", color: "#404040" }}
               >
                 CREATED AT
               </span>
               <span
                 style={{
-                  fontSize: 21,
+                  fontSize: 26,
                   color: "#858585",
                   fontFamily: "Inter",
                 }}
@@ -175,13 +176,13 @@ export async function GET(request: Request) {
               }}
             >
               <span
-                style={{ fontSize: 16, fontWeight: 800, fontFamily: "Inter" }}
+                style={{ fontSize: 22, fontWeight: 800, fontFamily: "Inter", color: "#404040" }}
               >
                 FILE SIZE
               </span>
               <span
                 style={{
-                  fontSize: 21,
+                  fontSize: 26,
                   color: "#858585",
                   fontFamily: "Inter",
                 }}
@@ -209,16 +210,17 @@ export async function GET(request: Request) {
               >
                 <span
                   style={{
-                    fontSize: 16,
+                    fontSize: 22,
                     fontWeight: 800,
                     fontFamily: "Inter",
+                    color: "#404040",
                   }}
                 >
                   FILE TYPE
                 </span>
                 <span
                   style={{
-                    fontSize: 21,
+                    fontSize: 26,
                     color: "#858585",
                     fontFamily: "Inter",
                   }}
@@ -284,6 +286,11 @@ export async function GET(request: Request) {
         { headers: { "Content-Type": "text/html" } },
       );
     } else {
+      const host =
+        request.headers.get("x-forwarded-host") || request.headers.get("host");
+      const protocol = request.headers.get("x-forwarded-proto") || "https";
+      const publicUrl = `${protocol}://${host}${new URL(request.url).pathname}?t=${token}`;
+
       return new Response(
         `<!DOCTYPE html>
       <html>
@@ -293,7 +300,7 @@ export async function GET(request: Request) {
           <meta property="og:title" content="${res.file_name}" />
           <meta property="og:description" content="Type: ${res.file_type} • Size: ${pretifyFileSize(res.file_size)}" />
           <meta property="og:site_name" content="Ledger" />
-          <meta property="og:image" content="${request.url}" />
+          <meta property="og:image" content="${publicUrl}" />
           <meta property="og:image:width" content="1200" />
           <meta property="og:image:height" content="600" />
           <meta name="twitter:card" content="summary_large_image" />
