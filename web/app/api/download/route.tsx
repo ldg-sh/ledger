@@ -155,7 +155,7 @@ export async function GET(request: Request) {
               <span
                 style={{ fontSize: 16, fontWeight: 800, fontFamily: "Inter" }}
               >
-                FILE SIZE
+                CREATED AT
               </span>
               <span
                 style={{
@@ -164,7 +164,7 @@ export async function GET(request: Request) {
                   fontFamily: "Inter",
                 }}
               >
-                {pretifyFileSize(res.file_size) || "Unknown"}
+                {formattedDate || "Unknown"}
               </span>
             </div>
             <div
@@ -177,7 +177,7 @@ export async function GET(request: Request) {
               <span
                 style={{ fontSize: 16, fontWeight: 800, fontFamily: "Inter" }}
               >
-                CREATED AT
+                FILE SIZE
               </span>
               <span
                 style={{
@@ -186,7 +186,7 @@ export async function GET(request: Request) {
                   fontFamily: "Inter",
                 }}
               >
-                {formattedDate || "Unknown"}
+                {pretifyFileSize(res.file_size) || "Unknown"}
               </span>
             </div>
           </div>
