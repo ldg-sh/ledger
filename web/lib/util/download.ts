@@ -1,3 +1,5 @@
+"use client";
+
 import { authenticatedFetch } from "../api/apiClient";
 import streamSaver from "streamsaver";
 
@@ -31,7 +33,6 @@ export const handleClientDownload = async (
     }
 
     const totalSize = Number(res.headers.get("x-archive-size")) || 0;
-    console.log(Object.fromEntries(res.headers.entries()));
 
     const fileStream = streamSaver.createWriteStream(
       fileName || "ledger-archive-" + new Date().toISOString() + ".zip",
