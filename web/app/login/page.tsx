@@ -188,6 +188,7 @@ export default function LoginPage() {
                 const result = await completeAuthentication(ticket, response);
 
                 if (result.ok) {
+                  router.push("/");
                   document.dispatchEvent(new CustomEvent("reload-user"));
                 } else {
                   alert("Passkey authentication failed");
