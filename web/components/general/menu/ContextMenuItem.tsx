@@ -1,12 +1,12 @@
-import { DynamicIcon } from "lucide-react/dynamic";
 import styles from "./ContextMenuItem.module.scss";
 import { cn } from "@/lib/util/class";
 import { useRef } from "react";
 import Spinner from "@/components/svg/Spinner";
+import { ICON_REGISTRY, IconName } from "@/lib/util/icon";
 
 interface ContextMenuItemProps {
   label: string;
-  glyph: string;
+  glyph: IconName;
   onClick: () => void;
   destructive?: boolean;
   disabled?: boolean;
@@ -24,6 +24,7 @@ export default function ContextMenuItem({
   isLoading = false,
 }: ContextMenuItemProps) {
   const button = useRef<HTMLButtonElement>(null);
+  const IconComponent = ICON_REGISTRY[glyph];
 
   if (hotkey) {
     if (navigator.userAgent.toUpperCase().includes("MAC")) {
@@ -56,7 +57,7 @@ export default function ContextMenuItem({
         {isLoading ? (
           <Spinner height={16} destructive={destructive} />
         ) : (
-          <DynamicIcon name={glyph as any} className={styles.icon} />
+          IconComponent && <IconComponent className={styles.icon} size={16} />
         )}
         {label}
       </div>
