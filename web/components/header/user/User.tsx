@@ -72,7 +72,7 @@ export default function User() {
       <AnimatePresence>
         {visible && (
           <div>
-            <ContextMenu x={coords.x + 10} y={coords.y + 10}>
+            <ContextMenu x={coords.x + (user.user?.avatar_url ? 10 : 0)} y={coords.y + 10}>
               <ContextMenuItem
                 label="Log Out"
                 glyph="log-out"
