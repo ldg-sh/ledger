@@ -22,7 +22,7 @@ export const metadata = {
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html
-      className={cn(styles.html, inter.className, overusedGrotesk.variable)}
+      className={cn(styles.html, inter.className, inter.variable, overusedGrotesk.variable)}
       lang="en"
     >
       <body className={styles.body}>

@@ -19,18 +19,31 @@ export default function LoginButton({
   isLoading = false,
   bold = false,
 }: LoginButtonProps) {
+  const isLink = !!authUrl;
+  const Tag = isLink ? "a" : "button";
+
   return (
-    <a
+    <Tag
       href={authUrl}
-      onClick={() => {
+      type={isLink ? undefined : "submit"}
+      disabled={isLoading}
+      onClick={(e) => {
         if (procedure) {
+          e.preventDefault();
           procedure();
         }
       }}
-      className={cn(styles.loginButton, isLoading && styles.loading, bold && styles.boldButton)}
+      className={cn(  
+        styles.loginButton, 
+        isLoading && styles.loading, 
+        bold && styles.boldButton
+      )}
+      aria-busy={isLoading}
     >
-      {svg}
-      {title ? <div>{title}</div> : null}
-    </a>
+      {React.isValidElement(svg) 
+        ? React.cloneElement(svg as React.ReactElement, { "aria-hidden": "true" } as any) 
+        : svg}
+      {title ? <span className={styles.span}>{title}</span> : null}
+    </Tag>
   );
 }

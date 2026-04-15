@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useEffect, useRef, useState, useId } from "react";
 import styles from "./TextInput.module.scss";
 import { cn } from "@/lib/util/class";
 
@@ -30,8 +30,10 @@ export default function TextInput({
   required = false,
 }: TextInputProps) {
   const [value, setValue] = useState(originalValue || "");
-
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  const generatedId = useId(); 
+  const hintId = `${generatedId}-hint`;
 
   useEffect(() => {
     if (select && inputRef.current) {
@@ -45,24 +47,32 @@ export default function TextInput({
     <div className={styles.textInputContainer}>
       <div className={styles.topText}>
         {title ? (
-          <h1 className={styles.title}>
+          <label htmlFor={generatedId} className={styles.title}>
             {title || placeholder}
-            {required && <span className={styles.required}>*</span>}
-          </h1>
+            {required && <span className={styles.required} aria-hidden="true">*</span>}
+          </label>
         ) : null}
         {!isReactNodeHint && hint && (
-          <p className={cn(styles.hint, errorHint ? styles.error : undefined)}>
+          <p 
+            id={hintId}
+            className={cn(styles.hint, errorHint ? styles.error : undefined)}
+            role={errorHint ? "alert" : undefined}
+          >
             {hint}
           </p>
         )}
       </div>
 
       <input
+        id={generatedId}
         ref={inputRef}
         autoFocus={select}
         type={formType}
-        name="text"
+        name={title?.toLowerCase().replace(/\s/g, "-") || "input"} 
         className={styles.textInput}
+        aria-required={required}
+        aria-invalid={errorHint}
+        aria-describedby={hint ? hintId : undefined}
         onChange={(e) => {
           setValue(e.target.value);
           onChange(e.target.value);
@@ -76,7 +86,7 @@ export default function TextInput({
         placeholder={placeholder}
         disabled={disabled}
       />
-      {isReactNodeHint && hint && <>{hint}</>}
+      {isReactNodeHint && <div id={hintId}>{hint}</div>}
     </div>
   );
 }

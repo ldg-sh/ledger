@@ -3,8 +3,7 @@
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    gap: .6rem;
-    width: calc(100% - 40px);
+    gap: 0.6rem;
     padding: 4px 20px;
     border-radius: 8px;
     background-color: #fff;
@@ -12,11 +11,15 @@
     color: var(--color-text-primary);
     font-weight: 400;
     text-decoration: none;
-    height: 30px;
+    height: 40px;
     font-size: 0.8rem;
     background-color: var(--color-button-background);
+    width: 100%;
 
-    transition: background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        opacity 0.2s ease;
 }
 
 .loginButton:hover {
@@ -34,7 +37,7 @@
 
 .boldButton {
     background-color: var(--color-text-bold);
-    color: var(--color-background)
+    color: var(--color-background);
 }
 
 .boldButton:hover {
@@ -45,8 +48,12 @@
     background-color: var(--color-button-background-active);
 }
 
+.span {
+    font-family: var(--font-inter);
+}
+
 @media (max-width: 600px) {
     .loginButton {
-        font-size: .8rem;
+        font-size: 0.8rem;
     }
 }
