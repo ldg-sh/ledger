@@ -1,6 +1,7 @@
 "use client";
 
 import { createStore, del, get, set } from "idb-keyval";
+import { useRouter } from "next/navigation";
 import {
   createContext,
   useEffect,
@@ -31,6 +32,7 @@ const ledgerStore = createStore("ledger-user", "user-cache");
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   const initAuth = useCallback(async () => {
     const sessionExists = document.cookie.includes("session_exists=true");
@@ -60,6 +62,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
           res = await fetch(`${EDGE_URL}/user/info`, {
             credentials: "include",
           });
+        } else {
+          setUser(null);
+          await del("user", ledgerStore);
+          setLoading(false);
+          router.push("/login");
+          
+          return;
         }
       }
 
