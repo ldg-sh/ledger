@@ -7,6 +7,6 @@ export async function handleRefresh(originalRequest: Request) {
   if (refreshRes.ok) {
     return fetch(originalRequest);
   } else {
-    throw new Error("Session expired");
+    return refreshRes;
   }
 }
