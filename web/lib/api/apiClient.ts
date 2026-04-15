@@ -20,7 +20,13 @@ export async function authenticatedFetch(
   const response = await fetch(request.clone());
 
   if (response.status === 401) {
-    return await handleRefresh(request);
+    const refreshResponse = await handleRefresh(request);
+
+    if (refreshResponse.status === 401) {
+      window.dispatchEvent(new Event("auth-failure"));
+    }
+    
+    return refreshResponse;
   }
 
   return response;

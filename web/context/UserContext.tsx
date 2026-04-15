@@ -67,7 +67,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
           await del("user", ledgerStore);
           setLoading(false);
           router.push("/login");
-          
+
           return;
         }
       }

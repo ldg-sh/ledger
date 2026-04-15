@@ -7,6 +7,7 @@ import { MenuProvider } from "@/context/MenuContext";
 import { UserProvider } from "@/context/UserContext";
 import { SortProvider } from "@/context/SortContext";
 import { LoadingProvider } from "@/context/LoadingContext";
+import { AuthRedirectHandler } from "@/components/RedirectHandler";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const overusedGrotesk = localFont({
@@ -22,16 +23,23 @@ export const metadata = {
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html
-      className={cn(styles.html, inter.className, inter.variable, overusedGrotesk.variable)}
+      className={cn(
+        styles.html,
+        inter.className,
+        inter.variable,
+        overusedGrotesk.variable,
+      )}
       lang="en"
     >
       <body className={styles.body}>
         <UserProvider>
+          <AuthRedirectHandler />
+
           <MenuProvider>
             <SortProvider>
               <LoadingProvider>
-                  <Header />
-                  {children}
+                <Header />
+                {children}
               </LoadingProvider>
             </SortProvider>
           </MenuProvider>
