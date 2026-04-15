@@ -100,20 +100,21 @@ export default function Row({
   };
 
   useEffect(() => {
-    if (moreOptionsRef.current) {
-      const rect = moreOptionsRef.current.getBoundingClientRect();
-      setCoords({ x: rect.left, y: rect.bottom });
-    }
-
-    window.addEventListener("resize", () => {
+    const updateCoords = () => {
       if (moreOptionsRef.current) {
         const rect = moreOptionsRef.current.getBoundingClientRect();
         setCoords({ x: rect.left, y: rect.bottom });
       }
-    });
+    };
+
+    updateCoords();
+
+    window.addEventListener("resize", updateCoords);
+    window.addEventListener("scroll", updateCoords, true);
 
     return () => {
-      window.removeEventListener("resize", () => {});
+      window.removeEventListener("resize", updateCoords);
+      window.removeEventListener("scroll", updateCoords, true);
     };
   }, []);
 
@@ -202,98 +203,99 @@ export default function Row({
           {formattedDate !== "" ? formattedDate : "—"}
         </span>
       </div>
-      <AnimatePresence>
-        {visible && (
-          <div>
-            <ContextMenu x={coords.x} y={coords.y}>
-              <ContextMenuItem
-                label="Copy"
-                glyph="copy"
-                hotkey="CtrlC"
-                onClick={() => {
-                  document.dispatchEvent(
-                    new CustomEvent("copy-file-ids", {
-                      detail: {
-                        fileId: fileId,
-                      },
-                    }),
-                  );
-                  hideMenu();
-                }}
-              />
-              <ContextMenuItem
-                label="Paste"
-                glyph="clipboard-paste"
-                hotkey="CtrlV"
-                onClick={() => {
-                  document.dispatchEvent(new CustomEvent("paste-file-ids"));
+      {visible && (
+        <div>
+          <ContextMenu x={coords.x} y={coords.y}>
+            <ContextMenuItem
+              label="Copy"
+              glyph="copy"
+              hotkey="CtrlC"
+              onClick={() => {
+                document.dispatchEvent(
+                  new CustomEvent("copy-file-ids", {
+                    detail: {
+                      fileId: fileId,
+                    },
+                  }),
+                );
+                hideMenu();
+              }}
+            />
+            <ContextMenuItem
+              label="Paste"
+              glyph="clipboard-paste"
+              hotkey="CtrlV"
+              onClick={() => {
+                document.dispatchEvent(new CustomEvent("paste-file-ids"));
 
-                  hideMenu();
-                }}
-              />
-              <ContextMenuItem
-                label="Rename"
-                glyph="pencil-line"
-                onClick={() => {
-                  setIsRenamePopupOpen(true);
-                  hideMenu();
-                }}
-              />
-              <ContextMenuItem
-                label="Copy Shareable Link"
-                glyph="link"
-                isLoading={isCopyLinkLoading}
-                onClick={async () => {
-                  setIsCopyLinkLoading(true);
-                  const url = await getShareLink(fileId, fileName, fileType, fileSize, createdAt);
-                  navigator.clipboard.writeText(url);
-                  hideMenu();
-                  setIsCopyLinkLoading(false);
-                }}
-              />
-              <ContextMenuItem
-                label="Download"
-                glyph="download"
-                onClick={() => {
-                  handleDownload();
-                  hideMenu();
-                }}
-              />
+                hideMenu();
+              }}
+            />
+            <ContextMenuItem
+              label="Rename"
+              glyph="pencil-line"
+              onClick={() => {
+                setIsRenamePopupOpen(true);
+                hideMenu();
+              }}
+            />
+            <ContextMenuItem
+              label="Copy Shareable Link"
+              glyph="link"
+              isLoading={isCopyLinkLoading}
+              onClick={async () => {
+                setIsCopyLinkLoading(true);
+                const url = await getShareLink(
+                  fileId,
+                  fileName,
+                  fileType,
+                  fileSize,
+                  createdAt,
+                );
+                navigator.clipboard.writeText(url);
+                hideMenu();
+                setIsCopyLinkLoading(false);
+              }}
+            />
+            <ContextMenuItem
+              label="Download"
+              glyph="download"
+              onClick={() => {
+                handleDownload();
+                hideMenu();
+              }}
+            />
 
-              <ContextMenuItem
-                label="Delete"
-                glyph="trash-2"
-                destructive
-                onClick={() => {
-                  setIsDeletePopupOpen(true);
-                  hideMenu();
-                }}
-              />
-            </ContextMenu>
-          </div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {isRenamePopupOpen && (
-          <RenameFile
-            placeholder={fileName}
-            fileId={fileId}
-            onClose={() => {
-              setIsRenamePopupOpen(false);
-            }}
-          />
-        )}
-        {isDeletePopupOpen && (
-          <DeleteFile
-            files={[file]}
-            fileName={fileName}
-            onClose={() => {
-              setIsDeletePopupOpen(false);
-            }}
-          />
-        )}
-      </AnimatePresence>
+            <ContextMenuItem
+              label="Delete"
+              glyph="trash-2"
+              destructive
+              onClick={() => {
+                setIsDeletePopupOpen(true);
+                hideMenu();
+              }}
+            />
+          </ContextMenu>
+        </div>
+      )}
+      {isRenamePopupOpen && (
+        <RenameFile
+          placeholder={fileName}
+          fileId={fileId}
+          onClose={() => {
+            setIsRenamePopupOpen(false);
+          }}
+        />
+      )}
+      {isDeletePopupOpen && (
+        <DeleteFile
+          files={[file]}
+          fileName={fileName}
+          onClose={() => {
+            setIsDeletePopupOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }
