@@ -33,15 +33,19 @@ export default function LoginButton({
           procedure();
         }
       }}
-      className={cn(  
-        styles.loginButton, 
-        isLoading && styles.loading, 
-        bold && styles.boldButton
+      className={cn(
+        styles.loginButton,
+        isLoading && styles.loading,
+        bold && styles.boldButton,
+        isLink && styles.linkButton,
       )}
       aria-busy={isLoading}
     >
-      {React.isValidElement(svg) 
-        ? React.cloneElement(svg as React.ReactElement, { "aria-hidden": "true" } as any) 
+      {React.isValidElement(svg)
+        ? React.cloneElement(
+            svg as React.ReactElement,
+            { "aria-hidden": "true" } as any,
+          )
         : svg}
       {title ? <span className={styles.span}>{title}</span> : null}
     </Tag>

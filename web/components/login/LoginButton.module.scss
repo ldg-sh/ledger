@@ -22,6 +22,11 @@
         opacity 0.2s ease;
 }
 
+.linkButton {
+        height: 30px;
+        width: auto;
+}
+
 .loginButton:hover {
     cursor: pointer;
     background-color: var(--color-background-hover);

@@ -43,7 +43,7 @@
 
 @media (max-width: 600px) {
     .content {
-        width: 90%;
+        width: calc(100% - 25px);
     }
 
     .title {
