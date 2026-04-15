@@ -125,6 +125,12 @@ export default function Row({
     handleClientDownload([fileId], fileName);
   }
 
+  const lastDotIndex = fileName.lastIndexOf(".");
+
+  const hasExtension = lastDotIndex > 0;
+  const stem = hasExtension ? fileName.substring(0, lastDotIndex - 8) : fileName;
+  const ext = hasExtension ? fileName.substring(lastDotIndex - 8) : "";
+
   return (
     <div
       className={styles.rowContainer}
@@ -187,11 +193,12 @@ export default function Row({
         <span
           className={cn(
             styles.fileName,
-            styles.rowElement,
+            styles.nameRowElement,
             folder && styles.folderLink,
           )}
         >
-          {fileName}
+          <span className={styles.fileStem}>{stem}</span>
+          {ext && <span className={styles.fileExtension}>{ext}</span>}
         </span>
         <span className={cn(styles.fileSize, styles.rowElement)}>
           {fileSize !== 0 ? pretifyFileSize(fileSize) : "—"}

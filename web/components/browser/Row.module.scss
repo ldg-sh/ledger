@@ -31,8 +31,31 @@
     position: relative;
 }
 
+.nameRowElement {
+    display: flex;
+    padding-left: 20px;
+    overflow: hidden;
+    white-space: nowrap;
+    user-select: none;
+    position: relative;
+}
+
+.fileStem {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.fileExtension {
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
 .fileName {
-    width: 30%;
+    width: calc(35% - 20px);
+    padding-right: 20px;
 }
 
 .fileSize {
@@ -52,7 +75,7 @@
 
 .rowContainer {
     position: relative;
-}   
+}
 
 @media (max-width: 600px) {
     .row {
@@ -60,7 +83,7 @@
     }
 
     .fileName {
-        width: 80%;
+        width: 70%;
         font-size: 0.8rem;
     }
 
@@ -81,6 +104,10 @@
     }
 
     .rowElement {
+        padding-left: 10px;
+    }
+
+    .nameRowElement {
         padding-left: 10px;
     }
 }
