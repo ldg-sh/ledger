@@ -81,6 +81,7 @@ export default function User() {
                 onClick={async () => {
                   setIsLoadingLogout(true);
                   await logout();
+                  document.cookie = "session_exists=false; path=/; max-age=0";
                   router.push("/login");
                   setIsLoadingLogout(false);
 
