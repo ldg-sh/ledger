@@ -19,6 +19,7 @@ pub async fn init(
     payload: web::Json<InitUploadInternalRequest>,
     s3_scoped_storage: web::Data<S3StorageManager>,
     authenticated_user: AuthenticatedUser,
+    _authenticated_user: AuthenticatedUser,
 ) -> HttpResponse {
     let insert = File::insert(file::ActiveModel {
         id: Set(payload.file_id.clone()),

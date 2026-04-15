@@ -4,11 +4,14 @@ use common::entities::prelude::File;
 use common::types::file::metadata::{MetadataRequest, MetadataResponse};
 use sea_orm::ColumnTrait;
 use sea_orm::{DatabaseConnection, EntityTrait, QueryFilter};
+use crate::middleware::middleware::AuthenticatedUser;
 
 #[get("metadata")]
 pub async fn metadata(
     database: web::Data<DatabaseConnection>,
-    payload: web::Json<MetadataRequest>) -> HttpResponse {
+    payload: web::Json<MetadataRequest>,
+    _authenticated_user: AuthenticatedUser,
+) -> HttpResponse {
     let file = File::find()
         .filter(file::Column::Id.eq(payload.file_id.clone()))
         .one(database.get_ref())

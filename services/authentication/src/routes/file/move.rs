@@ -5,11 +5,13 @@ use migration::Expr;
 use sea_orm::QueryFilter;
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait};
 use common::types::file::r#move::MoveFilesRequest;
+use crate::middleware::middleware::AuthenticatedUser;
 
 #[post("move")]
 pub async fn r#move(
     database: web::Data<DatabaseConnection>,
     payload: web::Json<MoveFilesRequest>,
+    _authenticated_user: AuthenticatedUser,
 ) -> impl Responder {
     match File::update_many()
         .col_expr(

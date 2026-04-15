@@ -5,10 +5,13 @@ use common::types::file::rename::RenameFileRequest;
 use migration::Expr;
 use sea_orm::{ExprTrait, QueryFilter};
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait};
+use crate::middleware::middleware::AuthenticatedUser;
+
 #[post("rename")]
 pub async fn rename(
     database: web::Data<DatabaseConnection>,
     payload: web::Json<RenameFileRequest>,
+    _authenticated_user: AuthenticatedUser,
 ) -> impl Responder {
     let db = database.get_ref();
 

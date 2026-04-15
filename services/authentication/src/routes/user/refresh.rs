@@ -16,15 +16,12 @@ pub async fn refresh(
         None => return HttpResponse::Unauthorized().body("No refresh token found"),
     };
 
-    println!("Received refresh token: {}", refresh_token);
-
     let token_record = match database
         .get_refresh_token(refresh_token.trim().to_string())
         .await
     {
         Ok(record) => record,
-        Err(error) => {
-            println!("Invalid refresh token: {}", error);
+        Err(_) => {
             return HttpResponse::Unauthorized().body("Invalid or expired session")
         },
     };
