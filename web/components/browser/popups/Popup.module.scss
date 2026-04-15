@@ -38,6 +38,12 @@
     backdrop-filter: blur(2px);
 }
 
+@media (prefers-color-scheme: dark) {
+    .popupBackdrop {
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+}
+
 @media (max-width: 600px) {
     .popupChildren {
         padding: 15px;

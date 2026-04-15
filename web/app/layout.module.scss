@@ -28,6 +28,37 @@
     --color-success-background-active: rgba(34, 197, 94, 0.18);
 }
 
+@media (prefers-color-scheme: dark) {
+    :root {
+        --color-background: #121212;
+        --color-button-background: #161616;
+        --color-background-selected: #2a2a2a;
+        --color-background-hover: #1a1a1a;
+        --color-background-active: #1c1c1c;
+        --color-framework: #333333;
+        --color-framework-selected: #444444;
+        
+        --color-text-primary: #e0e0e0;
+        --color-text-secondary: #a0a0a0;
+        --color-text-bold: #ffffff;
+
+        --color-background-bold-hover: #e4e4e4;
+        --color-button-background-active: #d3d3d3;
+        --color-row-background-selected: rgba(72, 148, 255, 0.15);
+        --box-shadow-standard: 0 4px 12px rgba(0, 0, 0, 0.6);
+
+        --color-error-background: rgba(248, 113, 113, 0.1);
+        --color-error-foreground: #f87171;
+        --color-error-background-hover: rgba(248, 113, 113, 0.15);
+        --color-error-background-active: rgba(248, 113, 113, 0.2);
+
+        --color-success-background: rgba(74, 222, 128, 0.1);
+        --color-success-foreground: #4ade80;
+        --color-success-background-hover: rgba(74, 222, 128, 0.15);
+        --color-success-background-active: rgba(74, 222, 128, 0.2);
+    }
+}
+
 @media (max-width: 1100px) {
     :root {
         --content-width: 100%;
@@ -43,7 +74,7 @@ html {
 body {
     margin: 0;
     background-color: var(--color-background);
-    color: #333;
+    color: var(--color-text-primary);
 
     letter-spacing: -.02rem;
 }

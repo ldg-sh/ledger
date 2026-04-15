@@ -34,6 +34,13 @@
     width: 550px;
 }
 
+@media (prefers-color-scheme: dark) {
+    .githubLogo {
+        fill: var(--color-text-primary);
+        stroke: var(--color-text-primary);
+    }
+}
+
 @media (max-width: 600px) {
     .content {
         width: 90%;
