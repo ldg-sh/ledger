@@ -37,8 +37,13 @@ export default function CallbackPage() {
           throw new Error(errorText || "Failed to authenticate");
         }
 
-        document.dispatchEvent(new CustomEvent("reload-user"));
-        router.push("/");
+        document.dispatchEvent(
+          new CustomEvent("reload-user", {
+            detail: () => {
+              router.push("/");
+            },
+          }),
+        );
       } catch (err: any) {
         console.error("Authentication error:", err);
         setError(err.message);
@@ -51,7 +56,9 @@ export default function CallbackPage() {
   return (
     <div className={styles.container}>
       {error ? (
-        <div className={styles.error}><strong>Failed to authenticate:</strong> {error}</div>
+        <div className={styles.error}>
+          <strong>Failed to authenticate:</strong> {error}
+        </div>
       ) : (
         <Spinner height={30} />
       )}

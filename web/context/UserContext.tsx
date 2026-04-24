@@ -34,7 +34,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const initAuth = useCallback(async () => {
+  const initAuth = useCallback(async (callback?: () => void) => {
     const sessionExists = document.cookie.includes("session_exists=true");
 
     const potentialCache = await get<User>("user", ledgerStore);
@@ -42,6 +42,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     if (potentialCache && sessionExists) {
       setUser(potentialCache);
       setLoading(false);
+      callback?.();
       return;
     } else if (potentialCache && !sessionExists) {
       await del("user", ledgerStore);
@@ -66,8 +67,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
           setUser(null);
           await del("user", ledgerStore);
           setLoading(false);
-          router.push("/login");
 
+          if (sessionExists) {
+            router.push("/login");
+          }
           return;
         }
       }
@@ -77,6 +80,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         setUser(data);
 
         await set("user", data, ledgerStore);
+        callback?.();
       } else {
         setUser(null);
         console.error("Failed to fetch user info, status:", res.status);
@@ -98,11 +102,23 @@ export function UserProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     initAuth();
 
-    const handleReload = () => initAuth();
-    document.addEventListener("reload-user", handleReload);
+    const handleReload = (callback?: () => void) => initAuth(callback);
+    document.addEventListener("reload-user", (event) => {
+      if (event instanceof CustomEvent && typeof event.detail === "function") {
+        handleReload(event.detail);
+      } else {
+        handleReload();
+      }
+    });
 
     return () => {
-      document.removeEventListener("reload-user", handleReload);
+      document.removeEventListener("reload-user", (event) => {
+        if (event instanceof CustomEvent && typeof event.detail === "function") {
+          handleReload(event.detail);
+        } else {
+          handleReload();
+        }
+      });
     };
   }, [initAuth]);
 
