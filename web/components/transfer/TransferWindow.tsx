@@ -338,7 +338,7 @@ export default function TransferWindow() {
 
       <div className={styles.transferWindow}>
         <div className={styles.popupContent}>
-          <div className={styles.header}>
+          <button className={styles.header} onClick={() => setIsExpanded((prev) => !prev)}>
             <div className={styles.left}>
               <h1 className={styles.title}>Active Transfers</h1>
               <div className={styles.subtitle}>
@@ -355,20 +355,7 @@ export default function TransferWindow() {
                 )}
               </div>
             </div>
-            <div
-              className={cn(styles.expandButton, isExpanded && styles.expanded)}
-              onClick={() => {
-                setIsExpanded(!isExpanded);
-              }}
-            >
-              <GlyphButton
-                glyph="chevron-up"
-                rotate
-                size={20}
-                fullSize="40px"
-              ></GlyphButton>
-            </div>
-          </div>
+          </button>
 
           <div
             className={styles.rows}

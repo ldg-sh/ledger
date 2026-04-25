@@ -72,13 +72,24 @@
 }
 
 .header {
+    all: unset;
     padding: 10px 12px;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
     position: relative;
     height: 40px;
     outline: var(--border-style);
+    cursor: pointer;
+}
+
+.header:hover {
+    background-color: var(--color-background-hover);
+}
+
+.header:active {
+    background-color: var(--color-background-active);
 }
 
 .status {
