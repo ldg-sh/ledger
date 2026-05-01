@@ -4,10 +4,10 @@ use common::types::file::upload_init::{
     InitUploadInternalRequest, InitUploadInternalResponse, InitUploadRequest, InitUploadResponse,
 };
 use rusty_s3::{Bucket, Credentials, S3Action, UrlStyle};
+use serde_json::Value;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
-use serde_json::Value;
 use uuid::Uuid;
 use worker::*;
 
@@ -45,13 +45,13 @@ pub async fn handle_create(mut req: Request, ctx: RouteContext<Arc<AppState>>) -
             &internal_req,
         )
         .await?;
-    
+
     if result.0 != 200 {
         return Ok(Response::from_json(&result.1)?.with_status(result.0));
     }
-    
+
     let result: InitUploadInternalResponse = serde_json::from_value(result.1)?;
-    
+
     let credentials = Credentials::new(access_key.as_str(), secret_key.as_str());
 
     let presigned_url_duration = Duration::from_secs(60 * 60);
@@ -73,7 +73,8 @@ pub async fn handle_create(mut req: Request, ctx: RouteContext<Arc<AppState>>) -
         file_id: file_id.to_string(),
         upload_urls: urls,
         upload_id: result.upload_id,
-    })?.with_status(200))
+    })?
+    .with_status(200))
 }
 
 pub async fn handle_complete(
@@ -94,17 +95,10 @@ pub async fn handle_complete(
 
     match state
         .config
-        .make_internal_request::<_, ()>(
-            "/internal/upload/complete",
-            &user,
-            Method::Post,
-            &req_body,
-        )
+        .make_internal_request::<_, ()>("/internal/upload/complete", &user, Method::Post, &req_body)
         .await
     {
-        Ok(_) => Response::ok(""),
-        Err(error) => {
-            Response::error(error.to_string(), 500)
-        }
+        Ok(_) => Ok(Response::empty()?.with_status(204)),
+        Err(error) => Response::error(error.to_string(), 500),
     }
 }

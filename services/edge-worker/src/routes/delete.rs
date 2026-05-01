@@ -16,5 +16,5 @@ pub async fn handle_delete(mut req: Request, ctx: RouteContext<Arc<AppState>>) -
         &payload
     ).await?;
 
-    Ok(Response::ok("Successfully deleted files")?)
+    Ok(Response::empty()?.with_status(204))
 }
