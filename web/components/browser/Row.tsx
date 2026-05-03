@@ -1,22 +1,21 @@
 "use client";
 
-import styles from "./Row.module.scss";
-import { pretifyFileSize } from "@/lib/util/file";
-import { cn } from "@/lib/util/class";
-import { ContextMenu } from "../general/menu/ContextMenu";
-import { useCustomMenu } from "@/hooks/customMenu";
-import ContextMenuItem from "../general/menu/ContextMenuItem";
-import { AnimatePresence } from "motion/react";
-import { useEffect, useRef, useState } from "react";
-import RenameFile from "./popups/RenameFile";
-import DeleteFile from "./popups/DeleteFile";
-import GlyphButton from "../general/GlyphButton";
-import { ListFileElement } from "@/lib/types/generated/ListFileElement";
 import { useFile } from "@/context/FileExplorerContext";
-import * as Icons from "lucide-react";
 import { useLoading } from "@/context/LoadingContext";
-import { handleClientDownload } from "@/lib/util/download";
+import { useCustomMenu } from "@/hooks/customMenu";
 import { getShareLink } from "@/lib/api/file";
+import { ListFileElement } from "@/lib/types/generated/ListFileElement";
+import { cn } from "@/lib/util/class";
+import { handleClientDownload } from "@/lib/util/download";
+import { pretifyFileSize } from "@/lib/util/file";
+import * as Icons from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import GlyphButton from "../general/GlyphButton";
+import { ContextMenu } from "../general/menu/ContextMenu";
+import ContextMenuItem from "../general/menu/ContextMenuItem";
+import DeleteFile from "./popups/DeleteFile";
+import RenameFile from "./popups/RenameFile";
+import styles from "./Row.module.scss";
 
 interface RowProps {
   fileName: string;
@@ -128,7 +127,9 @@ export default function Row({
   const lastDotIndex = fileName.lastIndexOf(".");
 
   const hasExtension = lastDotIndex > 0;
-  const stem = hasExtension ? fileName.substring(0, lastDotIndex - 8) : fileName;
+  const stem = hasExtension
+    ? fileName.substring(0, lastDotIndex - 8)
+    : fileName;
   const ext = hasExtension ? fileName.substring(lastDotIndex - 8) : "";
 
   return (

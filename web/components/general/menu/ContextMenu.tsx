@@ -1,6 +1,6 @@
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import styles from "./ContextMenu.module.scss";
-import { useEffect, useLayoutEffect, useRef } from "react";
 
 interface MenuProps {
   x: number;
@@ -34,7 +34,7 @@ export const ContextMenu = ({ x, y, children }: MenuProps) => {
   }, [x, y]);
 
   useEffect(() => {
-    window.addEventListener("resize", (event: UIEvent) => {
+    window.addEventListener("resize", () => {
       updateMenuPosition(x, y);
     });
     return () => {

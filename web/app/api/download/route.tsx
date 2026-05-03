@@ -1,9 +1,9 @@
-import { ImageResponse } from "next/og";
 import { ShareDownloadRequest } from "@/lib/types/generated/ShareDownloadRequest";
 import { ShareDownloadResponse } from "@/lib/types/generated/ShareDownloadResponse";
-import { join } from "path";
-import { readFile } from "fs/promises";
 import { pretifyFileSize } from "@/lib/util/file";
+import { readFile } from "fs/promises";
+import { ImageResponse } from "next/og";
+import { join } from "path";
 
 const EDGE_URL = process.env.NEXT_PUBLIC_EDGE_URL || "http://localhost:8787";
 
@@ -220,44 +220,42 @@ export async function GET(request: Request) {
             </div>
           </div>
 
-          {res.file_type && (
+          <div
+            style={{
+              display: "flex",
+              position: "absolute",
+              left: 94,
+              top: 460,
+            }}
+          >
             <div
               style={{
                 display: "flex",
-                position: "absolute",
-                left: 94,
-                top: 460,
+                flexDirection: "column",
+                width: "360px",
               }}
             >
-              <div
+              <span
                 style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  width: "360px",
+                  fontSize: 22,
+                  fontWeight: 800,
+                  fontFamily: "Inter",
+                  color: "#404040",
                 }}
               >
-                <span
-                  style={{
-                    fontSize: 22,
-                    fontWeight: 800,
-                    fontFamily: "Inter",
-                    color: "#404040",
-                  }}
-                >
-                  File Type
-                </span>
-                <span
-                  style={{
-                    fontSize: 26,
-                    color: "#858585",
-                    fontFamily: "Inter",
-                  }}
-                >
-                  {res.file_type}
-                </span>
-              </div>
+                File Type
+              </span>
+              <span
+                style={{
+                  fontSize: 26,
+                  color: "#858585",
+                  fontFamily: "Inter",
+                }}
+              >
+                {res.file_type ? res.file_type : "Unknown"}
+              </span>
             </div>
-          )}
+          </div>
         </div>,
         {
           width: 1200,
@@ -308,7 +306,7 @@ export async function GET(request: Request) {
           ${
             isVideo
               ? `
-            <meta property="og:site_name" content=" " /> 
+            <meta property="og:site_name" content=" " />
             <meta property="og:type" content="video.other" />
             <meta property="og:video" content="${res.presigned_url}" />
             <meta property="og:video:type" content="${res.file_type}" />
@@ -334,7 +332,6 @@ export async function GET(request: Request) {
           <meta charset="UTF-8">
           <title>${res.file_name}</title>
           <meta property="og:title" content="${res.file_name}" />
-          <meta property="og:description" content="Type: ${res.file_type} • Size: ${pretifyFileSize(res.file_size)}" />
           <meta property="og:site_name" content="Ledger" />
           <meta property="og:image" content="${publicUrl}" />
           <meta property="og:image:width" content="1200" />

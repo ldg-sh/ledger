@@ -4,12 +4,12 @@ import { createStore, del, get, set } from "idb-keyval";
 import { useRouter } from "next/navigation";
 import {
   createContext,
-  useEffect,
-  useState,
   ReactNode,
   useCallback,
-  useMemo,
   useContext,
+  useEffect,
+  useMemo,
+  useState,
 } from "react";
 
 interface User {
@@ -113,7 +113,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     return () => {
       document.removeEventListener("reload-user", (event) => {
-        if (event instanceof CustomEvent && typeof event.detail === "function") {
+        if (
+          event instanceof CustomEvent &&
+          typeof event.detail === "function"
+        ) {
           handleReload(event.detail);
         } else {
           handleReload();

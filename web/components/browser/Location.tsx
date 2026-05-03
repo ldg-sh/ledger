@@ -1,12 +1,10 @@
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
-import styles from "./Location.module.scss";
-import { useRouter } from "next/navigation";
+import { useFile } from "@/context/FileExplorerContext";
+import { useLoading } from "@/context/LoadingContext";
 import { useRef } from "react";
 import Spinner from "../svg/Spinner";
-import { useLoading } from "@/context/LoadingContext";
-import { useFile } from "@/context/FileExplorerContext";
+import styles from "./Location.module.scss";
 
 export default function Location() {
   const fileContext = useFile();

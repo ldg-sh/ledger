@@ -605,7 +605,8 @@ export default function FileList({ parentContainerRef }: FileListProps) {
                   }}
                 />
               )}
-              {(selectedFiles.size === 1 || (rightClickedFile != null && selectedFiles.size <= 1)) && (
+              {(selectedFiles.size === 1 ||
+                (rightClickedFile != null && selectedFiles.size <= 1)) && (
                 <ContextMenuItem
                   label="Copy Shareable Link"
                   glyph="link"
