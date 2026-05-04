@@ -1,7 +1,7 @@
 pub(crate) mod metadata;
 pub(crate) mod upload;
 pub(crate) mod download;
-pub(crate) mod user;
+pub(crate) mod user_info;
 pub(crate) mod rename;
 pub(crate) mod copy;
 pub(crate) mod delete;
@@ -11,3 +11,5 @@ pub(crate) mod list;
 pub(crate) mod zip;
 pub(crate) mod share;
 pub(crate) mod share_download;
+pub(crate) mod user_refresh;
+pub(crate) mod user_logout;

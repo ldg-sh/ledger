@@ -1,8 +1,8 @@
 use crate::{authenticate, AppState};
 use common::types::file::share::{ShareRequest, ShareResponse};
-use common::types::file_claims::FileClaims;
 use std::sync::Arc;
 use worker::{Request, Response, RouteContext};
+use common::types::file::file_claims::FileClaims;
 
 pub async fn handle_share(
     mut req: Request,

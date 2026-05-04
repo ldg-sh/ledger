@@ -15,9 +15,6 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                     .service(github::github_callback)
                     .service(google::google_callback),
             )
-            .service(logout::logout)
-            .service(info::info)
-            .service(refresh::refresh)
             .service(
                 web::scope("/passkey")
                     .service(passkey::init_registration::register)

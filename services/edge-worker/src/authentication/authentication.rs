@@ -1,9 +1,9 @@
 use crate::types::error::AuthError;
 use crate::AppState;
-use common::types::user_claims::UserClaims;
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use std::sync::Arc;
 use worker::*;
+use common::types::user::user_claims::UserClaims;
 
 #[derive(Debug, Clone)]
 pub struct AuthenticatedUser {

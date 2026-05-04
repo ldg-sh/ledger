@@ -17,13 +17,10 @@ pub async fn refresh(
     provider_configuration: web::Data<ProviderConfiguration>,
     database: web::Data<DatabaseConnection>,
 ) -> HttpResponse {
-    let start_time = Utc::now();
     let old_token = match req.cookie("refresh_token") {
         Some(c) => c.value().to_string(),
         None => return HttpResponse::Unauthorized().body("No refresh token found"),
     };
-
-    println!("Refresh request received at {}ms after start.", (Utc::now() - start_time).num_milliseconds());
 
     let new_token = Uuid::new_v4().to_string();
     let new_expiry = Utc::now() + Duration::days(30);
@@ -39,15 +36,11 @@ pub async fn refresh(
         .returning_col(refresh_token::Column::UserId)
         .build(PostgresQueryBuilder);
 
-    println!("Built the SQL command {}ms after start", (Utc::now() - start_time).num_milliseconds());
-
     let stmt = Statement::from_sql_and_values(DbBackend::Postgres, sql, values);
 
     let res = database
         .query_one_raw(stmt)
         .await;
-
-    println!("Executed the SQL command {}ms after start", (Utc::now() - start_time).num_milliseconds());
 
     if res.is_err() {
         return HttpResponse::InternalServerError().finish();
@@ -62,8 +55,6 @@ pub async fn refresh(
         return HttpResponse::InternalServerError().finish();
     }
 
-    println!("Refresh successful after {}ms", (Utc::now() - start_time).num_milliseconds());
-
     let db_clone = database.get_ref().clone();
     tokio::spawn(async move {
         let _ = refresh_token::Entity::delete_many()
@@ -71,8 +62,6 @@ pub async fn refresh(
             .exec(&db_clone)
             .await;
     });
-
-    println!("Finished queuing deletion {}ms", (Utc::now() - start_time).num_milliseconds());
 
     let user_id = user_id.unwrap();
 
@@ -93,8 +82,6 @@ pub async fn refresh(
         .max_age(actix_web::cookie::time::Duration::days(30))
         .same_site(actix_web::cookie::SameSite::None)
         .finish();
-
-    println!("Built cookies {}ms after start", (Utc::now() - start_time).num_milliseconds());
 
     HttpResponse::Ok()
         .cookie(access_cookie)

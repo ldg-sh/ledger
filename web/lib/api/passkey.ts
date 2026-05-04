@@ -10,7 +10,7 @@ export async function beginRegistration(
   const request: PasskeyInitRequest = {
     username,
     existing_id: user_id,
-    email
+    email,
   };
 
   const res = await fetch(`/auth/passkey/register/init`, {
@@ -24,7 +24,13 @@ export async function beginRegistration(
   return res;
 }
 
-export async function completeRegistration(user_id: string, username: string, email: string, avatar_url: string, data: any) {
+export async function completeRegistration(
+  user_id: string,
+  username: string,
+  email: string,
+  avatar_url: string,
+  data: any,
+) {
   const request: PasskeyCompleteRequest = {
     user_id,
     username,
@@ -58,7 +64,7 @@ export async function completeAuthentication(ticket: string, data: any) {
     ticket,
     data,
   };
-  
+
   const res = await fetch(`/auth/passkey/auth/complete`, {
     body: JSON.stringify(request),
     headers: {
@@ -69,13 +75,4 @@ export async function completeAuthentication(ticket: string, data: any) {
   });
 
   return res;
-}
-
-export async function decode(input: string) {
-  const res = await fetch(`/auth/decode`, {
-    body: input,
-    method: "POST",
-  });
-
-  return await res.text();
 }

@@ -1,7 +1,7 @@
+use crate::authentication::authentication::AuthenticatedUser;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use worker::{Env, Fetch, Headers, Method, Request, RequestInit};
-use crate::authentication::authentication::AuthenticatedUser;
 
 #[derive(Debug, Clone)]
 pub struct Configuration {
@@ -47,7 +47,7 @@ impl Configuration {
 
         let cookie_value = format!("session={}", user.session_token);
         headers.set("Cookie", &cookie_value)?;
-        
+
         let url = format!("{}{}", self.auth_server_uri, path);
 
         let request = Request::new_with_init(
@@ -70,5 +70,45 @@ impl Configuration {
         };
 
         Ok((status, json_body))
+    }
+
+    pub async fn make_unauthenticated_internal_request<T: Serialize, R: DeserializeOwned>(
+        &self,
+        path: &str,
+        method: Method,
+        payload: &T,
+        incoming_headers: Option<&Headers>,
+    ) -> Result<(u16, serde_json::Value, Headers), worker::Error> {
+        let headers = Headers::new();
+        headers.set("Content-Type", "application/json")?;
+
+        if let Some(h) = incoming_headers {
+            if let Ok(Some(cookie_str)) = h.get("Cookie") {
+                headers.set("Cookie", &cookie_str)?;
+            }
+        }
+
+        let url = format!("{}{}", self.auth_server_uri, path);
+
+        let request = Request::new_with_init(
+            &url,
+            &RequestInit::new()
+                .with_body(Some(serde_json::to_string(payload)?.into()))
+                .with_headers(headers)
+                .with_method(method),
+        )?;
+
+        let mut response = Fetch::Request(request).send().await?;
+        let status = response.status_code();
+        let response_headers = response.headers().clone();
+        let text = response.text().await?;
+
+        let json_body: serde_json::Value = if text.is_empty() {
+            serde_json::Value::Null
+        } else {
+            serde_json::from_str(&text).unwrap_or(serde_json::json!({ "error": text }))
+        };
+
+        Ok((status, json_body, response_headers))
     }
 }

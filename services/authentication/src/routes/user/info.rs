@@ -1,8 +1,8 @@
 use crate::routes::user::providers::database::ProviderExtension;
 use actix_web::{web, HttpResponse};
-use common::types::user_info::UserInfoRequest;
 use sea_orm::DatabaseConnection;
 use std::io::ErrorKind;
+use common::types::user::user_info::UserInfoRequest;
 use crate::middleware::middleware::AuthenticatedUser;
 
 #[actix_web::post("info")]

@@ -1,11 +1,11 @@
 use crate::AppState;
 use common::types::file::share::{ShareDownloadRequest, ShareDownloadResponse};
-use common::types::file_claims::FileClaims;
 use rusty_s3::{Bucket, Credentials, S3Action, UrlStyle};
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
 use worker::*;
+use common::types::file::file_claims::FileClaims;
 
 pub async fn handle_share_download(
     mut req: Request,

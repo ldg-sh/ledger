@@ -11,3 +11,4 @@ pub mod directory;
 pub mod directory_delete;
 pub mod explode;
 pub mod share;
+pub mod file_claims;

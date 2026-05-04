@@ -1,8 +1,8 @@
 use crate::{authenticate, AppState};
-use common::types::user_info::{UserInfoRequest, UserInfoResponse};
 use serde_json::Value;
 use std::sync::Arc;
 use worker::*;
+use common::types::user::user_info::{UserInfoRequest, UserInfoResponse};
 
 pub async fn handle_info(req: Request, ctx: RouteContext<Arc<AppState>>) -> Result<Response> {
     let user = authenticate!(&req, &ctx);

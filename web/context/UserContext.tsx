@@ -55,7 +55,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       });
 
       if (res.status === 401) {
-        const refreshRes = await fetch(`/auth/refresh`, {
+        const refreshRes = await fetch(`${EDGE_URL}/user/refresh`, {
           method: "POST",
           credentials: "include",
         });
@@ -140,7 +140,7 @@ export const useUser = () => {
 };
 
 export const logout = async () => {
-  await fetch(`/auth/logout`, {
+  await fetch(`${EDGE_URL}/user/logout`, {
     method: "POST",
 
     credentials: "include",

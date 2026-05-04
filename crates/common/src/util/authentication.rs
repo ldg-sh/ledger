@@ -1,4 +1,4 @@
-use crate::types::user_claims::UserClaims;
+use crate::types::user::user_claims::UserClaims;
 
 pub fn generate_access_token(
     user_id: &str,

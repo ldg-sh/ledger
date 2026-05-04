@@ -19,14 +19,20 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                     .service(list::list)
                     .service(copy::copy)
                     .service(delete::delete)
-                    .service(web::scope("/directory")
-                        .service(directory::directory)
-                        .service(delete_directory::delete)
+                    .service(
+                        web::scope("/directory")
+                            .service(directory::directory)
+                            .service(delete_directory::delete),
                     )
                     .service(metadata::metadata)
                     .service(r#move::r#move)
                     .service(rename::rename),
             )
-            .service(web::scope("/user").service(info::info)),
+            .service(
+                web::scope("/user")
+                    .service(info::info)
+                    .service(refresh::refresh)
+                    .service(logout::logout),
+            ),
     );
 }
