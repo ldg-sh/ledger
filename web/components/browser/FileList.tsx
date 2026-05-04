@@ -22,13 +22,13 @@ interface FileListProps {
 }
 
 const CHUNK_SIZE = 150;
+const THROTTLE_MS = 500;
 
 export default function FileList({ parentContainerRef }: FileListProps) {
   const { sort } = useSort();
   const fileContext = useFile();
 
   const lastRefreshTime = useRef<number>(0);
-  const THROTTLE_MS = 500;
 
   const [selectedFiles, setSelectedFiles] = useState<Set<ListFileElement>>(
     new Set(),

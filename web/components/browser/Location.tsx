@@ -1,13 +1,29 @@
 "use client";
 
 import { useFile } from "@/context/FileExplorerContext";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./Location.module.scss";
 
 export default function Location() {
   const fileContext = useFile();
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const [displayValue, setDisplayValue] = useState(fileContext.searchQuery);
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setDisplayValue(event.target.value);
+  };
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      fileContext.setSearchQuery(displayValue);
+    }, 200);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [displayValue, fileContext]);
 
   return (
     <div className={styles.locationBar} ref={scrollRef}>
@@ -70,8 +86,8 @@ export default function Location() {
         <input
           type="text"
           ref={inputRef}
-          value={fileContext.searchQuery}
-          onChange={(e) => fileContext.setSearchQuery(e.target.value)}
+          value={displayValue}
+          onChange={handleChange}
           placeholder="Search..."
         />
       </div>
