@@ -31,7 +31,30 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(File::IsDirectory).boolean().not_null())
                     .to_owned(),
             )
-            .await
+            .await?;
+
+        manager
+            .create_index(
+                Index::create()
+                    .name("idx-file-owner-id")
+                    .table(File::Table)
+                    .col(File::OwnerId)
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_index(
+                Index::create()
+                    .name("idx-file-owner-path")
+                    .table(File::Table)
+                    .col(File::OwnerId)
+                    .col(File::Path)
+                    .to_owned(),
+            )
+            .await?;
+
+        Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
@@ -55,5 +78,5 @@ enum File {
     UploadCompleted,
     FileType,
     Path,
-    IsDirectory
+    IsDirectory,
 }

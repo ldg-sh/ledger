@@ -26,7 +26,15 @@ impl MigrationTrait for Migration {
                     .to_owned(),
 
 
-            ).await
+            ).await?;
+
+        manager.create_index(
+            Index::create()
+                .name("idx-user-username")
+                .table(User::Table)
+                .col(User::Username)
+                .to_owned()
+        ).await
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
