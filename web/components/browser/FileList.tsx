@@ -233,7 +233,6 @@ export default function FileList({ parentContainerRef }: FileListProps) {
   );
 
   const loadData = useCallback(async () => {
-    console.log("loadData", fileContext.searchQuery);
     if (authLoading) return;
 
     setSelectedFiles(new Set());
@@ -241,7 +240,6 @@ export default function FileList({ parentContainerRef }: FileListProps) {
     setIsLoading(true);
     setGlobalLoading(true);
     try {
-      console.log("loadDat listing");
       const res = await listFiles(
         fileContext.currentFolderId,
         sort,
@@ -257,7 +255,6 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       }
 
       fileContext.setFileData(res);
-      console.log("loadData", res);
 
       fileContext.setBreadcrumbs(res.breadcrumbs);
     } finally {

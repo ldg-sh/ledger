@@ -20,7 +20,6 @@ export async function listFiles(
   limit: number = 1000,
   searchQuery: string | null = null,
 ) {
-  console.log("listFiles", directoryPath, sort, offset, limit, searchQuery);
   const request: ListFilesRequest = {
     path: directoryPath,
     sort: sort,

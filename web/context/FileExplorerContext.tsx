@@ -101,12 +101,14 @@ export function FileProvider({
             ? newData(prev[currentFolderId] || { folders: [], files: [] })
             : newData;
 
-        set(currentFolderId, data, ledgerStore);
+        if (searchQuery != "") {
+          set(currentFolderId, data, ledgerStore);
+        }
 
         return { ...prev, [currentFolderId]: data };
       });
     },
-    [currentFolderId],
+    [currentFolderId, searchQuery],
   );
 
   const gotoPath = useCallback(

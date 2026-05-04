@@ -178,6 +178,7 @@ export default function Row({
               },
             ]);
 
+            fileContext.setSearchQuery("");
             fileContext.gotoPath(fileId);
           } else {
             window.open(`/preview/${currentPath}/${fileId}`, "_blank");

@@ -70,6 +70,7 @@ export default function Location() {
         <input
           type="text"
           ref={inputRef}
+          value={fileContext.searchQuery}
           onChange={(e) => fileContext.setSearchQuery(e.target.value)}
           placeholder="Search..."
         />
