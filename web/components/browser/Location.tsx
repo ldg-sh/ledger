@@ -1,15 +1,13 @@
 "use client";
 
 import { useFile } from "@/context/FileExplorerContext";
-import { useLoading } from "@/context/LoadingContext";
 import { useRef } from "react";
-import Spinner from "../svg/Spinner";
 import styles from "./Location.module.scss";
 
 export default function Location() {
   const fileContext = useFile();
-  const { loading } = useLoading();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className={styles.locationBar} ref={scrollRef}>
@@ -47,8 +45,31 @@ export default function Location() {
         ))}
       </div>
       <div className={styles.right}>
-        <div className={styles.spinner} style={{ opacity: loading ? 1 : 0 }}>
-          <Spinner />
+        <div
+          className={styles.search}
+          onClick={() => inputRef.current?.focus()}
+        >
+          <svg
+            width="16px"
+            height="16px"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z"
+              stroke="var(--color-text-secondary)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <input
+            type="text"
+            ref={inputRef}
+            onChange={(e) => fileContext.setSearchQuery(e.target.value)}
+            placeholder="Search..."
+          />
         </div>
       </div>
     </div>

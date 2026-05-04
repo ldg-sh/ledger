@@ -1,21 +1,21 @@
 "use client";
 
+import { listFiles } from "@/lib/api/file";
 import { Breadcrumb } from "@/lib/types/generated/Breadcrumb";
 import { ListFileElement } from "@/lib/types/generated/ListFileElement";
-import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { createStore, get, set } from "idb-keyval";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   createContext,
-  ReactNode,
-  useContext,
-  useState,
-  useMemo,
   Dispatch,
+  ReactNode,
   SetStateAction,
   useCallback,
+  useContext,
   useEffect,
+  useMemo,
+  useState,
 } from "react";
-import { listFiles } from "@/lib/api/file";
 import { useSort } from "./SortContext";
 
 const ledgerStore = createStore("ledger-folder", "folder-cache");
@@ -37,6 +37,8 @@ interface FileContextType {
   currentFolderId: string;
   gotoPath: (id: string) => void;
   prefetchFolder: (id: string) => void;
+  searchQuery: string;
+  setSearchQuery: Dispatch<SetStateAction<string>>;
 }
 
 const FileContext = createContext<FileContextType | undefined>(undefined);
@@ -52,6 +54,7 @@ export function FileProvider({
   const [folderCache, setFolderCache] = useState<Record<string, FileListData>>(
     {},
   );
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [isHydrated, setIsHydrated] = useState(false);
   const [currentFolderId, setCurrentFolderId] = useState<string>("");
 
@@ -59,13 +62,15 @@ export function FileProvider({
   const router = useRouter();
   const pathname = usePathname();
   const sort = useSort().sort;
-  
+
   useEffect(() => {
     async function initCurrentFolder() {
       try {
         const folderId = searchParams.get("folder") || "";
+        const query = searchParams.get("query") || "";
 
         setCurrentFolderId(folderId);
+        setSearchQuery(query);
 
         const saved = await get<FileListData>(currentFolderId, ledgerStore);
 
@@ -160,6 +165,8 @@ export function FileProvider({
       currentFolderId,
       gotoPath,
       prefetchFolder,
+      searchQuery,
+      setSearchQuery,
     }),
     [
       initialPath,
@@ -171,6 +178,8 @@ export function FileProvider({
       currentFolderId,
       isHydrated,
       prefetchFolder,
+      searchQuery,
+      setSearchQuery,
     ],
   );
 

@@ -9,6 +9,7 @@ pub struct ListFilesRequest {
     pub sort: String,
     pub limit: Option<u32>,
     pub offset: Option<u32>,
+    pub search_query: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]

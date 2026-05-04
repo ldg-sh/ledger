@@ -1,24 +1,32 @@
 "use client";
-import {authenticatedFetch} from "./apiClient";
-import {ListFilesRequest} from "../types/generated/ListFilesRequest";
-import {ListFilesResponse} from "../types/generated/ListFilesResponse";
-import {ListFileElement} from "../types/generated/ListFileElement";
-import {InitUploadRequest} from "../types/generated/InitUploadRequest";
-import {InitUploadResponse} from "../types/generated/InitUploadResponse";
-import {RenameFileRequest} from "../types/generated/RenameFileRequest";
-import {DeleteFilesRequest} from "../types/generated/DeleteFilesRequest";
-import {CopyFilesRequest} from "../types/generated/CopyFilesRequest";
-import {CopyFilesResponse} from "../types/generated/CopyFilesResponse";
-import {CompleteUploadRequest} from "../types/generated/CompleteUploadRequest";
-import {ShareRequest} from "../types/generated/ShareRequest";
-import {ShareResponse} from "../types/generated/ShareResponse";
+import { CompleteUploadRequest } from "../types/generated/CompleteUploadRequest";
+import { CopyFilesRequest } from "../types/generated/CopyFilesRequest";
+import { CopyFilesResponse } from "../types/generated/CopyFilesResponse";
+import { DeleteFilesRequest } from "../types/generated/DeleteFilesRequest";
+import { InitUploadRequest } from "../types/generated/InitUploadRequest";
+import { InitUploadResponse } from "../types/generated/InitUploadResponse";
+import { ListFileElement } from "../types/generated/ListFileElement";
+import { ListFilesRequest } from "../types/generated/ListFilesRequest";
+import { ListFilesResponse } from "../types/generated/ListFilesResponse";
+import { RenameFileRequest } from "../types/generated/RenameFileRequest";
+import { ShareRequest } from "../types/generated/ShareRequest";
+import { ShareResponse } from "../types/generated/ShareResponse";
+import { authenticatedFetch } from "./apiClient";
 
-export async function listFiles(directoryPath: string, sort: string, offset: number = 0, limit: number = 1000) {
+export async function listFiles(
+  directoryPath: string,
+  sort: string,
+  offset: number = 0,
+  limit: number = 1000,
+  searchQuery: string | null = null,
+) {
+  console.log("listFiles", directoryPath, sort, offset, limit, searchQuery);
   const request: ListFilesRequest = {
     path: directoryPath,
     sort: sort,
     limit: limit,
     offset: offset,
+    search_query: searchQuery,
   };
 
   const res = await authenticatedFetch(`/file/list`, {
@@ -50,7 +58,12 @@ export async function listFiles(directoryPath: string, sort: string, offset: num
     }
   });
 
-  return { files: fileList, folders: folders, hasMore: json.has_more, breadcrumbs: json.breadcrumbs };
+  return {
+    files: fileList,
+    folders: folders,
+    hasMore: json.has_more,
+    breadcrumbs: json.breadcrumbs,
+  };
 }
 
 export async function createUpload(
@@ -195,8 +208,13 @@ export async function copyFiles(fileIds: string[], destinationPath: string) {
   return json.file_ids;
 }
 
-
-export async function getShareLink(fileId: string, fileName: string, fileType: string, fileSize: number, createdAt: string) {
+export async function getShareLink(
+  fileId: string,
+  fileName: string,
+  fileType: string,
+  fileSize: number,
+  createdAt: string,
+) {
   const request: ShareRequest = {
     file_id: fileId,
     file_name: fileName,

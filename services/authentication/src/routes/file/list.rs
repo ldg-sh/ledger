@@ -3,9 +3,10 @@ use actix_web::{HttpResponse, Responder, post, web};
 use common::entities::file;
 use common::entities::prelude::File;
 use common::types::file::list::{Breadcrumb, ListFileElement, ListFilesRequest, ListFilesResponse};
-use sea_orm::{ColumnTrait, Order, QueryOrder, QuerySelect};
+use sea_orm::{ColumnTrait, Order, QueryOrder, QuerySelect, Value, Condition};
 use sea_orm::{ConnectionTrait, QueryFilter, Statement};
 use sea_orm::{DatabaseConnection, EntityTrait};
+use sea_orm::prelude::Expr;
 
 #[post("list")]
 pub async fn list(
@@ -28,20 +29,46 @@ pub async fn list(
         _ => (file::Column::Id, Order::Desc),
     };
 
-    let files_query = File::find()
-        .filter(file::Column::OwnerId.eq(authenticated_user.id.clone()))
-        .filter(file::Column::Path.eq(payload.path.clone()))
-        .order_by(file::Column::IsDirectory, Order::Desc)
-        .order_by(column, order)
+    let mut query = File::find()
+        .filter(file::Column::OwnerId.eq(authenticated_user.id.clone()));
+
+    let is_searching = payload.search_query.as_ref().map(|s| !s.is_empty()).unwrap_or(false);
+
+    if is_searching {
+        let search = payload.search_query.as_ref().unwrap();
+        let search_pattern = format!("%{}%", search);
+
+        query = query.filter(
+            Condition::any()
+                .add(Expr::cust_with_values("file_name % $1", [Value::from(search.clone())]))
+                .add(file::Column::FileName.ilike(search_pattern))
+        );
+
+        let similarity_score = Expr::cust_with_values(
+            "similarity(file_name, $1)",
+            [Value::from(search.clone())],
+        );
+
+        query = query
+            .order_by_desc(similarity_score)
+            .order_by(column, order);
+    } else {
+        query = query
+            .filter(file::Column::Path.eq(payload.path.clone()))
+            .order_by(file::Column::IsDirectory, Order::Desc)
+            .order_by(column, order);
+    }
+
+    let files_query = query
         .limit(limit + 1)
         .offset(offset)
         .all(database.get_ref());
 
     let path_clone = payload.path.clone();
-    let database = database.clone();
+    let database_ref = database.clone();
 
     let breadcrumbs_future = async move {
-        if path_clone.is_empty() || path_clone == "" {
+        if is_searching || path_clone.is_empty() {
             return Ok(vec![]);
         }
 
@@ -55,10 +82,10 @@ pub async fn list(
             SELECT id, file_name FROM trail;
         "#;
 
-        database.query_all_raw(Statement::from_sql_and_values(
-            database.get_database_backend(),
+        database_ref.query_all_raw(Statement::from_sql_and_values(
+            database_ref.get_database_backend(),
             sql,
-            [path_clone.into()],
+            [Value::from(path_clone)],
         )).await
     };
 
@@ -100,7 +127,7 @@ pub async fn list(
     };
     breadcrumbs.reverse();
 
-    if breadcrumbs.is_empty() && !payload.path.is_empty() {
+    if !is_searching && breadcrumbs.is_empty() && !payload.path.is_empty() {
         return HttpResponse::NotFound().finish();
     }
 

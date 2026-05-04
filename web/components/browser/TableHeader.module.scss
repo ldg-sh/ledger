@@ -7,6 +7,7 @@
     min-width: 800px;
     white-space: nowrap;
     border-bottom: var(--border-style);
+    position: relative;
 }
 
 .headerElement {
@@ -49,4 +50,11 @@
     .tableHeader {
         display: none;
     }
+}
+
+.spinner {
+    position: absolute;
+    top: 18px;
+    right: 0.5rem;
+    transform: translateY(-50%);
 }

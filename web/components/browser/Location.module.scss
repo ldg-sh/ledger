@@ -41,9 +41,10 @@
 .right {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
+    align-items: end;
     height: 100%;
-    padding: 8px 10px;
+    width: 30%;
 }
 
 .spinner {
@@ -52,6 +53,27 @@
     justify-content: center;
 
     transition: opacity 0.2s ease;
+    padding: 10px;
+}
+
+.search {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    border-left: var(--border-style);
+    padding: 12px 14px;
+    cursor: text;
+    width: 100%;
+
+    input {
+        border: none;
+        outline: none;
+        background: none;
+        font-family: var(--font-inter);
+        font-size: 0.9rem;
+        color: var(--color-text-secondary);
+        padding: 0 10px;
+    }
 }
 
 @media (max-width: 600px) {
@@ -66,10 +88,21 @@
 
     .right {
         padding: 0 8px;
+        width: 50%;
     }
 
     .spinner {
         width: 16px;
         height: 16px;
+    }
+
+    .search {
+        padding: 10px;
+
+        input {
+            width: 100%;
+
+            font-size: 0.8rem;
+        }
     }
 }

@@ -1,7 +1,9 @@
 "use client";
+import { useLoading } from "@/context/LoadingContext";
 import { useSort } from "@/context/SortContext";
 import { cn } from "@/lib/util/class";
-import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import { ChevronDown, ChevronsUpDown, ChevronUp } from "lucide-react";
+import Spinner from "../svg/Spinner";
 import styles from "./TableHeader.module.scss";
 
 const SortIcon = ({ category, sort }: { category: string; sort: string }) => {
@@ -21,6 +23,7 @@ const SortIcon = ({ category, sort }: { category: string; sort: string }) => {
 
 export default function TableHeader() {
   const { sort, toggleSort } = useSort();
+  const { loading } = useLoading();
 
   return (
     <header className={styles.tableHeader}>
@@ -57,6 +60,8 @@ export default function TableHeader() {
         <span>Date Created</span>
         <SortIcon category="date" sort={sort} />
       </button>
+
+      <div className={styles.spinner}>{loading && <Spinner />}</div>
     </header>
   );
 }

@@ -1,21 +1,21 @@
 "use client";
 
-import { copyFiles, getShareLink, listFiles } from "@/lib/api/file";
-import Row from "./Row";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useFile } from "@/context/FileExplorerContext";
+import { setGlobalLoading } from "@/context/LoadingContext";
+import { useSort } from "@/context/SortContext";
 import { useUser } from "@/context/UserContext";
 import { useCustomMenu } from "@/hooks/customMenu";
+import { copyFiles, getShareLink, listFiles } from "@/lib/api/file";
+import { ListFileElement } from "@/lib/types/generated/ListFileElement";
+import { handleClientDownload } from "@/lib/util/download";
 import { AnimatePresence } from "motion/react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ContextMenu } from "../general/menu/ContextMenu";
 import ContextMenuItem from "../general/menu/ContextMenuItem";
-import RenameFile from "./popups/RenameFile";
-import DeleteFile from "./popups/DeleteFile";
-import { ListFileElement } from "@/lib/types/generated/ListFileElement";
-import { useSort } from "@/context/SortContext";
-import { setGlobalLoading } from "@/context/LoadingContext";
-import { useFile } from "@/context/FileExplorerContext";
 import styles from "./FileList.module.scss";
-import { handleClientDownload } from "@/lib/util/download";
+import DeleteFile from "./popups/DeleteFile";
+import RenameFile from "./popups/RenameFile";
+import Row from "./Row";
 
 interface FileListProps {
   parentContainerRef?: React.RefObject<HTMLDivElement>;
@@ -233,17 +233,21 @@ export default function FileList({ parentContainerRef }: FileListProps) {
   );
 
   const loadData = useCallback(async () => {
+    console.log("loadData", fileContext.searchQuery);
     if (authLoading) return;
+
     setSelectedFiles(new Set());
 
     setIsLoading(true);
     setGlobalLoading(true);
     try {
+      console.log("loadDat listing");
       const res = await listFiles(
         fileContext.currentFolderId,
         sort,
         0,
         CHUNK_SIZE,
+        fileContext.searchQuery,
       );
 
       if (!res.hasMore) {
@@ -253,6 +257,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       }
 
       fileContext.setFileData(res);
+      console.log("loadData", res);
 
       fileContext.setBreadcrumbs(res.breadcrumbs);
     } finally {
@@ -265,6 +270,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
     sort,
     fileContext.setBreadcrumbs,
     fileContext.currentFolderId,
+    fileContext.searchQuery,
   ]);
 
   const loadMoreData = useCallback(async () => {
@@ -278,6 +284,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       sort,
       currentOffset,
       CHUNK_SIZE,
+      fileContext.searchQuery,
     );
 
     if (!res.hasMore) {
@@ -543,7 +550,13 @@ export default function FileList({ parentContainerRef }: FileListProps) {
                 fill="var(--color-text-secondary)"
               />
             </svg>
-            This folder is empty.
+            {fileContext.searchQuery ? (
+              <span className={styles.searchQuery}>
+                No results found for "{fileContext.searchQuery}"
+              </span>
+            ) : (
+              "This folder is empty."
+            )}
           </div>
         ) : (
           <div className={styles.spacer} />
