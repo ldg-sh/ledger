@@ -61,7 +61,6 @@ async fn main() -> std::io::Result<()> {
         domain_root,
     };
 
-
     let s3_manager = S3StorageManager::new_s3(
         access_key,
         secret_key,
