@@ -1,11 +1,14 @@
-use crate::routes::user::providers::database::ProviderExtension;
-use crate::routes::user::providers::success::login_success;
 use crate::ProviderConfiguration;
 use actix_web::{web, HttpResponse};
-use chrono::Utc;
-use log::error;
+use chrono::{Duration, Utc};
+use common::entities::refresh_token;
+use common::util::authentication::generate_access_token;
 use sea_orm::sea_query::prelude::chrono;
-use sea_orm::DatabaseConnection;
+use sea_orm::QueryFilter;
+use sea_orm::{ColumnTrait, ConnectionTrait, DbBackend, Statement};
+use sea_orm::{DatabaseConnection, EntityTrait};
+use serde_json::json;
+use uuid::Uuid;
 
 #[actix_web::post("refresh")]
 pub async fn refresh(
@@ -13,46 +16,78 @@ pub async fn refresh(
     provider_configuration: web::Data<ProviderConfiguration>,
     database: web::Data<DatabaseConnection>,
 ) -> HttpResponse {
-    let start_time = Utc::now();
-    println!("Start time is {}", start_time.to_rfc3339());
-    let refresh_token = match req.cookie("refresh_token") {
+    let old_token = match req.cookie("refresh_token") {
         Some(c) => c.value().to_string(),
         None => return HttpResponse::Unauthorized().body("No refresh token found"),
     };
 
-    println!("Reached part 1 in {}ms", (Utc::now() - start_time).num_milliseconds());
+    let new_token = Uuid::new_v4().to_string();
+    let new_expiry = Utc::now() + Duration::days(30);
 
-    let token_record = match database
-        .get_refresh_token(refresh_token.trim().to_string())
-        .await
-    {
-        Ok(record) => record,
-        Err(_) => {
-            return HttpResponse::Unauthorized().body("Invalid or expired session")
-        },
-    };
-    println!("Reached part 2 in {}ms", (Utc::now() - start_time).num_milliseconds());
+    use sea_orm::sea_query::PostgresQueryBuilder;
 
-    if token_record.expires_at < Utc::now() {
-        let _ = database.delete_refresh_token(
-            token_record.token,
-        ).await;
+    let (sql, values) = sea_query::Query::update()
+        .table(refresh_token::Entity)
+        .values([
+            (refresh_token::Column::Token, new_token.clone().into()),
+            (refresh_token::Column::ExpiresAt, new_expiry.into()),
+        ])
+        .and_where(refresh_token::Column::Token.eq(old_token.trim()))
+        .and_where(refresh_token::Column::ExpiresAt.gt(Utc::now()))
+        .returning_col(refresh_token::Column::UserId)
+        .build(PostgresQueryBuilder);
 
-        return HttpResponse::Unauthorized().body("Session expired");
+    let stmt = Statement::from_sql_and_values(DbBackend::Postgres, sql, values);
+
+    let res = database
+        .query_one_raw(stmt)
+        .await;
+
+    if res.is_err() {
+        return HttpResponse::InternalServerError().finish();
     }
 
-    println!("Reached part 3 in {}ms", (Utc::now() - start_time).num_milliseconds());
+    let user_id = match res.unwrap() {
+        Some(row) => row.try_get::<String>("", "user_id"),
+        None => return HttpResponse::Unauthorized().body("Invalid or expired session"),
+    };
+
+    if user_id.is_err() {
+        return HttpResponse::InternalServerError().finish();
+    }
 
     let db_clone = database.get_ref().clone();
-    let token_to_delete = token_record.token.clone();
     tokio::spawn(async move {
-        if let Err(e) = db_clone.delete_refresh_token(token_to_delete).await {
-            error!("Failed to delete old refresh token in background: {:?}", e);
-        }
+        let _ = refresh_token::Entity::delete_many()
+            .filter(refresh_token::Column::ExpiresAt.lt(Utc::now()))
+            .exec(&db_clone)
+            .await;
     });
 
-    println!("Reached part 4 in {}ms", (Utc::now() - start_time).num_milliseconds());
-    let res = login_success(token_record.user_id, provider_configuration.jwt_secret.clone(), provider_configuration.domain_root.clone(), database.get_ref().clone()).await;
-    println!("Reached part 5 in {}ms", (Utc::now() - start_time).num_milliseconds());
-    res
+    let user_id = user_id.unwrap();
+
+    let access_cookie = actix_web::cookie::Cookie::build("session", generate_access_token(&user_id.clone(), &provider_configuration.jwt_secret))
+        .path("/")
+        .max_age(actix_web::cookie::time::Duration::minutes(15))
+        .http_only(true)
+        .domain(&provider_configuration.domain_root)
+        .secure(true)
+        .same_site(actix_web::cookie::SameSite::None)
+        .finish();
+
+    let refresh_cookie = actix_web::cookie::Cookie::build("refresh_token", new_token)
+        .path("/")
+        .secure(true)
+        .domain(&provider_configuration.domain_root)
+        .http_only(true)
+        .max_age(actix_web::cookie::time::Duration::days(30))
+        .same_site(actix_web::cookie::SameSite::None)
+        .finish();
+
+    HttpResponse::Ok()
+        .cookie(access_cookie)
+        .cookie(refresh_cookie)
+        .json(json!({
+            "user_id": user_id,
+        }))
 }

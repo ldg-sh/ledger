@@ -2,8 +2,9 @@ pub mod routes;
 pub mod middleware;
 
 use actix_web::{web, App, HttpServer};
-use sea_orm::{Database};
+use sea_orm::{ConnectOptions, Database};
 use std::env;
+use std::time::Duration;
 use env_logger::Env;
 use log::info;
 use reqwest::Url;
@@ -68,7 +69,18 @@ async fn main() -> std::io::Result<()> {
         endpoint,
     ).await;
 
-    let database_client = Database::connect(&database_url).await.unwrap();
+    let mut opt = ConnectOptions::new(database_url);
+
+    opt.max_connections(20)
+        .min_connections(5)
+        .connect_timeout(Duration::from_secs(8))
+        .acquire_timeout(Duration::from_secs(8))
+        .idle_timeout(Duration::from_secs(8))
+        .max_lifetime(Duration::from_secs(8))
+        .sqlx_logging(true)
+        .test_before_acquire(false);
+
+    let database_client = Database::connect(opt).await.unwrap();
     Migrator::up(&database_client, None).await.unwrap();
 
     let s3_data = web::Data::new(s3_manager);

@@ -614,6 +614,7 @@ dependencies = [
  "migration",
  "reqwest",
  "sea-orm",
+ "sea-query",
  "serde",
  "serde_json",
  "storage",
@@ -4336,6 +4337,7 @@ checksum = "58decdaaaf2a698170af2fa1b2e8f7b43a970e7768bf18aebaab113bada46354"
 dependencies = [
  "chrono",
  "inherent",
+ "itoa",
  "ordered-float",
  "rust_decimal",
  "sea-query-derive",
