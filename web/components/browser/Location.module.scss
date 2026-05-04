@@ -64,6 +64,7 @@
     padding: 12px 14px;
     cursor: text;
     width: 100%;
+    max-width: 400px;
 
     input {
         border: none;
@@ -74,6 +75,12 @@
         color: var(--color-text-secondary);
         padding: 0 10px;
     }
+}
+
+.searchQuery {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    padding: 0 10px;
 }
 
 @media (max-width: 600px) {
@@ -98,11 +105,16 @@
 
     .search {
         padding: 10px;
+        max-width: 200px;
 
         input {
             width: 100%;
 
             font-size: 0.8rem;
         }
+    }
+
+    .searchQuery {
+        font-size: 0.8rem;
     }
 }

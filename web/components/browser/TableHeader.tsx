@@ -1,4 +1,5 @@
 "use client";
+import { useFile } from "@/context/FileExplorerContext";
 import { useLoading } from "@/context/LoadingContext";
 import { useSort } from "@/context/SortContext";
 import { cn } from "@/lib/util/class";
@@ -24,6 +25,7 @@ const SortIcon = ({ category, sort }: { category: string; sort: string }) => {
 export default function TableHeader() {
   const { sort, toggleSort } = useSort();
   const { loading } = useLoading();
+  const { searchQuery } = useFile();
 
   return (
     <header className={styles.tableHeader}>
@@ -31,6 +33,12 @@ export default function TableHeader() {
 
       <button
         className={cn(styles.headerElement, styles.fileName)}
+        style={{
+          opacity: searchQuery ? 0.5 : 1,
+          pointerEvents: searchQuery !== "" ? "none" : "auto",
+          cursor: searchQuery !== "" ? "not-allowed" : "pointer",
+        }}
+        disabled={searchQuery !== ""}
         onClick={() => toggleSort("name")}
       >
         <span>Name</span>
@@ -39,6 +47,12 @@ export default function TableHeader() {
 
       <button
         className={cn(styles.headerElement, styles.fileSize)}
+        style={{
+          opacity: searchQuery ? 0.5 : 1,
+          pointerEvents: searchQuery !== "" ? "none" : "auto",
+          cursor: searchQuery !== "" ? "not-allowed" : "pointer",
+        }}
+        disabled={searchQuery !== ""}
         onClick={() => toggleSort("size")}
       >
         <span>Size</span>
@@ -47,6 +61,12 @@ export default function TableHeader() {
 
       <button
         className={cn(styles.headerElement, styles.fileType)}
+        style={{
+          opacity: searchQuery ? 0.5 : 1,
+          pointerEvents: searchQuery !== "" ? "none" : "auto",
+          cursor: searchQuery !== "" ? "not-allowed" : "pointer",
+        }}
+        disabled={searchQuery !== ""}
         onClick={() => toggleSort("type")}
       >
         <span>Type</span>
@@ -55,6 +75,12 @@ export default function TableHeader() {
 
       <button
         className={cn(styles.headerElement, styles.createdAt)}
+        style={{
+          opacity: searchQuery ? 0.5 : 1,
+          pointerEvents: searchQuery !== "" ? "none" : "auto",
+          cursor: searchQuery !== "" ? "not-allowed" : "pointer",
+        }}
+        disabled={searchQuery !== ""}
         onClick={() => toggleSort("date")}
       >
         <span>Date Created</span>
