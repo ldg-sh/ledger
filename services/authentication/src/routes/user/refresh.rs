@@ -3,6 +3,7 @@ use crate::routes::user::providers::success::login_success;
 use crate::ProviderConfiguration;
 use actix_web::{web, HttpResponse};
 use chrono::Utc;
+use log::error;
 use sea_orm::sea_query::prelude::chrono;
 use sea_orm::DatabaseConnection;
 
@@ -32,7 +33,7 @@ pub async fn refresh(
     };
     println!("Reached part 2 in {}ms", (Utc::now() - start_time).num_milliseconds());
 
-    if token_record.expires_at < chrono::Utc::now() {
+    if token_record.expires_at < Utc::now() {
         let _ = database.delete_refresh_token(
             token_record.token,
         ).await;
@@ -42,7 +43,14 @@ pub async fn refresh(
 
     println!("Reached part 3 in {}ms", (Utc::now() - start_time).num_milliseconds());
 
-    let _ = database.delete_refresh_token(token_record.token).await;
+    let db_clone = database.get_ref().clone();
+    let token_to_delete = token_record.token.clone();
+    tokio::spawn(async move {
+        if let Err(e) = db_clone.delete_refresh_token(token_to_delete).await {
+            error!("Failed to delete old refresh token in background: {:?}", e);
+        }
+    });
+
     println!("Reached part 4 in {}ms", (Utc::now() - start_time).num_milliseconds());
     let res = login_success(token_record.user_id, provider_configuration.jwt_secret.clone(), provider_configuration.domain_root.clone(), database.get_ref().clone()).await;
     println!("Reached part 5 in {}ms", (Utc::now() - start_time).num_milliseconds());
