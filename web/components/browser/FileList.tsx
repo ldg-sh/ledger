@@ -261,6 +261,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       setIsLoading(false);
       setGlobalLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     authLoading,
     user,
@@ -324,6 +325,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
     if (!authLoading && user) {
       loadData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadData, authLoading]);
 
   const refreshFileList = useCallback(

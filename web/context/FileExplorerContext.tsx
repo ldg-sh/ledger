@@ -85,6 +85,7 @@ export function FileProvider({
     }
 
     initCurrentFolder();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   const fileData = useMemo(() => {
@@ -129,6 +130,7 @@ export function FileProvider({
         setCurrentFolderId(id);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [pathname, router, searchParams, currentFolderId],
   );
 

@@ -97,6 +97,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

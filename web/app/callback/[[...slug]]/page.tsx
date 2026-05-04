@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter, useParams, useSearchParams } from "next/navigation";
-import styles from "./page.module.scss";
 import Spinner from "@/components/svg/Spinner";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import styles from "./page.module.scss";
 
 export default function CallbackPage() {
   const searchParams = useSearchParams();
