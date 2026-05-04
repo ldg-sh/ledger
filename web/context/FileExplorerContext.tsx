@@ -102,7 +102,7 @@ export function FileProvider({
             ? newData(prev[currentFolderId] || { folders: [], files: [] })
             : newData;
 
-        if (searchQuery != "") {
+        if (searchQuery == "") {
           set(currentFolderId, data, ledgerStore);
         }
 
