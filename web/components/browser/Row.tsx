@@ -50,6 +50,7 @@ export default function Row({
 
   const moreOptionsRef = useRef<HTMLDivElement>(null);
   const [coords, setCoords] = useState({ x: 0, y: 0 });
+  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 
   const { visible, showMenu, hideMenu } = useCustomMenu(fileId);
 
@@ -108,7 +109,10 @@ export default function Row({
 
     updateCoords();
 
-    window.addEventListener("resize", updateCoords);
+    window.addEventListener("resize", () => {
+      setScreenWidth(window.innerWidth);
+      updateCoords();
+    });
     window.addEventListener("scroll", updateCoords, true);
 
     return () => {
@@ -139,6 +143,7 @@ export default function Row({
       onMouseLeave={handleMouseLeave}
     >
       <div
+        style={{ display: screenWidth > 600 ? "none" : "block" }}
         className={styles.moreOptions}
         ref={moreOptionsRef}
         onClick={() => {

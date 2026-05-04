@@ -9,6 +9,7 @@ use sea_orm::{ColumnTrait, ConnectionTrait, DbBackend, Statement};
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde_json::json;
 use uuid::Uuid;
+use sea_orm::sea_query::PostgresQueryBuilder;
 
 #[actix_web::post("refresh")]
 pub async fn refresh(
@@ -23,8 +24,6 @@ pub async fn refresh(
 
     let new_token = Uuid::new_v4().to_string();
     let new_expiry = Utc::now() + Duration::days(30);
-
-    use sea_orm::sea_query::PostgresQueryBuilder;
 
     let (sql, values) = sea_query::Query::update()
         .table(refresh_token::Entity)
