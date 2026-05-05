@@ -551,7 +551,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
             </svg>
             {fileContext.searchQuery ? (
               <span className={styles.searchQuery}>
-                No results found for "{fileContext.searchQuery}"
+                No results found for "{fileContext.searchQuery}".
               </span>
             ) : (
               "This folder is empty."
