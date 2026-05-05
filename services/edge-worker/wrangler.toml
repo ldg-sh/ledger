@@ -15,6 +15,7 @@ workers_dev = false
 ALLOWED_ORIGIN = "https://ldg.sh"
 AUTH_SERVER_URI = "https://auth.ldg.sh"
 ENDPOINT = "https://t3.storageapi.dev"
+BUCKET = "systematic-backpack-grwohi"
 
 [[env.production.kv_namespaces]]
 binding = "METADATA_CACHE"

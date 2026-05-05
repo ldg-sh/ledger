@@ -87,7 +87,14 @@ export default function TableHeader() {
         <SortIcon category="date" sort={sort} />
       </button>
 
-      <div className={styles.spinner}>{loading && <Spinner />}</div>
+      <div
+        className={styles.spinner}
+        style={{
+          opacity: loading ? 1 : 0,
+        }}
+      >
+        <Spinner />
+      </div>
     </header>
   );
 }
