@@ -1,16 +1,15 @@
 "use client";
 
+import { useFile } from "@/context/FileExplorerContext";
+import { completeUpload, createUpload, uploadPart } from "@/lib/api/file";
+import { InitUploadResponse } from "@/lib/types/generated/InitUploadResponse";
+import { ListFileElement } from "@/lib/types/generated/ListFileElement";
+import { FileUpload, UploadTask } from "@/lib/types/upload";
+import { cn } from "@/lib/util/class";
+import { pretifyFileSize } from "@/lib/util/file";
+import formatDuration from "@/lib/util/time";
 import { useEffect, useRef, useState } from "react";
 import styles from "./TransferWindow.module.scss";
-import { completeUpload, createUpload, uploadPart } from "@/lib/api/file";
-import { pretifyFileSize } from "@/lib/util/file";
-import GlyphButton from "../general/GlyphButton";
-import { cn } from "@/lib/util/class";
-import { InitUploadResponse } from "@/lib/types/generated/InitUploadResponse";
-import { FileUpload, UploadTask } from "@/lib/types/upload";
-import formatDuration from "@/lib/util/time";
-import { useFile } from "@/context/FileExplorerContext";
-import { ListFileElement } from "@/lib/types/generated/ListFileElement";
 
 const CHUNK_SIZE = 5 * 1024 * 1024;
 const MAX_CONCURRENT_UPLOADS = 3;
@@ -338,7 +337,10 @@ export default function TransferWindow() {
 
       <div className={styles.transferWindow}>
         <div className={styles.popupContent}>
-          <button className={styles.header} onClick={() => setIsExpanded((prev) => !prev)}>
+          <button
+            className={styles.header}
+            onClick={() => setIsExpanded((prev) => !prev)}
+          >
             <div className={styles.left}>
               <h1 className={styles.title}>Active Transfers</h1>
               <div className={styles.subtitle}>
