@@ -1,14 +1,14 @@
 "use client";
 
 import TextInput from "@/components/browser/popups/TextInput";
-import styles from "./page.module.scss";
+import LoginButton from "@/components/login/LoginButton";
 import { useUser } from "@/context/UserContext";
-import { useState } from "react";
 import { beginRegistration, completeRegistration } from "@/lib/api/passkey";
 import { PasskeyInitResponse } from "@/lib/types/generated/PasskeyInitResponse";
-import LoginButton from "@/components/login/LoginButton";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import styles from "./page.module.scss";
 
 export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -94,12 +94,14 @@ export default function SignupPage() {
     }
 
     creds.publicKey.excludeCredentials?.forEach((listItem) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       listItem.id = Uint8Array.from(listItem.id as any, (c: string) =>
         c.charCodeAt(0),
       );
     });
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const assertion: any = await window.navigator.credentials.create({
         publicKey: creds.publicKey,
       });

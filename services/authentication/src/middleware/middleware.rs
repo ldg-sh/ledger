@@ -2,9 +2,9 @@ use crate::ProviderConfiguration;
 use actix_web::dev::Payload;
 use actix_web::web::Data;
 use actix_web::{Error, FromRequest, HttpRequest};
-use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
+use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
 use serde::{Deserialize, Serialize};
-use std::future::{ready, Ready};
+use std::future::{Ready, ready};
 
 #[derive(Debug, Clone)]
 pub struct AuthenticatedUser {

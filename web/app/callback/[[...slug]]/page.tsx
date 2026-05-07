@@ -44,9 +44,9 @@ export default function CallbackPage() {
             },
           }),
         );
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Authentication error:", err);
-        setError(err.message);
+        setError((err as Error)?.message);
       }
     };
 

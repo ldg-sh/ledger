@@ -37,10 +37,9 @@ export async function listFiles(
   const json: ListFilesResponse = await res.json();
 
   const files = json.files;
-  let folders: ListFileElement[] = [];
-  let fileList: ListFileElement[] = [];
 
-  folders = files.filter((file) => file.file_type === "directory");
+  const folders: ListFileElement[] = files.filter((file) => file.file_type === "directory");
+  let fileList: ListFileElement[];
 
   fileList = files.filter((file) => file.file_type !== "directory");
 
@@ -128,7 +127,7 @@ export function uploadPart(
 
     xhr.onerror = () => reject(new Error("Network error during upload"));
 
-    xhr.send(body as any);
+    xhr.send(body as XMLHttpRequestBodyInit);
   });
 }
 

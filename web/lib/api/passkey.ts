@@ -1,6 +1,7 @@
-import { PasskeyAuthCompleteRequest } from "../types/generated/PasskeyAuthCompleteRequest";
-import { PasskeyCompleteRequest } from "../types/generated/PasskeyCompleteRequest";
-import { PasskeyInitRequest } from "../types/generated/PasskeyInitRequest";
+import {PasskeyAuthCompleteRequest} from "../types/generated/PasskeyAuthCompleteRequest";
+import {PasskeyCompleteRequest} from "../types/generated/PasskeyCompleteRequest";
+import {PasskeyInitRequest} from "../types/generated/PasskeyInitRequest";
+import {JsonValue} from "../types/generated/serde_json/JsonValue";
 
 export async function beginRegistration(
   username: string,
@@ -13,15 +14,13 @@ export async function beginRegistration(
     email,
   };
 
-  const res = await fetch(`/auth/passkey/register/init`, {
+  return await fetch(`/auth/passkey/register/init`, {
     body: JSON.stringify(request),
     headers: {
       "Content-Type": "application/json",
     },
     method: "POST",
   });
-
-  return res;
 }
 
 export async function completeRegistration(
@@ -29,7 +28,7 @@ export async function completeRegistration(
   username: string,
   email: string,
   avatar_url: string,
-  data: any,
+  data: JsonValue,
 ) {
   const request: PasskeyCompleteRequest = {
     user_id,
@@ -39,7 +38,7 @@ export async function completeRegistration(
     data,
   };
 
-  const res = await fetch(`/auth/passkey/register/complete`, {
+  return await fetch(`/auth/passkey/register/complete`, {
     body: JSON.stringify(request),
     headers: {
       "Content-Type": "application/json",
@@ -47,25 +46,21 @@ export async function completeRegistration(
     credentials: "include",
     method: "POST",
   });
-
-  return res;
 }
 
 export async function beginAuthentication() {
-  const res = await fetch(`/auth/passkey/auth/init`, {
+  return await fetch(`/auth/passkey/auth/init`, {
     method: "POST",
   });
-
-  return res;
 }
 
-export async function completeAuthentication(ticket: string, data: any) {
+export async function completeAuthentication(ticket: string, data: JsonValue) {
   const request: PasskeyAuthCompleteRequest = {
     ticket,
     data,
   };
 
-  const res = await fetch(`/auth/passkey/auth/complete`, {
+  return await fetch(`/auth/passkey/auth/complete`, {
     body: JSON.stringify(request),
     headers: {
       "Content-Type": "application/json",
@@ -73,6 +68,4 @@ export async function completeAuthentication(ticket: string, data: any) {
     credentials: "include",
     method: "POST",
   });
-
-  return res;
 }
