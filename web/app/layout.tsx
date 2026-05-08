@@ -1,13 +1,14 @@
 import Header from "@/components/header/Header";
-import styles from "./layout.module.scss";
+import { AuthRedirectHandler } from "@/components/RedirectHandler";
+import { LoadingProvider } from "@/context/LoadingContext";
+import { MenuProvider } from "@/context/MenuContext";
+import { SortProvider } from "@/context/SortContext";
+import { UserProvider } from "@/context/UserContext";
+import { cn } from "@/lib/util/class";
+import { Metadata } from "next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
-import { cn } from "@/lib/util/class";
-import { MenuProvider } from "@/context/MenuContext";
-import { UserProvider } from "@/context/UserContext";
-import { SortProvider } from "@/context/SortContext";
-import { LoadingProvider } from "@/context/LoadingContext";
-import { AuthRedirectHandler } from "@/components/RedirectHandler";
+import styles from "./layout.module.scss";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const overusedGrotesk = localFont({
@@ -15,7 +16,7 @@ const overusedGrotesk = localFont({
   variable: "--font-overused-grotesk",
 });
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Ledger",
   description: "A modern file explorer built with Rust.",
 };

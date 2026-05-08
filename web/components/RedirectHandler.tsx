@@ -1,7 +1,7 @@
 "use client";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { logout } from "@/context/UserContext";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export function AuthRedirectHandler() {
   const router = useRouter();

@@ -1,15 +1,15 @@
 "use client";
 
-import { logout, useUser } from "@/context/UserContext";
-import styles from "./User.module.scss";
-import Image from "next/image";
-import { AnimatePresence } from "motion/react";
 import { ContextMenu } from "@/components/general/menu/ContextMenu";
 import ContextMenuItem from "@/components/general/menu/ContextMenuItem";
+import { logout, useUser } from "@/context/UserContext";
 import { useCustomMenu } from "@/hooks/customMenu";
-import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/util/class";
+import { AnimatePresence } from "motion/react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import styles from "./User.module.scss";
 
 export default function User() {
   const user = useUser();
@@ -72,7 +72,10 @@ export default function User() {
       <AnimatePresence>
         {visible && (
           <div>
-            <ContextMenu x={coords.x + (user.user?.avatar_url ? 10 : 0)} y={coords.y + 10}>
+            <ContextMenu
+              x={coords.x + (user.user?.avatar_url ? 10 : 0)}
+              y={coords.y + 10}
+            >
               <ContextMenuItem
                 label="Log Out"
                 glyph="log-out"

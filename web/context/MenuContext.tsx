@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useState, useCallback } from "react";
+import React, { createContext, useCallback, useState } from "react";
 
 type MenuContextType = {
   activeMenuId: string | null;
@@ -8,7 +8,9 @@ type MenuContextType = {
   closeMenu: () => void;
 };
 
-export const MenuContext = createContext<MenuContextType | undefined>(undefined);
+export const MenuContext = createContext<MenuContextType | undefined>(
+  undefined,
+);
 
 export const MenuProvider = ({ children }: { children: React.ReactNode }) => {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);

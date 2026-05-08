@@ -17,7 +17,10 @@ export async function createDirectory(path: string, folderName: string) {
   return res;
 }
 
-export async function deleteDirectory(directoryPath: string, directoryId: string) {
+export async function deleteDirectory(
+  directoryPath: string,
+  directoryId: string,
+) {
   const directoryDeleteRequest: DeleteDirectoryRequest = {
     path: directoryPath,
     directory_id: directoryId,

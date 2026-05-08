@@ -2,10 +2,10 @@
 
 import {
   createContext,
-  useContext,
-  useState,
   ReactNode,
+  useContext,
   useEffect,
+  useState,
 } from "react";
 
 export type SortOption =
@@ -34,7 +34,7 @@ export function SortProvider({ children }: { children: ReactNode }) {
     const savedSort = window.localStorage.getItem(
       "sortPreference",
     ) as SortOption;
-    
+
     if (savedSort && savedSort !== "name_asc") {
       queueMicrotask(() => {
         setSort(savedSort);

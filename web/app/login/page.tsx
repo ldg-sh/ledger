@@ -1,13 +1,10 @@
 "use client";
 
 import LoginButton from "@/components/login/LoginButton";
-import styles from "./page.module.scss";
-import {
-  beginAuthentication,
-  completeAuthentication,
-} from "@/lib/api/passkey";
-import { useState } from "react";
+import { beginAuthentication, completeAuthentication } from "@/lib/api/passkey";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import styles from "./page.module.scss";
 
 export default function LoginPage() {
   const GITHUB_AUTH_URL = process.env.NEXT_PUBLIC_GITHUB_URL || "";
@@ -38,7 +35,7 @@ export default function LoginPage() {
               >
                 <g id="github_00000178918564504449926280000008731996709616696990_">
                   <path d="M0 .011h48v48H0v-48z" fill="none" />
-                  <path 
+                  <path
                     className={styles.githubLogo}
                     stroke="#24292e"
                     fill="#24292e"
@@ -121,7 +118,7 @@ export default function LoginPage() {
                 setIsLoading(true);
                 const res = await beginAuthentication();
                 const data = await res.json();
-                
+
                 const creds = data.ccr as CredentialRequestOptions;
                 const ticket = data.ticket as string;
 
@@ -133,7 +130,7 @@ export default function LoginPage() {
                 if (typeof creds.publicKey.challenge === "string") {
                   creds.publicKey.challenge = Uint8Array.from(
                     atob(
-                      (creds.publicKey.challenge as any)
+                      (creds.publicKey.challenge as string)
                         .replace(/-/g, "+")
                         .replace(/_/g, "/"),
                     ),

@@ -25,7 +25,7 @@ export async function authenticatedFetch(
     if (refreshResponse.status === 401) {
       window.dispatchEvent(new Event("auth-failure"));
     }
-    
+
     return refreshResponse;
   }
 

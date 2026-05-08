@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useContext } from "react";
 import { MenuContext } from "@/context/MenuContext";
+import { useCallback, useContext, useEffect, useState } from "react";
 
 const MENU_WIDTH = 200;
 
@@ -42,7 +42,7 @@ export const useCustomMenu = (menuId: string) => {
         } else {
           setPosition({ x, y });
         }
-        
+
         openMenu(menuId);
       }
     },

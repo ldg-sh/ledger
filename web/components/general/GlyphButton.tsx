@@ -1,7 +1,7 @@
-import { DynamicIcon } from "lucide-react/dynamic";
-import styles from "./GlyphButton.module.scss";
-import { useRef, useState } from "react";
 import { cn } from "@/lib/util/class";
+import { DynamicIcon, IconName } from "lucide-react/dynamic";
+import { useRef, useState } from "react";
+import styles from "./GlyphButton.module.scss";
 
 interface GlyphButtonProps {
   glyph?: string;
@@ -35,10 +35,14 @@ export default function GlyphButton({
       style={{ width: fullSize || "unset", height: fullSize || "unset" }}
     >
       <DynamicIcon
-        name={glyph || ("ban" as any)}
+        name={(glyph as IconName) || "ban"}
         size={size}
         color={color}
-        className={cn(styles.glyphIcon, rotated && styles.rotated, danger && styles.danger)}
+        className={cn(
+          styles.glyphIcon,
+          rotated && styles.rotated,
+          danger && styles.danger,
+        )}
       />
     </button>
   );

@@ -1,7 +1,7 @@
-import {PasskeyAuthCompleteRequest} from "../types/generated/PasskeyAuthCompleteRequest";
-import {PasskeyCompleteRequest} from "../types/generated/PasskeyCompleteRequest";
-import {PasskeyInitRequest} from "../types/generated/PasskeyInitRequest";
-import {JsonValue} from "../types/generated/serde_json/JsonValue";
+import { PasskeyAuthCompleteRequest } from "../types/generated/PasskeyAuthCompleteRequest";
+import { PasskeyCompleteRequest } from "../types/generated/PasskeyCompleteRequest";
+import { PasskeyInitRequest } from "../types/generated/PasskeyInitRequest";
+import { JsonValue } from "../types/generated/serde_json/JsonValue";
 
 export async function beginRegistration(
   username: string,

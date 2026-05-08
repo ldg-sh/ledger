@@ -1,6 +1,6 @@
+import { cn } from "@/lib/util/class";
 import React from "react";
 import styles from "./LoginButton.module.scss";
-import { cn } from "@/lib/util/class";
 
 interface LoginButtonProps {
   authUrl?: string;
@@ -44,7 +44,7 @@ export default function LoginButton({
       {React.isValidElement(svg)
         ? React.cloneElement(
             svg as React.ReactElement,
-            { "aria-hidden": "true" } as any,
+            { "aria-hidden": "true" } as React.HTMLAttributes<HTMLElement>,
           )
         : svg}
       {title ? <span className={styles.span}>{title}</span> : null}

@@ -38,7 +38,9 @@ export async function listFiles(
 
   const files = json.files;
 
-  const folders: ListFileElement[] = files.filter((file) => file.file_type === "directory");
+  const folders: ListFileElement[] = files.filter(
+    (file) => file.file_type === "directory",
+  );
   let fileList: ListFileElement[];
 
   fileList = files.filter((file) => file.file_type !== "directory");
