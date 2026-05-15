@@ -34,6 +34,7 @@ export default function Location() {
           : rawData.split(",");
 
       await moveFiles(Array.isArray(ids) ? ids : [ids], targetId);
+      fileContext.prefetchFolder(targetId, true);
       window.dispatchEvent(new CustomEvent("refresh-file-list"));
     } catch (err) {
       console.error(err);

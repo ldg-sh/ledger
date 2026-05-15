@@ -12,6 +12,8 @@ struct AppState {
 
 #[event(fetch)]
 pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, worker::Error> {
+    console_error_panic_hook::set_once();
+
     let origin = req.headers().get("Origin")?.unwrap_or_default();
     let allowed_origin = env.var("ALLOWED_ORIGIN")?.to_string();
 

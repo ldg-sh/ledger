@@ -36,7 +36,7 @@ interface FileContextType {
   setFolderCache: Dispatch<SetStateAction<Record<string, FileListData>>>;
   currentFolderId: string;
   gotoPath: (id: string) => void;
-  prefetchFolder: (id: string) => void;
+  prefetchFolder: (id: string, bypass?: boolean) => void;
   searchQuery: string;
   setSearchQuery: Dispatch<SetStateAction<string>>;
 }
@@ -135,14 +135,16 @@ export function FileProvider({
   );
 
   const prefetchFolder = useCallback(
-    async (id: string) => {
-      if (folderCache[id]) return;
+    async (id: string, bypass: boolean = false) => {
+      if (folderCache[id] && !bypass) return;
 
       try {
         const cached = await get(id, ledgerStore);
         if (cached) {
           setFolderCache((prev) => ({ ...prev, [id]: cached }));
-          return;
+          if (!bypass) {
+            return;
+          }
         }
 
         const response = await listFiles(id, sort, 0, 150);

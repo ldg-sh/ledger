@@ -484,6 +484,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
           targetFolderId,
         );
 
+        fileContext.prefetchFolder(targetFolderId, true);
         window.dispatchEvent(new CustomEvent("refresh-file-list"));
       } catch (err) {
         console.error("Failed to move files:", err);
@@ -491,7 +492,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
         setGlobalLoading(false);
       }
     },
-    [],
+    [fileContext],
   );
 
   useEffect(() => {

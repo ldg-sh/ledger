@@ -24,3 +24,4 @@ async_zip = { version = "0.0.18", features = ["tokio", "deflate", "chrono"] }
 web-sys = "0.3.91"
 futures-util = "0.3.32"
 nanoid = "0.4.0"
+console_error_panic_hook = "0.1.7"
