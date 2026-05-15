@@ -1,6 +1,9 @@
 "use client";
 
 import { useFile } from "@/context/FileExplorerContext";
+import { setGlobalLoading } from "@/context/LoadingContext";
+import { moveFiles } from "@/lib/api/file";
+import { cn } from "@/lib/util/class";
 import { useEffect, useRef, useState } from "react";
 import styles from "./Location.module.scss";
 
@@ -10,9 +13,33 @@ export default function Location() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [displayValue, setDisplayValue] = useState(fileContext.searchQuery);
+  const [activeDropId, setActiveDropId] = useState<string | null>(null);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setDisplayValue(event.target.value);
+  };
+
+  const handleDropToPath = async (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    setActiveDropId(null);
+
+    const rawData = e.dataTransfer.getData("text/plain");
+    if (!rawData) return;
+
+    try {
+      setGlobalLoading(true);
+      const ids =
+        rawData.startsWith("[") || rawData.startsWith("{")
+          ? [JSON.parse(rawData)]
+          : rawData.split(",");
+
+      await moveFiles(Array.isArray(ids) ? ids : [ids], targetId);
+      window.dispatchEvent(new CustomEvent("refresh-file-list"));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setGlobalLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -34,7 +61,16 @@ export default function Location() {
       ) : (
         <div className={styles.left}>
           <span
-            className={styles.pathSegment}
+            className={cn(
+              styles.pathSegment,
+              activeDropId === "root" ? styles.activeDrop : "",
+            )}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setActiveDropId("root");
+            }}
+            onDragLeave={() => setActiveDropId(null)}
+            onDrop={(e) => handleDropToPath(e, "")}
             onClick={() => {
               fileContext.gotoPath("");
             }}
@@ -42,22 +78,29 @@ export default function Location() {
             {"home"}
           </span>
           <span className={styles.seperator}>{" / "}</span>
-          {(fileContext.breadcrumbs || []).map((_, index) => (
-            <div className={styles.pathGrouping} key={index + "-container"}>
+          {(fileContext.breadcrumbs || []).map((crumb, index) => (
+            <div className={styles.pathGrouping} key={crumb.id || index}>
               <span
-                key={index}
-                className={styles.pathSegment}
+                className={cn(
+                  styles.pathSegment,
+                  activeDropId === crumb.id ? styles.activeDrop : "",
+                )}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setActiveDropId(crumb.id);
+                }}
+                onDragLeave={() => setActiveDropId(null)}
+                onDrop={(e) => handleDropToPath(e, crumb.id)}
                 onClick={() => {
-                  fileContext.gotoPath(fileContext.breadcrumbs[index].id);
+                  fileContext.gotoPath(crumb.id);
                 }}
               >
-                {decodeURIComponent(fileContext.breadcrumbs[index].name)}
+                {decodeURIComponent(crumb.name)}
               </span>
               <span
-                key={index + "-sep"}
                 className={styles.seperator}
                 onClick={() => {
-                  fileContext.gotoPath(fileContext.breadcrumbs[index].id);
+                  fileContext.gotoPath(crumb.id);
                 }}
               >
                 {"/"}

@@ -8,6 +8,7 @@ import { InitUploadResponse } from "../types/generated/InitUploadResponse";
 import { ListFileElement } from "../types/generated/ListFileElement";
 import { ListFilesRequest } from "../types/generated/ListFilesRequest";
 import { ListFilesResponse } from "../types/generated/ListFilesResponse";
+import { MoveFilesRequest } from "../types/generated/MoveFilesRequest";
 import { RenameFileRequest } from "../types/generated/RenameFileRequest";
 import { ShareRequest } from "../types/generated/ShareRequest";
 import { ShareResponse } from "../types/generated/ShareResponse";
@@ -180,6 +181,24 @@ export async function deleteFiles(fileIds: string[]) {
 
   const res = await authenticatedFetch(`/file/delete`, {
     method: "DELETE",
+    body: JSON.stringify(request),
+  });
+
+  return res.ok;
+}
+
+export async function moveFiles(fileIds: string[], destinationPath: string) {
+  const destPath = destinationPath.startsWith("/")
+    ? destinationPath.slice(1)
+    : destinationPath;
+
+  const request: MoveFilesRequest = {
+    file_ids: fileIds,
+    destination_path: destPath,
+  };
+
+  const res = await authenticatedFetch(`/file/move`, {
+    method: "POST",
     body: JSON.stringify(request),
   });
 

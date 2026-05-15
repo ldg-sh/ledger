@@ -5,7 +5,7 @@ import { setGlobalLoading } from "@/context/LoadingContext";
 import { useSort } from "@/context/SortContext";
 import { useUser } from "@/context/UserContext";
 import { useCustomMenu } from "@/hooks/customMenu";
-import { copyFiles, getShareLink, listFiles } from "@/lib/api/file";
+import { copyFiles, getShareLink, listFiles, moveFiles } from "@/lib/api/file";
 import { ListFileElement } from "@/lib/types/generated/ListFileElement";
 import { handleClientDownload } from "@/lib/util/download";
 import { AnimatePresence } from "motion/react";
@@ -80,7 +80,9 @@ export default function FileList({ parentContainerRef }: FileListProps) {
 
   const copyFileIdsToClipboard = useCallback(async () => {
     if (selectedFiles.size > 0) {
-      const fileIdsString = Array.from(selectedFiles).join("\n");
+      const fileIdsString = Array.from(selectedFiles)
+        .map((f) => f.id)
+        .join("\n");
       await writeToClipboard(fileIdsString);
     } else if (lastDeliberateClick) {
       await writeToClipboard(lastDeliberateClick.id);
@@ -470,11 +472,109 @@ export default function FileList({ parentContainerRef }: FileListProps) {
     return () => container.removeEventListener("scroll", handleScroll);
   }, [parentContainerRef, isLoading]);
 
+  const handleMoveFiles = useCallback(
+    async (sourceFiles: ListFileElement[], targetFolderId: string) => {
+      const validFiles = sourceFiles.filter((f) => f.id !== targetFolderId);
+      if (validFiles.length === 0) return;
+
+      try {
+        setGlobalLoading(true);
+        await moveFiles(
+          validFiles.map((f) => f.id),
+          targetFolderId,
+        );
+
+        window.dispatchEvent(new CustomEvent("refresh-file-list"));
+      } catch (err) {
+        console.error("Failed to move files:", err);
+      } finally {
+        setGlobalLoading(false);
+      }
+    },
+    [],
+  );
+
   useEffect(() => {
     if (currentOffset > 0) {
       loadMoreData();
     }
   }, [currentOffset, loadMoreData]);
+
+  const onDragStart = (e: React.DragEvent, file: ListFileElement) => {
+    let filesToMove: ListFileElement[];
+
+    if (selectedFiles.has(file)) {
+      filesToMove = Array.from(selectedFiles);
+    } else {
+      filesToMove = [file];
+      setSelectedFiles(new Set([file]));
+    }
+
+    const fileIds = filesToMove.map((f) => f.id).join(",");
+    e.dataTransfer.setData("text/plain", fileIds);
+
+    const dragPreview = document.createElement("div");
+    dragPreview.style.position = "absolute";
+    dragPreview.style.top = "-1000px";
+    dragPreview.style.display = "flex";
+    dragPreview.style.alignItems = "center";
+    dragPreview.style.justifyContent = "center";
+    dragPreview.style.padding = "8px 12px";
+    dragPreview.style.background = "var(--color-background-hover)";
+    dragPreview.style.border = "var(--border-style)";
+    dragPreview.style.borderRadius = "8px";
+    dragPreview.style.color = "var(--color-text-primary)";
+    dragPreview.style.fontSize = "13px";
+    dragPreview.style.fontWeight = "500";
+    dragPreview.style.pointerEvents = "none";
+    dragPreview.style.whiteSpace = "nowrap";
+    dragPreview.style.zIndex = "10000";
+    dragPreview.style.gap = "4px";
+
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    svg.setAttribute("width", "14");
+    svg.setAttribute("height", "14");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("fill", "none");
+    svg.setAttribute("stroke", "currentColor");
+    svg.setAttribute("stroke-width", "2.5");
+    svg.setAttribute("stroke-linecap", "round");
+    svg.setAttribute("stroke-linejoin", "round");
+
+    const path1 = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "path",
+    );
+    path1.setAttribute("d", "m15 10 5 5-5 5");
+    svg.appendChild(path1);
+
+    const path2 = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "path",
+    );
+    path2.setAttribute("d", "M4 4v7a4 4 0 0 0 4 4h12");
+    svg.appendChild(path2);
+
+    dragPreview.appendChild(svg);
+
+    const icon = document.createElement("span");
+    dragPreview.appendChild(icon);
+
+    const text = document.createElement("span");
+    text.innerText =
+      filesToMove.length > 1
+        ? `Moving ${filesToMove.length} items`
+        : `Moving ${file.file_name}`;
+    dragPreview.appendChild(text);
+
+    document.body.appendChild(dragPreview);
+    e.dataTransfer.setDragImage(dragPreview, 20, 20);
+
+    setTimeout(() => {
+      document.body.removeChild(dragPreview);
+    }, 0);
+  };
 
   return (
     <>
@@ -515,6 +615,13 @@ export default function FileList({ parentContainerRef }: FileListProps) {
             folder={true}
             clickCallback={handleRowClick}
             selected={selectedFiles.has(folder)}
+            draggable={true}
+            dropable={true}
+            onDragStart={(e) => onDragStart(e, folder)}
+            onDrop={(e) => {
+              e.preventDefault();
+              handleMoveFiles(Array.from(selectedFiles), folder.id);
+            }}
             file={folder}
           />
         ))}
@@ -528,6 +635,13 @@ export default function FileList({ parentContainerRef }: FileListProps) {
             createdAt={file.created_at}
             clickCallback={handleRowClick}
             selected={selectedFiles.has(file)}
+            draggable={true}
+            dropable={false}
+            onDragStart={(e) => onDragStart(e, file)}
+            onDrop={(e) => {
+              e.preventDefault();
+              handleMoveFiles(Array.from(selectedFiles), file.id);
+            }}
             file={file}
           />
         ))}

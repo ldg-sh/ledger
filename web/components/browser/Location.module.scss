@@ -43,6 +43,11 @@
     display: flex;
 }
 
+.activeDrop {
+    background-color: var(--color-background-active);
+    border-radius: 4px;
+}
+
 .right {
     display: flex;
     align-items: center;
@@ -59,6 +64,10 @@
 
     transition: opacity 0.2s ease;
     padding: 10px;
+}
+
+.node {
+    all: unset;
 }
 
 .search {

@@ -57,6 +57,8 @@ export default function TransferWindow() {
     const files: File[] =
       e instanceof FileList ? Array.from(e) : Array.from(e.dataTransfer.files);
 
+    if (files.length === 0) return;
+
     const creationPromises = [];
     setIsExpanded(true);
 
@@ -247,18 +249,21 @@ export default function TransferWindow() {
   };
 
   const onDragOver = (e: React.DragEvent<HTMLDocument>) => {
+    if (!e.dataTransfer.types.includes("Files")) return;
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(true);
   };
 
   const onDragEnter = (e: React.DragEvent<HTMLDocument>) => {
+    if (!e.dataTransfer.types.includes("Files")) return;
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(true);
   };
 
   const onDragLeave = (e: React.DragEvent<HTMLDocument>) => {
+    if (!e.dataTransfer.types.includes("Files")) return;
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);

@@ -31,6 +31,11 @@ interface RowProps {
     isShiftKey: boolean,
     isCommandKey: boolean,
   ) => void;
+  draggable?: boolean;
+  dropable?: boolean;
+  onDragStart?: (e: React.DragEvent) => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDrop?: (e: React.DragEvent) => void;
   selected?: boolean;
 }
 
@@ -43,6 +48,11 @@ export default function Row({
   folder = false,
   selected = false,
   clickCallback,
+  draggable = false,
+  dropable = false,
+  onDragStart,
+  onDragOver,
+  onDrop,
   file,
 }: RowProps) {
   const fileContext = useFile();
@@ -51,6 +61,7 @@ export default function Row({
   const moreOptionsRef = useRef<HTMLDivElement>(null);
   const [coords, setCoords] = useState({ x: 0, y: 0 });
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const { visible, showMenu, hideMenu } = useCustomMenu(fileId);
 
@@ -138,9 +149,28 @@ export default function Row({
 
   return (
     <div
-      className={styles.rowContainer}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      className={cn(selected && styles.selected, styles.rowContainer)}
+      draggable={draggable}
+      onDragStart={onDragStart}
+      onDragOver={(e) => {
+        if (dropable) {
+          e.preventDefault();
+          setIsDragOver(true);
+          if (onDragOver) {
+            onDragOver(e);
+          }
+        }
+      }}
+      onDragLeave={() => {
+        setIsDragOver(false);
+      }}
+      onDrop={onDrop}
+      style={{
+        backgroundColor:
+          isDragOver && dropable ? "var(--color-background-active)" : undefined,
+      }}
     >
       <div
         style={{ display: screenWidth > 600 ? "none" : "block" }}

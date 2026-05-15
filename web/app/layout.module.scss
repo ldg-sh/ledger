@@ -6,7 +6,7 @@
     --color-text-primary: #404040;
     --color-text-bold: #191919;
     --content-width: 80%;
-    --color-background: #FAFAFA;
+    --color-background: #fafafa;
     --color-button-background: #ffffff;
     --color-background-selected: #f1f1f1;
     --color-background-hover: #f6f6f6;
@@ -15,7 +15,7 @@
     --color-button-background-active: #343434;
     --box-shadow-standard: 0 4px 12px rgba(0, 0, 0, 0.1);
 
-    --color-row-background-selected: rgba(72, 148, 255, 0.065);
+    --color-row-background-selected: rgb(238, 243, 250);
 
     --color-error-background: rgba(239, 68, 68, 0.05);
     --color-error-foreground: rgb(239, 68, 68);
@@ -37,7 +37,7 @@
         --color-background-active: #1c1c1c;
         --color-framework: #333333;
         --color-framework-selected: #444444;
-        
+
         --color-text-primary: #e0e0e0;
         --color-text-secondary: #a0a0a0;
         --color-text-bold: #ffffff;
@@ -76,5 +76,5 @@ body {
     background-color: var(--color-background);
     color: var(--color-text-primary);
 
-    letter-spacing: -.02rem;
+    letter-spacing: -0.02rem;
 }
