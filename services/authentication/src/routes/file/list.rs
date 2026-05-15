@@ -75,7 +75,7 @@ pub async fn list(
 
         let sql = r#"
             WITH RECURSIVE trail AS (
-                SELECT id, file_name, path FROM file WHERE id = $1
+                SELECT id, file_name, path FROM file WHERE id = $1 AND owner_id = $2
                 UNION ALL
                 SELECT f.id, f.file_name, f.path FROM file f
                 INNER JOIN trail t ON f.id = t.path
@@ -86,7 +86,7 @@ pub async fn list(
         database_ref.query_all_raw(Statement::from_sql_and_values(
             database_ref.get_database_backend(),
             sql,
-            [Value::from(path_clone)],
+            [Value::from(path_clone), authenticated_user.id.clone().into()],
         )).await
     };
 
