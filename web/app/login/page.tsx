@@ -22,6 +22,7 @@ export default function LoginPage() {
         <div className={styles.loginButtonContainer}>
           <LoginButton
             authUrl={GITHUB_AUTH_URL}
+            isLoading={isLoading}
             title="Continue with GitHub"
             svg={
               <svg
@@ -47,6 +48,7 @@ export default function LoginPage() {
           />
           <LoginButton
             authUrl={GOOGLE_AUTH_URL}
+            isLoading={isLoading}
             title="Continue with Google"
             svg={
               <svg

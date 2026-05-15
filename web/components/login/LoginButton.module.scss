@@ -23,8 +23,8 @@
 }
 
 .linkButton {
-        height: 30px;
-        width: auto;
+    height: 30px;
+    width: auto;
 }
 
 .loginButton:hover {
@@ -38,6 +38,7 @@
 
 .loading {
     opacity: 0.7;
+    pointer-events: none;
 }
 
 .boldButton {
