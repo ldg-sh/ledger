@@ -9,6 +9,5 @@ export default function FilePreview({
   fileId: string;
   fileType?: string;
 }) {
-  console.log(fileId, fileType);
   return <div className={styles.container}></div>;
 }
