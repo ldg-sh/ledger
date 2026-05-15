@@ -52,6 +52,12 @@ export default function Location() {
     };
   }, [displayValue, fileContext]);
 
+  useEffect(() => {
+    if (fileContext.searchQuery === "") {
+      setDisplayValue("");
+    }
+  }, [fileContext.searchQuery]);
+
   return (
     <div className={styles.locationBar} ref={scrollRef}>
       {fileContext.searchQuery ? (
