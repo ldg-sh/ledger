@@ -27,7 +27,7 @@ pub async fn explode(
             created_at,
             file_name::text as virtual_path
         FROM "file"
-        WHERE id = ANY($1)
+        WHERE id = ANY($1) AND owner_id = $2
 
         UNION ALL
 
@@ -41,12 +41,13 @@ pub async fn explode(
             t.virtual_path || '/' || i.file_name
         FROM "file" i
         INNER JOIN tree t ON i.path = t.id
+        WHERE i.owner_id = $2
     )
     SELECT id, is_directory, file_name, file_size, created_at, virtual_path FROM tree WHERE is_directory = false;
 "#;
 
     let exploded_items: Vec<ExplodedItem> = match ExplodedItem::find_by_statement(
-        Statement::from_sql_and_values(DbBackend::Postgres, query, [req.item_ids.clone().into()]),
+        Statement::from_sql_and_values(DbBackend::Postgres, query, [req.item_ids.clone().into(), authenticated_user.id.clone().into()])
     )
     .all(database)
     .await
