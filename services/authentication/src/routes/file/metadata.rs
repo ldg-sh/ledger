@@ -10,10 +10,11 @@ use crate::middleware::middleware::AuthenticatedUser;
 pub async fn metadata(
     database: web::Data<DatabaseConnection>,
     payload: web::Json<MetadataRequest>,
-    _authenticated_user: AuthenticatedUser,
+    authenticated_user: AuthenticatedUser,
 ) -> HttpResponse {
     let file = File::find()
         .filter(file::Column::Id.eq(payload.file_id.clone()))
+        .filter(file::Column::OwnerId.eq(authenticated_user.id.clone()))
         .one(database.get_ref())
         .await;
 

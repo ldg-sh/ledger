@@ -19,6 +19,7 @@ pub async fn delete(
 ) -> impl Responder {
     let result = match File::delete_many()
         .filter(file::Column::Id.is_in(payload.file_ids.clone()))
+        .filter(file::Column::OwnerId.eq(authenticated_user.id.clone()))
         .exec(database.get_ref())
         .await
         .map_err(|err| {

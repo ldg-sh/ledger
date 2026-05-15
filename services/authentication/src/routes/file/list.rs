@@ -55,6 +55,7 @@ pub async fn list(
     } else {
         query = query
             .filter(file::Column::Path.eq(payload.path.clone()))
+            .filter(file::Column::OwnerId.eq(authenticated_user.id.clone()))
             .order_by(file::Column::IsDirectory, Order::Desc)
             .order_by(column, order);
     }

@@ -1,21 +1,26 @@
+use crate::middleware::middleware::AuthenticatedUser;
 use actix_web::{HttpResponse, Responder, post, web};
 use common::entities::file;
 use common::entities::prelude::File;
 use common::types::file::rename::RenameFileRequest;
 use migration::Expr;
-use sea_orm::{ExprTrait, QueryFilter};
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait};
-use crate::middleware::middleware::AuthenticatedUser;
+use sea_orm::{ExprTrait, QueryFilter};
 
 #[post("rename")]
 pub async fn rename(
     database: web::Data<DatabaseConnection>,
     payload: web::Json<RenameFileRequest>,
-    _authenticated_user: AuthenticatedUser,
+    authenticated_user: AuthenticatedUser,
 ) -> impl Responder {
     let db = database.get_ref();
 
-    let file_to_rename = match File::find_by_id(payload.file_id.to_owned()).one(db).await {
+    let file_to_rename = match File::find()
+        .filter(file::Column::Id.eq(payload.file_id.clone()))
+        .filter(file::Column::OwnerId.eq(authenticated_user.id.clone()))
+        .one(db)
+        .await
+    {
         Ok(Some(f)) => f,
         Ok(None) => return HttpResponse::NotFound().finish(),
         Err(_) => return HttpResponse::InternalServerError().finish(),

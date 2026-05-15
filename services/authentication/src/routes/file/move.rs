@@ -11,7 +11,7 @@ use crate::middleware::middleware::AuthenticatedUser;
 pub async fn r#move(
     database: web::Data<DatabaseConnection>,
     payload: web::Json<MoveFilesRequest>,
-    _authenticated_user: AuthenticatedUser,
+    authenticated_user: AuthenticatedUser,
 ) -> impl Responder {
     match File::update_many()
         .col_expr(
@@ -19,6 +19,7 @@ pub async fn r#move(
             Expr::Value(payload.destination_path.clone().into()),
         )
         .filter(file::Column::Id.is_in(payload.file_ids.clone()))
+        .filter(file::Column::OwnerId.eq(authenticated_user.id.clone()))
         .exec(database.get_ref())
         .await
     {
