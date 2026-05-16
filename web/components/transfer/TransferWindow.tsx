@@ -85,7 +85,7 @@ export default function TransferWindow() {
         bytesUploaded: 0,
         startTime: date.getTime(),
         totalBytes: size,
-        status: tooLarge
+        status: !tooLarge
           ? "Waiting..."
           : "Failed to upload: Max file size is " +
             pretifyFileSize(MAX_FILE_SIZE) +
