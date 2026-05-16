@@ -5,7 +5,7 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
 use worker::*;
-use common::types::file::file_claims::FileClaims;
+use common::types::file::file_claims::FileShare;
 
 pub async fn handle_share_download(
     mut req: Request,
@@ -17,7 +17,7 @@ pub async fn handle_share_download(
 
     let kv = ctx.kv("DOWNLOAD_SESSIONS")?;
 
-    let claims = match kv.get(&payload.token).json::<FileClaims>().await? {
+    let claims = match kv.get(&payload.token).json::<FileShare>().await? {
         Some(c) => c,
         None => return Response::error("Link expired or invalid", 410),
     };

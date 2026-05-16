@@ -2,7 +2,7 @@ use crate::{authenticate, AppState};
 use common::types::file::share::{ShareRequest, ShareResponse};
 use std::sync::Arc;
 use worker::{Request, Response, RouteContext};
-use common::types::file::file_claims::FileClaims;
+use common::types::file::file_claims::FileShare;
 
 pub async fn handle_share(
     mut req: Request,
@@ -15,7 +15,7 @@ pub async fn handle_share(
 
     let file_lookup_key = format!("file_map:{}:{}", user.id, payload.file_id);
 
-    let claims = FileClaims {
+    let claims = FileShare {
         file_id: payload.file_id.clone(),
         file_name: payload.file_name,
         owner_id: user.id,

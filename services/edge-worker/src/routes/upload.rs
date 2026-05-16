@@ -26,6 +26,10 @@ pub async fn handle_create(mut req: Request, ctx: RouteContext<Arc<AppState>>) -
     let req_body = &req.json::<InitUploadRequest>().await?;
     let file_id = Uuid::new_v4();
 
+    if req_body.part_count >= 2000 {
+        return Response::error("Part count must be less than 2000", 400);
+    }
+
     let internal_req = InitUploadInternalRequest {
         filename: req_body.filename.clone(),
         size: req_body.size,
