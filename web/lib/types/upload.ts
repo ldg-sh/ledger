@@ -3,6 +3,8 @@ export interface UploadTask {
   uploadUrl: string;
   chunkIndex: number;
   uploadId: string;
+  startTime: number;
+  totalSize: number;
   chunk: Blob;
 }
 
@@ -18,4 +20,5 @@ export interface FileUpload {
   status: string;
   startTime: number;
   etags: Map<number, string>;
+  estimatedTimeRemaining?: number;
 }

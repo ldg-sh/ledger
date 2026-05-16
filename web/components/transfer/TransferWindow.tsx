@@ -130,6 +130,8 @@ export default function TransferWindow() {
               chunkIndex: i,
               uploadId: uploadResponse.upload_id,
               chunk: chunk,
+              startTime: date.getTime(),
+              totalSize: size,
             });
           }
         })
@@ -247,6 +249,7 @@ export default function TransferWindow() {
     return () =>
       window.removeEventListener("trigger-upload", handleExternalUpload);
   });
+  const lastUpdateRef = useRef<Record<string, number>>({});
 
   const upload = async (task: UploadTask) => {
     const uint8Array = new Uint8Array(await task.chunk.arrayBuffer());
@@ -254,17 +257,39 @@ export default function TransferWindow() {
 
     return uploadPart(task.uploadUrl, uint8Array, (bytesSent) => {
       const newAmount = bytesSent - uploadedBytes;
+      if (newAmount <= 0) return;
 
-      if (newAmount > 0) {
-        setTotalUploadedSize((prev) => prev + newAmount);
-      }
+      setTotalUploadedSize((prev) => prev + newAmount);
+
+      const now = Date.now();
+      const lastUpdate = lastUpdateRef.current[task.fileId] || 0;
+      const throttleMs = 1000;
 
       setFileUploads((prev) =>
         prev.map((upload) => {
           if (upload.fileId === task.fileId) {
+            const updatedBytes = upload.bytesUploaded + newAmount;
+            const totalElapsedTimeMs = now - upload.startTime;
+
+            let statusText = upload.status;
+
+            if (now - lastUpdate > throttleMs) {
+              if (totalElapsedTimeMs > 500 && updatedBytes > 0) {
+                const averageSpeedBps =
+                  updatedBytes / (totalElapsedTimeMs / 1000);
+                const bytesRemaining = upload.totalBytes - updatedBytes;
+                const estimatedTimeRemainingMs =
+                  (bytesRemaining / averageSpeedBps) * 1000;
+
+                statusText = `Estimated time remaining: <strong>${formatDuration(estimatedTimeRemainingMs)}</strong>`;
+                lastUpdateRef.current[task.fileId] = now;
+              }
+            }
+
             return {
               ...upload,
-              bytesUploaded: upload.bytesUploaded + newAmount,
+              status: statusText,
+              bytesUploaded: updatedBytes,
             };
           }
           return upload;
@@ -272,8 +297,6 @@ export default function TransferWindow() {
       );
 
       uploadedBytes = bytesSent;
-    }).then((etag) => {
-      return etag;
     });
   };
 
@@ -431,7 +454,15 @@ export default function TransferWindow() {
                 </div>
                 <div className={styles.fileInfo}>
                   <div className={styles.fileName}>{fileProg.fileName}</div>
-                  <p className={styles.bytesUploaded}>{fileProg.status}</p>
+                  <p className={styles.bytesUploaded}>
+                    {fileProg.status.startsWith("Estimated time remaining") ? (
+                      <span
+                        dangerouslySetInnerHTML={{ __html: fileProg.status }}
+                      ></span>
+                    ) : (
+                      fileProg.status
+                    )}
+                  </p>
                 </div>
                 <div className={styles.progressNumbers}>
                   <p className={styles.bytesUploaded}>
