@@ -74,6 +74,7 @@ pub async fn rename(
 
     let update_self = File::update_many()
         .filter(file::Column::Id.eq(payload.file_id.to_owned()))
+        .filter(file::Column::OwnerId.eq(authenticated_user.id.clone()))
         .col_expr(file::Column::FileName, Expr::value(new_name))
         .exec(db)
         .await;

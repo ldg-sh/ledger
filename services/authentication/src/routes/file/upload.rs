@@ -101,11 +101,10 @@ pub async fn complete(
     let update = File::update_many()
         .col_expr(file::Column::UploadCompleted, true.into())
         .filter(file::Column::Id.eq(payload.file_id.clone()))
+        .filter(file::Column::OwnerId.eq(authenticated_user.id.clone()))
         .exec(database.get_ref())
         .await;
-
-    println!("{:?}", update);
-
+    
     if update.is_err() {
         HttpResponse::InternalServerError().body(format!(
             "Failed to update file record: {}",
