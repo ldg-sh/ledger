@@ -13,6 +13,7 @@ import styles from "./TransferWindow.module.scss";
 
 const CHUNK_SIZE = 5 * 1024 * 1024;
 const MAX_CONCURRENT_UPLOADS = 3;
+const MAX_FILE_SIZE = 7.5 * 1024 * 1024 * 1024; // 7.5 GB
 
 export default function TransferWindow() {
   const [isDragOver, setIsDragOver] = useState(false);
@@ -68,6 +69,11 @@ export default function TransferWindow() {
 
       const stateUuid = crypto.randomUUID();
       const date = new Date();
+      let tooLarge = false;
+
+      if (size > MAX_FILE_SIZE) {
+        tooLarge = true;
+      }
 
       const fileUpload: FileUpload = {
         stateId: stateUuid,
@@ -79,46 +85,68 @@ export default function TransferWindow() {
         bytesUploaded: 0,
         startTime: date.getTime(),
         totalBytes: size,
-        status: "Waiting...",
+        status: tooLarge
+          ? "Waiting..."
+          : "Failed to upload: Max file size is " +
+            pretifyFileSize(MAX_FILE_SIZE) +
+            ".",
         etags: new Map<number, string>(),
       };
 
-      setTargetSize((prev) => prev + size);
+      if (!tooLarge) {
+        setTargetSize((prev) => prev + size);
+      }
 
       setFileUploads((prev) => [...prev, fileUpload]);
 
-      const promise = createNewUpload(file).then((uploadResponse) => {
-        const fileId = uploadResponse.file_id;
-        const uploadUrls = uploadResponse.upload_urls;
+      if (tooLarge) continue;
+      const promise = createNewUpload(file)
+        .then((uploadResponse) => {
+          const fileId = uploadResponse.file_id;
+          const uploadUrls = uploadResponse.upload_urls;
 
-        setFileUploads((prev) =>
-          prev.map((upload) => {
-            if (upload.stateId === stateUuid) {
-              return {
-                ...upload,
-                fileId: fileId,
-                uploadUrls: uploadUrls,
-                uploadId: uploadResponse.upload_id,
+          setFileUploads((prev) =>
+            prev.map((upload) => {
+              if (upload.stateId === stateUuid) {
+                return {
+                  ...upload,
+                  fileId: fileId,
+                  uploadUrls: uploadUrls,
+                  uploadId: uploadResponse.upload_id,
 
-                status: "Uploading...",
-              };
-            }
-            return upload;
-          }),
-        );
+                  status: "Uploading...",
+                };
+              }
+              return upload;
+            }),
+          );
 
-        for (let i = 1; i <= totalChunks; i++) {
-          const chunk = file.slice((i - 1) * CHUNK_SIZE, i * CHUNK_SIZE);
+          for (let i = 1; i <= totalChunks; i++) {
+            const chunk = file.slice((i - 1) * CHUNK_SIZE, i * CHUNK_SIZE);
 
-          taskQueue.current.push({
-            fileId: fileId,
-            uploadUrl: uploadUrls[i - 1],
-            chunkIndex: i,
-            uploadId: uploadResponse.upload_id,
-            chunk: chunk,
-          });
-        }
-      });
+            taskQueue.current.push({
+              fileId: fileId,
+              uploadUrl: uploadUrls[i - 1],
+              chunkIndex: i,
+              uploadId: uploadResponse.upload_id,
+              chunk: chunk,
+            });
+          }
+        })
+        .catch(() => {
+          setFileUploads((prev) =>
+            prev.map((upload) => {
+              if (upload.stateId === stateUuid) {
+                return {
+                  ...upload,
+                  status:
+                    "Error during upload initialization. Check the console for more details.",
+                };
+              }
+              return upload;
+            }),
+          );
+        });
 
       creationPromises.push(promise);
     }
@@ -201,7 +229,8 @@ export default function TransferWindow() {
           );
 
           if (fileUpload) {
-            fileUpload.status = "Error";
+            fileUpload.status =
+              "Error: Failed to upload chunk " + task.chunkIndex;
           }
         });
     }
@@ -380,44 +409,42 @@ export default function TransferWindow() {
                 <p>No active transfers</p>
               </div>
             )}
-            {fileUploads
-              .filter((fileProg) => fileProg.uploadId)
-              .map((fileProg) => (
-                <div
-                  className={cn(styles.fileProgress)}
-                  key={fileProg.uploadId}
-                >
-                  <div className={styles.progressBar}>
-                    <div className={styles.progressBars}>
-                      <div
-                        className={styles.progressFill}
-                        style={{
-                          width: `${
-                            fileProg.bytesUploaded > 0
-                              ? (fileProg.bytesUploaded / fileProg.totalBytes) *
-                                100
-                              : 0
-                          }%`,
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                  <div className={styles.fileInfo}>
-                    <div className={styles.fileName}>{fileProg.fileName}</div>
-                    <p className={styles.bytesUploaded}>{fileProg.status}</p>
-                  </div>
-                  <div className={styles.progressNumbers}>
-                    <p className={styles.bytesUploaded}>
-                      {pretifyFileSize(fileProg.bytesUploaded)} /{" "}
-                      {pretifyFileSize(fileProg.totalBytes)}
-                    </p>
-                    <p className={styles.chunksUploaded}>
-                      {Math.ceil(fileProg.bytesUploaded / CHUNK_SIZE)} /{" "}
-                      {fileProg.total}
-                    </p>
+            {fileUploads.map((fileProg) => (
+              <div
+                className={cn(styles.fileProgress)}
+                key={fileProg.uploadId ? fileProg.uploadId : fileProg.stateId}
+              >
+                <div className={styles.progressBar}>
+                  <div className={styles.progressBars}>
+                    <div
+                      className={styles.progressFill}
+                      style={{
+                        width: `${
+                          fileProg.bytesUploaded > 0
+                            ? (fileProg.bytesUploaded / fileProg.totalBytes) *
+                              100
+                            : 0
+                        }%`,
+                      }}
+                    ></div>
                   </div>
                 </div>
-              ))}
+                <div className={styles.fileInfo}>
+                  <div className={styles.fileName}>{fileProg.fileName}</div>
+                  <p className={styles.bytesUploaded}>{fileProg.status}</p>
+                </div>
+                <div className={styles.progressNumbers}>
+                  <p className={styles.bytesUploaded}>
+                    {pretifyFileSize(fileProg.bytesUploaded)} /{" "}
+                    {pretifyFileSize(fileProg.totalBytes)}
+                  </p>
+                  <p className={styles.chunksUploaded}>
+                    {Math.ceil(fileProg.bytesUploaded / CHUNK_SIZE)} /{" "}
+                    {fileProg.total}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
