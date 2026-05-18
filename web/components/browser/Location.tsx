@@ -45,7 +45,7 @@ export default function Location() {
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      fileContext.setSearchQuery(displayValue);
+      fileContext.setSearchQuery(displayValue.trim());
     }, 200);
 
     return () => {
