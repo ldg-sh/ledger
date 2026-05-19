@@ -1,3 +1,4 @@
+use std::error::Error;
 use crate::routes::user::providers::database::ProviderExtension;
 use crate::routes::user::providers::success::login_success;
 use crate::routes::user::providers::Provider;
@@ -65,16 +66,26 @@ pub async fn github_callback(
         }
     };
 
-    let user_info = client
+    let user_info = match client
         .get("https://api.github.com/user")
         .header("User-Agent", "Ledger")
         .header("Authorization", format!("Bearer {}", token.access_token))
         .send()
         .await
-        .unwrap()
-        .json::<GitHubUser>()
-        .await
-        .unwrap();
+    {
+        Ok(response) => match response.json::<GitHubUser>().await {
+            Ok(user) => user,
+            Err(e) => {
+                error!("Failed to parse GitHub user JSON: {:?}", e);
+                return HttpResponse::InternalServerError().body(format!("Failed to parse GitHub response: {}", body_text));
+            }
+        },
+        Err(e) => {
+            error!("Network request to GitHub failed: {:?}", e);
+            return HttpResponse::InternalServerError().body("Failed to retrieve user information from GitHub");
+        }
+    };
+
 
     let res = database.upsert_oauth_user(
         user_info.email,
