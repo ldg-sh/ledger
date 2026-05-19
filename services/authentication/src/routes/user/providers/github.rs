@@ -57,12 +57,13 @@ pub async fn github_callback(
     };
 
     let body_text = resp.text().await.unwrap_or_else(|_| "Empty body".to_string());
+    let clean_body = body_text.trim_start_matches('\u{feff}').trim();
 
-    let token: GitHubTokenResponse = match serde_json::from_str(&body_text) {
+    let token: GitHubTokenResponse = match serde_json::from_str(&clean_body) {
         Ok(t) => t,
         Err(e) => {
-            error!("JSON Parse Error: {:?}. Raw body was: {}", e, body_text);
-            return HttpResponse::BadRequest().body(format!("Failed to parse GitHub response: {}", body_text));
+            error!("JSON Parse Error: {:?}. Raw body was: {}", e, clean_body);
+            return HttpResponse::BadRequest().body(format!("Failed to parse GitHub response: {}", clean_body));
         }
     };
 
@@ -73,13 +74,26 @@ pub async fn github_callback(
         .send()
         .await
     {
-        Ok(response) => match response.json::<GitHubUser>().await {
-            Ok(user) => user,
-            Err(e) => {
-                error!("Failed to parse GitHub user JSON: {:?}", e);
-                return HttpResponse::InternalServerError().body(format!("Failed to parse GitHub response: {}", body_text));
+        Ok(response) => {
+            match response.text().await {
+                Ok(body_text) => {
+                    match serde_json::from_str::<GitHubUser>(&body_text) {
+                        Ok(user) => user,
+                        Err(e) => {
+                            error!("Failed to parse GitHub user JSON: {:?}", e);
+                            error!("Raw GitHub user body was: {}", body_text);
+
+                            return HttpResponse::InternalServerError()
+                                .body(format!("Failed to parse GitHub response: {}", body_text));
+                        }
+                    }
+                }
+                Err(e) => {
+                    error!("Failed to read GitHub response body text: {:?}", e);
+                    return HttpResponse::InternalServerError().body("Failed to read upstream response");
+                }
             }
-        },
+        }
         Err(e) => {
             error!("Network request to GitHub failed: {:?}", e);
             return HttpResponse::InternalServerError().body("Failed to retrieve user information from GitHub");
