@@ -200,9 +200,8 @@ export default function Row({
             clickCallback(file, selected, isShiftKey, isCommandKey);
           }
         }}
-        onDoubleClick={() => {
+        onDoubleClick={async () => {
           loadingContext.setLoading(true);
-          const currentPath = fileContext.currentFolderId;
 
           if (folder) {
             fileContext.setBreadcrumbs([
@@ -216,7 +215,8 @@ export default function Row({
             fileContext.setSearchQuery("");
             fileContext.gotoPath(fileId);
           } else {
-            window.open(`/preview/${currentPath}/${fileId}`, "_blank");
+            await handleClientDownload([fileId], fileName);
+            loadingContext.setLoading(false);
           }
         }}
       >
