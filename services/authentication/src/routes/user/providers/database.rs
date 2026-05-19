@@ -10,6 +10,7 @@ use sea_orm::sea_query::prelude::Utc;
 use sea_orm::{DatabaseConnection, EntityTrait, Set};
 use std::io::Error;
 use std::io::ErrorKind;
+use sea_query::Expr;
 
 #[async_trait::async_trait]
 pub trait ProviderExtension {
@@ -43,6 +44,41 @@ impl ProviderExtension for DatabaseConnection {
         avatar: Option<String>,
         provider: Provider,
     ) -> Result<String, Error> {
+        let existing_result = User::find()
+            .filter(Column::Email.eq(email.clone()))
+            .one(self)
+            .await
+            .map_err(|e| Error::new(ErrorKind::Other, format!("DB Query Error: {}", e)))?;
+
+        if existing_result.is_some() {
+            let existing_id = match provider {
+                Provider::Google => {
+                    User::update_many()
+                        .col_expr(Column::GoogleId, Expr::value(username.clone()))
+                        .col_expr(Column::UpdatedAt, Expr::value(DateTimeWithTimeZone::from(Utc::now())))
+                        .filter(Column::Email.eq(email.clone()))
+                        .exec(self)
+                        .await
+                        .map_err(|e| Error::new(ErrorKind::Other, format!("DB Update Error: {}", e)))?;
+
+                    existing_result.unwrap().id
+                }
+                Provider::GitHub => {
+                    User::update_many()
+                        .col_expr(Column::GithubId, Expr::value(username.clone()))
+                        .col_expr(Column::UpdatedAt, Expr::value(DateTimeWithTimeZone::from(Utc::now())))
+                        .filter(Column::Email.eq(email.clone()))
+                        .exec(self)
+                        .await
+                        .map_err(|e| Error::new(ErrorKind::Other, format!("DB Update Error: {}", e)))?;
+
+                    existing_result.unwrap().id
+                }
+            };
+
+            return Ok(existing_id);
+        }
+
         let mut active_model = ActiveModel {
             id: Set(uuid::Uuid::new_v4().to_string()),
             email: Set(email.to_owned()),
