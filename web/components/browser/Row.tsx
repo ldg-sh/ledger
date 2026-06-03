@@ -106,6 +106,7 @@ export default function Row({
     video: Icons.FileVideo,
     pdf: Icons.FileText,
     audio: Icons.FileAudio,
+    "application/pdf": Icons.FileText,
     application: Icons.FileArchive,
     default: Icons.File,
   };
@@ -132,8 +133,8 @@ export default function Row({
     };
   }, []);
 
-  const iconKey = folder ? "folder" : fileType.split("/")[0] || "default";
-  const IconComponent = ICON_MAP[iconKey] || ICON_MAP.default;
+  const IconComponent =
+    ICON_MAP[fileType] ?? ICON_MAP[fileType.split("/")[0]] ?? ICON_MAP.default;
 
   function handleDownload() {
     handleClientDownload([fileId], fileName);
