@@ -117,6 +117,22 @@ export default async function SharePage({ searchParams }: SharePageProps) {
           />
         </div>
       </div>
+      <div className={styles.footer}>
+        <div className={styles.innerFooter}>
+          <p className={styles.footerText}>
+            © {new Date().getFullYear()} Ledger. All rights reserved. Built by{" "}
+            <a
+              href="https://thesamgordon.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.footerLink}
+            >
+              Sam Gordon
+            </a>
+            .
+          </p>
+        </div>
+      </div>
     </main>
   );
 }

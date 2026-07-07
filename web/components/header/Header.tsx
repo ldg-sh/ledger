@@ -3,9 +3,12 @@
 import { usePathname } from "next/navigation";
 import styles from "./Header.module.scss";
 import User from "./user/User";
+import Link from "next/link";
+import { useUser } from "@/context/UserContext";
 
 export default function Header() {
   const pathName = usePathname();
+  const user = useUser();
 
   if (pathName === "/about") {
     return null;
@@ -13,7 +16,7 @@ export default function Header() {
 
   return (
     <div className={styles.header}>
-      <div className={styles.headerCenter}>
+      <Link className={styles.headerCenter} href={user.user ? "/" : "/about"}>
         <div className={styles.logo}>
           <svg
             width="35"
@@ -37,7 +40,7 @@ export default function Header() {
         <div className={styles.user}>
           <User />
         </div>
-      </div>
+      </Link>
     </div>
   );
 }
