@@ -1,11 +1,13 @@
 import { cn } from "@/lib/util/class";
 import React from "react";
 import styles from "./LoginButton.module.scss";
+import Image from "next/image";
 
 interface LoginButtonProps {
   authUrl?: string;
   title?: string;
-  svg: React.ReactNode;
+  svg?: React.ReactNode;
+  image?: string;
   procedure?: () => void;
   isLoading?: boolean;
   bold?: boolean;
@@ -15,6 +17,7 @@ export default function LoginButton({
   authUrl,
   title,
   svg,
+  image,
   procedure,
   isLoading = false,
   bold = false,
@@ -47,6 +50,7 @@ export default function LoginButton({
             { "aria-hidden": "true" } as React.HTMLAttributes<HTMLElement>,
           )
         : svg}
+      {image ? <Image src={image} width={16} height={16} alt={title ?? ""} /> : null}
       {title ? <span className={styles.span}>{title}</span> : null}
     </Tag>
   );
