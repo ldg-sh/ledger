@@ -6,6 +6,7 @@ import TextInput from "./TextInput";
 import { cn } from "@/lib/util/class";
 import { useState } from "react";
 import { renameFile } from "@/lib/api/file";
+import { useFile } from "@/context/FileExplorerContext";
 
 interface RenameFileProps {
   onClose: () => void;
@@ -20,15 +21,36 @@ export default function RenameFile({
 }: RenameFileProps) {
   const [value, setValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { setFileData } = useFile();
 
   function handleSubmit() {
     setIsLoading(true);
+
+    setFileData((prev) => {
+      return {
+        folders: prev.folders.map((folder) => {
+          if (folder.id === fileId) {
+            return { ...folder, file_name: value };
+          } else {
+            return folder;
+          }
+        }),
+        files: prev.files.map((file) => {
+          if (file.id === fileId) {
+            return { ...file, file_name: value };
+          } else {
+            return file;
+          }
+        }),
+      };
+    });
+
+    onClose();
 
     renameFile(fileId, value).then(() => {
       const event = new CustomEvent("refresh-file-list", {
         detail: () => {
           setIsLoading(false);
-          onClose();
         },
       });
 

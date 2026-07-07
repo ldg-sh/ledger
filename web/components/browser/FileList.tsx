@@ -724,7 +724,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
               />
               {rightClickedFile?.id && selectedFiles.size <= 1 && (
                 <ContextMenuItem
-                  label="Rename"
+                  label="Rename New"
                   glyph="pencil-line"
                   onClick={() => {
                     setIsRenamePopupOpen(true);

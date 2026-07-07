@@ -1,4 +1,3 @@
-use std::error::Error;
 use crate::routes::user::providers::database::ProviderExtension;
 use crate::routes::user::providers::success::login_success;
 use crate::routes::user::providers::Provider;
