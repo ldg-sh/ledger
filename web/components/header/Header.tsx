@@ -16,8 +16,8 @@ export default function Header() {
 
   return (
     <div className={styles.header}>
-      <Link className={styles.headerCenter} href={user.user ? "/" : "/about"}>
-        <div className={styles.logo}>
+      <div className={styles.headerCenter}>
+        <Link className={styles.logo} href={user.user ? "/" : "/about"}>
           <svg
             width="35"
             height="35"
@@ -36,11 +36,11 @@ export default function Header() {
               Fast, efficient, lightweight file storage.
             </p>
           </div>
-        </div>
+        </Link>
         <div className={styles.user}>
           <User />
         </div>
-      </Link>
+      </div>
     </div>
   );
 }

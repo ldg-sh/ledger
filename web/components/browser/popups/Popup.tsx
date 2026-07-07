@@ -28,7 +28,7 @@ export default function Popup({ children, onClosePopup }: PopupProps) {
 
   return (
     <div>
-      <motion.div
+      <motion.button
         className={styles.popupBackdrop}
         onClick={(event) => {
           if (onClosePopup) {

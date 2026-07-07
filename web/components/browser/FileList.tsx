@@ -472,6 +472,29 @@ export default function FileList({ parentContainerRef }: FileListProps) {
     return () => container.removeEventListener("scroll", handleScroll);
   }, [parentContainerRef, isLoading]);
 
+  useEffect(() => {
+    const handleMouseDown = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target) return;
+
+      if (target.closest("[data-context-boundary]")) return;
+
+      const isInteractive = target.closest(
+        'button, a, input, select, textarea, [role="button"], [onclick]'
+      );
+
+      if (isInteractive) return;
+
+      const computedStyle = window.getComputedStyle(target);
+      if (computedStyle.cursor === "pointer") return;
+
+      clearSelection();
+    };
+
+    window.addEventListener("mousedown", handleMouseDown);
+    return () => window.removeEventListener("mousedown", handleMouseDown);
+  }, [clearSelection]);
+
   const handleMoveFiles = useCallback(
     async (sourceFiles: ListFileElement[], targetFolderId: string) => {
       const validFiles = sourceFiles.filter((f) => f.id !== targetFolderId);
