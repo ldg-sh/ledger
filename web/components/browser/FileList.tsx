@@ -392,6 +392,42 @@ export default function FileList({ parentContainerRef }: FileListProps) {
       } else if (event.key === "ArrowDown" && event.shiftKey) {
         event.preventDefault();
         handleSelectLower();
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+
+        if (selectedFiles.size == 1) {
+          const file = selectedFiles.keys().next().value;
+
+          if (file) {
+            if (file.file_type === "directory") {
+              fileContext.gotoPath(file.id);
+              setCurrentOffset(0);
+              setHasMore(true);
+              loadData();
+            }
+          }
+        }
+      } else if (event.key === "ArrowDown") {
+        event.preventDefault();
+        if (lastDeliberateClick) {
+          const index = Array.from(getAllFiles()).indexOf(lastDeliberateClick);
+          if (index < getAllFiles().length - 1) {
+            const nextFile = getAllFiles()[index + 1];
+            setSelectedFiles(new Set([nextFile]));
+            setLastDeliberateClick(nextFile);
+          }
+        }
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        if (lastDeliberateClick) {
+          const index = Array.from(getAllFiles()).indexOf(lastDeliberateClick);
+
+          if (index > 0) {
+            const prevFile = getAllFiles()[index - 1];
+            setSelectedFiles(new Set([prevFile]));
+            setLastDeliberateClick(prevFile);
+          }
+        }
       } else if (isMod && event.key === "c") {
         event.preventDefault();
         await copyFileIdsToClipboard();
@@ -417,6 +453,8 @@ export default function FileList({ parentContainerRef }: FileListProps) {
     copyFileIdsToClipboard,
     pasteFileIdFromClipboard,
     pasteFileIdsFromClipboard,
+    getAllFiles,
+    lastDeliberateClick
   ]);
 
   useEffect(() => {
