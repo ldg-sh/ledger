@@ -58,7 +58,9 @@ export const useCustomMenu = (menuId: string) => {
       }
     };
 
-    const handleClickOutside = () => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (event.target instanceof HTMLElement && event.target.closest(`[role="menu"]`)) return;
+
       closeMenu();
     };
 

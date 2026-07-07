@@ -45,6 +45,7 @@ export const ContextMenu = ({ x, y, children }: MenuProps) => {
   return createPortal(
     <div
       ref={menuRef}
+      role="menu"
       style={{
         top: y,
         left: x,
