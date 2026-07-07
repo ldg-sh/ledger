@@ -36,13 +36,15 @@
     font-weight: 400;
     color: var(--color-text-secondary);
     width: 50%;
+    font-size: .9rem;
 }
 
 .value {
-    font-weight: 600;
+    font-weight: 500;
     color: var(--color-text-primary);
     width: 50%;
     text-align: right;
+    font-size: .9rem;
 }
 
 .row {
@@ -83,7 +85,7 @@
     }
 
     .label, .value {
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
