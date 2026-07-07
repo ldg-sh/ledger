@@ -3,6 +3,7 @@ import { cn } from "@/lib/util/class";
 import { useRef } from "react";
 import Spinner from "@/components/svg/Spinner";
 import { ICON_REGISTRY, IconName } from "@/lib/util/icon";
+import { Check } from "lucide-react";
 
 interface ContextMenuItemProps {
   label: string;
@@ -12,6 +13,7 @@ interface ContextMenuItemProps {
   disabled?: boolean;
   hotkey?: string;
   isLoading?: boolean;
+  isSuccess?: boolean;
 }
 
 export default function ContextMenuItem({
@@ -22,6 +24,7 @@ export default function ContextMenuItem({
   disabled = false,
   hotkey,
   isLoading = false,
+  isSuccess = false,
 }: ContextMenuItemProps) {
   const button = useRef<HTMLButtonElement>(null);
   const IconComponent = ICON_REGISTRY[glyph];
@@ -57,7 +60,7 @@ export default function ContextMenuItem({
         {isLoading ? (
           <Spinner height={16} destructive={destructive} />
         ) : (
-          IconComponent && <IconComponent className={styles.icon} size={16} />
+          isSuccess ? <Check size={16} className={styles.icon} /> : IconComponent && <IconComponent className={styles.icon} size={16} />
         )}
         {label}
       </div>

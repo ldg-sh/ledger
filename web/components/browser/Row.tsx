@@ -68,6 +68,8 @@ export default function Row({
   const [isRenamePopupOpen, setIsRenamePopupOpen] = useState(false);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
   const [isCopyLinkLoading, setIsCopyLinkLoading] = useState(false);
+  const [isCopyLinkSuccess, setIsCopyLinkSuccess] = useState(false);
+
 
   const prefetchTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -288,6 +290,7 @@ export default function Row({
               label="Copy Shareable Link"
               glyph="link"
               isLoading={isCopyLinkLoading}
+              isSuccess={isCopyLinkSuccess}
               onClick={async () => {
                 setIsCopyLinkLoading(true);
                 const url = await getShareLink(
@@ -298,8 +301,13 @@ export default function Row({
                   createdAt,
                 );
                 navigator.clipboard.writeText(url);
-                hideMenu();
+
                 setIsCopyLinkLoading(false);
+                setIsCopyLinkSuccess(true);
+
+                setTimeout(() => {
+                  setIsCopyLinkSuccess(false);
+                }, 3000);
               }}
             />}
             <ContextMenuItem

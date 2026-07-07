@@ -40,6 +40,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
   const [hasMore, setHasMore] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [copyLinkLoading, setCopyLinkLoading] = useState(false);
+  const [copyLinkSuccess, setCopyLinkSuccess] = useState(false);
 
   const [rightClickedFile, setRightClickedFile] =
     useState<ListFileElement | null>(null);
@@ -762,6 +763,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
                   label="Copy Shareable Link"
                   glyph="link"
                   isLoading={copyLinkLoading}
+                  isSuccess={copyLinkSuccess}
                   onClick={async () => {
                     const targetFile =
                       rightClickedFile ?? selectedFiles.values().next().value;
@@ -782,8 +784,12 @@ export default function FileList({ parentContainerRef }: FileListProps) {
                       }
                     }
 
-                    hideMenu();
                     setCopyLinkLoading(false);
+                    setCopyLinkSuccess(true);
+
+                    setTimeout(() => {
+                      setCopyLinkSuccess(false);
+                    }, 3000);
                   }}
                 />
               )}
