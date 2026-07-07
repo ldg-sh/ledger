@@ -141,12 +141,12 @@ export default function Row({
   }
 
   const lastDotIndex = fileName.lastIndexOf(".");
-
   const hasExtension = lastDotIndex > 0;
-  const stem = hasExtension
-    ? fileName.substring(0, lastDotIndex - 8)
-    : fileName;
-  const ext = hasExtension ? fileName.substring(lastDotIndex - 8) : "";
+
+  const splitIndex = hasExtension ? lastDotIndex - 8 : fileName.length;
+
+  const stem = fileName.substring(0, splitIndex);
+  const ext = fileName.substring(splitIndex);
 
   return (
     <div

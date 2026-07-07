@@ -41,7 +41,7 @@
 }
 
 .fileStem {
-    white-space: nowrap;
+    white-space: pre;
     overflow: hidden;
     text-overflow: ellipsis;
     flex-shrink: 1;
@@ -49,7 +49,7 @@
 }
 
 .fileExtension {
-    white-space: nowrap;
+    white-space: pre;
     flex-shrink: 0;
 }
 
