@@ -401,9 +401,6 @@ export default function FileList({ parentContainerRef }: FileListProps) {
           if (file) {
             if (file.file_type === "directory") {
               fileContext.gotoPath(file.id);
-              setCurrentOffset(0);
-              setHasMore(true);
-              loadData();
             }
           }
         }
