@@ -25,8 +25,16 @@ pub struct GitHubTokenResponse {
 pub struct GitHubUser {
     pub id: i64,
     pub avatar_url: String,
-    pub email: String,
+    pub email: Option<String>,
     pub login: String,
+}
+
+#[derive(Deserialize)]
+pub struct GitHubEmail {
+    pub email: String,
+    pub primary: bool,
+    pub verified: bool,
+    pub visibility: Option<String>,
 }
 
 #[actix_web::get("github")]
@@ -84,7 +92,7 @@ pub async fn github_callback(
                             error!("Raw GitHub user body was: {}", body_text);
 
                             return HttpResponse::InternalServerError()
-                                .body(format!("Failed to parse GitHub response: {}", body_text));
+                                .body("Failed to parse GitHub response".to_string());
                         }
                     }
                 }
@@ -100,9 +108,41 @@ pub async fn github_callback(
         }
     };
 
+    let user_email: Option<String> = match client
+        .get("https://api.github.com/user/emails")
+        .header("User-Agent", "Ledger")
+        .header("Authorization", format!("Bearer {}", token.access_token))
+        .send()
+        .await
+    {
+        Ok(response) => match response.text().await {
+            Ok(body_text) => match serde_json::from_str::<Vec<GitHubEmail>>(&body_text) {
+                Ok(emails) => emails
+                    .into_iter()
+                    .find(|e| e.primary && e.verified)
+                    .map(|e| e.email),
+                Err(e) => {
+                    error!("Failed to parse GitHub emails JSON: {:?}. Raw body: {}", e, body_text);
+                    None
+                }
+            },
+            Err(e) => {
+                error!("Failed to read GitHub emails response body: {:?}", e);
+                None
+            }
+        },
+        Err(e) => {
+            error!("Network request to GitHub /user/emails failed: {:?}", e);
+            None
+        }
+    };
+
+    if user_email.is_none() {
+        return HttpResponse::InternalServerError().body("Failed to retrieve user email");
+    }
 
     let res = database.upsert_oauth_user(
-        user_info.email,
+        user_email.unwrap(),
         user_info.login,
         user_info.id.to_string(),
         Some(user_info.avatar_url),
