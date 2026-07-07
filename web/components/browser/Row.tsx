@@ -284,7 +284,7 @@ export default function Row({
                 hideMenu();
               }}
             />
-            <ContextMenuItem
+            {!folder && <ContextMenuItem
               label="Copy Shareable Link"
               glyph="link"
               isLoading={isCopyLinkLoading}
@@ -301,7 +301,7 @@ export default function Row({
                 hideMenu();
                 setIsCopyLinkLoading(false);
               }}
-            />
+            />}
             <ContextMenuItem
               label="Download"
               glyph="download"

@@ -12,6 +12,7 @@
     font-family: var(--font-overused-grotesk);
     font-weight: 1000;
     margin: 0;
+    letter-spacing: -0.1rem;
 }
 
 .descriptionBold {
@@ -164,11 +165,11 @@
         padding: 0 2rem;
         width: 80%;
     }
-    
+
     .innerFooter {
         width: 80%;
         padding: 0 2rem;
-    }   
+    }
 }
 
 @media (max-width: 1000px) {
@@ -216,5 +217,5 @@
     .aboutContainer {
         justify-content: center;
     }
-    
+
 }

@@ -34,5 +34,6 @@ pub struct ShareDownloadResponse {
     pub file_name: String,
     pub file_size: u64,
     pub created_at: String,
+    pub owner: String
 }
 

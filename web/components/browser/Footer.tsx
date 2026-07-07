@@ -1,19 +1,17 @@
 "use client";
-
 import { FolderPlus, Upload } from "lucide-react";
 import styles from "./Footer.module.scss";
 import { useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/util/class";
 import CreateFolder from "./popups/CreateFolder";
 import { AnimatePresence } from "motion/react";
 import { createPortal } from "react-dom";
+import Button from "../general/Button";
 
 export default function Footer() {
   const inputRef = useRef<HTMLInputElement>(null);
-
   const [isFolderPopupOpen, setIsFolderPopupOpen] = useState(false);
-
   const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
     queueMicrotask(() => {
       setMounted(true);
@@ -24,15 +22,12 @@ export default function Footer() {
   return (
     <>
       <div className={styles.footerContainer}>
-        <div
-          className={cn(styles.uploadFile, styles.buttonComponent)}
-          onClick={() => {
-            inputRef.current?.click();
-          }}
-        >
-          <Upload size={14} strokeWidth={2.5} />
-          <span>Upload File</span>
-        </div>
+        <Button
+          icon={<Upload size={14} strokeWidth={2.5} />}
+          label="Upload File"
+          variant="primary"
+          onClick={() => inputRef.current?.click()}
+        />
         <input
           type="file"
           style={{ display: "none" }}
@@ -42,27 +37,17 @@ export default function Footer() {
             const event = new CustomEvent("trigger-upload", {
               detail: e.target.files,
             });
-
             window.dispatchEvent(event);
-
             (e.target as HTMLInputElement).value = "";
           }}
         />
-        <div
-          className={cn(
-            styles.createFolder,
-            styles.buttonComponent,
-            styles.nonPrimaryElement,
-          )}
-          onClick={() => {
-            setIsFolderPopupOpen(true);
-          }}
-        >
-          <FolderPlus size={14} strokeWidth={2.5} />
-          <span>Create Folder</span>
-        </div>
+        <Button
+          icon={<FolderPlus size={14} strokeWidth={2.5} />}
+          label="Create Folder"
+          variant="secondary"
+          onClick={() => setIsFolderPopupOpen(true)}
+        />
       </div>
-
       {mounted &&
         createPortal(
           <AnimatePresence>

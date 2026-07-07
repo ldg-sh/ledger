@@ -8,4 +8,5 @@ pub struct FileShare {
     pub file_size: u64,
     pub file_type: String,
     pub created_at: String,
+    pub owner: String
 }

@@ -1,0 +1,76 @@
+.buttonComponent {
+    height: 40px;
+    width: 180px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    align-items: center;
+    gap: 12px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+}
+
+.topButtonComponent {
+    cursor: pointer;
+    font-size: 0.8rem;
+    align-items: center;
+    gap: 12px;
+    height: 40px;
+    width: 180px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+}
+
+.primary {
+    background-color: var(--color-text-bold);
+    color: var(--color-background);
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background-color: var(--color-background-bold-hover);
+    }
+    &:active {
+        background-color: var(--color-button-background-active);
+    }
+}
+
+.secondary {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.nonPrimaryElement {
+    background-color: var(--color-button-background);
+    border: var(--border-style);
+
+    &:hover {
+        background-color: var(--color-background-hover);
+    }
+    &:active {
+        background-color: var(--color-background-active);
+    }
+}
+
+.linkComponent {
+    text-decoration: none;
+    color: var(--color-text-primary);
+
+}
+
+@media (max-width: 600px) {
+    .buttonComponent {
+        height: 50px;
+        width: 100%;
+    }
+
+    .topButtonComponent {
+        font-size: 0.7rem;
+        border-radius: 8px;
+        height: 50px;
+        width: 100%;
+    }
+}

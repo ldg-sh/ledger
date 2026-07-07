@@ -3,6 +3,7 @@ use common::types::file::share::{ShareRequest, ShareResponse};
 use std::sync::Arc;
 use worker::{Request, Response, RouteContext};
 use common::types::file::file_claims::FileShare;
+use common::types::user::user_info::UserInfoResponse;
 
 pub async fn handle_share(
     mut req: Request,
@@ -14,6 +15,13 @@ pub async fn handle_share(
     let kv = ctx.kv("DOWNLOAD_SESSIONS")?;
 
     let file_lookup_key = format!("file_map:{}:{}", user.id, payload.file_id);
+    let mut info_response = crate::routes::user_info::handle_info(req, ctx).await?;
+
+    if info_response.status_code() != 200 {
+        return Ok(info_response);
+    }
+
+    let user_info: UserInfoResponse = info_response.json().await?;
 
     let claims = FileShare {
         file_id: payload.file_id.clone(),
@@ -22,6 +30,7 @@ pub async fn handle_share(
         file_type: payload.file_type,
         file_size: payload.file_size,
         created_at: payload.created_at,
+        owner: user_info.username,
     };
 
     if let Some(existing_token) = kv.get(&file_lookup_key).text().await? {

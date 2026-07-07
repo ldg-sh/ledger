@@ -1,32 +1,3 @@
-.uploadFile {
-    background-color: var(--color-text-bold);
-
-    color: var(--color-background);
-    font-weight: 500;
-    transition: background-color 0.2s ease;
-}
-
-.uploadFile:hover {
-    background-color: var(--color-background-bold-hover);
-}
-
-.uploadFile:active {
-    background-color: var(--color-button-background-active);
-}
-
-.buttonComponent {
-    cursor: pointer;
-    font-size: 0.8rem;
-    align-items: center;
-    gap: 12px;
-    height: 40px;
-    width: 140px;
-    padding: 0 20px;
-    border-radius: 8px;
-    display: flex;
-    justify-content: center;
-}
-
 .footerContainer {
     display: flex;
     gap: 12px;
@@ -35,43 +6,7 @@
     background-color: var(--color-background);
 }
 
-.createFolder {
-    background-color: var(--color-background);
-    color: var(--color-text-primary);
-    font-weight: 500;
-    transition: background-color 0.2s ease;
-}
-
-.nonPrimaryElement {
-    background-color: var(--color-button-background);
-    border: var(--border-style);
-}
-
-.nonPrimaryElement:hover {
-    background-color: var(--color-background-hover);
-}
-
-.nonPrimaryElement:active {
-    background-color: var(--color-background-active);
-}
-
 @media (max-width: 600px) {
-    .buttonComponent {
-        width: 100%;
-        padding: 10px 12px;
-        font-size: 0.7rem;
-        border-radius: 8px;
-        height: 20px;
-    }
-
-    .createFolder {
-        width: 100%;
-        padding: 10px 12px;
-        font-size: 0.7rem;
-        border-radius: 8px;
-        height: 20px;
-    }
-
     .footerContainer {
         height: 100%;
     }

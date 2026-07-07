@@ -252,5 +252,5 @@ export async function getShareLink(
   if (!res.ok) throw new Error("Failed to create share token");
 
   const baseUrl = window.location.origin;
-  return `${baseUrl}/api/download?t=${json.token}`;
+  return `${baseUrl}/download?t=${json.token}`;
 }

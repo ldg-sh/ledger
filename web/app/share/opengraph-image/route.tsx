@@ -1,0 +1,201 @@
+import { ShareDownloadRequest } from "@/lib/types/generated/ShareDownloadRequest";
+import { ShareDownloadResponse } from "@/lib/types/generated/ShareDownloadResponse";
+import { pretifyFileSize } from "@/lib/util/file";
+import { readFile } from "fs/promises";
+import { ImageResponse } from "next/og";
+import { join } from "path";
+
+const EDGE_URL = process.env.NEXT_PUBLIC_EDGE_URL || "http://localhost:8787";
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const token = searchParams.get("t");
+  if (!token) return new Response("Unauthorized", { status: 401 });
+
+  const req: ShareDownloadRequest = { token };
+  const presignRes = await fetch(`${EDGE_URL}/download/share/create`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(req),
+  });
+
+  if (!presignRes.ok)
+    return new Response("Error fetching metadata", { status: 500 });
+  const res: ShareDownloadResponse = await presignRes.json();
+
+  const formattedDate = res.created_at
+    ? new Date(res.created_at).toLocaleString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "";
+
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          height: "100%",
+          width: "100%",
+          display: "flex",
+          backgroundColor: "white",
+          position: "relative",
+          fontFamily: "'Overused Grotesk', sans-serif",
+        }}
+      >
+        <svg
+          width="1200"
+          height="600"
+          viewBox="0 0 1200 600"
+          fill="none"
+          style={{ position: "absolute" }}
+        >
+          <rect width="1200" height="600" fill="white" />
+          <path
+            d="M1004 98.4185H1023.47V144.527H1067.53V161.946H1087V225.473H961.995V289H896.419V269.532H879V206.005H942.527V223.424H959.946V206.005H942.527V81H1004V98.4185ZM942.527 269.532H898.468V286.951H959.946V225.473H942.527V269.532ZM1067.53 206.005H961.995V223.424H1084.95V163.995H1067.53V206.005ZM1004 144.527H1021.42V100.468H1004V144.527Z"
+            fill="#F0F0F0"
+          />
+        </svg>
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            padding: "94px",
+          }}
+        >
+          <span
+            style={{
+              fontSize: 100,
+              marginTop: -30,
+              marginBottom: -20,
+              fontWeight: 900,
+              color: "#2A2A2A",
+              fontFamily: "Overused Grotesk",
+            }}
+          >
+            Ledger
+          </span>
+          <span
+            style={{
+              fontSize: 26,
+              fontWeight: "bold",
+              color: "#404040",
+              marginTop: 10,
+              fontFamily: "Inter",
+            }}
+          >
+            Fast and efficient file storage.
+          </span>
+          <span
+            style={{
+              fontSize: 26,
+              color: "#858585",
+              maxWidth: "600px",
+              fontFamily: "Inter",
+            }}
+          >
+            Web storage at the edge, providing you with the fastest possible
+            speeds in a simplistic interface.
+          </span>
+        </div>
+
+        <div
+          style={{
+            top: 325,
+            left: 0,
+            position: "absolute",
+            width: "100%",
+            height: "2px",
+            backgroundColor: "#F0F0F0",
+          }}
+        />
+
+        <div
+          style={{
+            display: "flex",
+            position: "absolute",
+            left: 94,
+            top: 370,
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column", width: "360px" }}>
+            <span style={{ fontSize: 22, fontWeight: 800, fontFamily: "Inter", color: "#404040" }}>
+              File Name
+            </span>
+            <span
+              style={{
+                fontSize: 26,
+                color: "#858585",
+                fontFamily: "Inter",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                width: "320px",
+              }}
+            >
+              {res.file_name}
+            </span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", width: "360px" }}>
+            <span style={{ fontSize: 22, fontWeight: 800, fontFamily: "Inter", color: "#404040" }}>
+              Created at
+            </span>
+            <span style={{ fontSize: 26, color: "#858585", fontFamily: "Inter" }}>
+              {formattedDate || "Unknown"}
+            </span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", width: "360px" }}>
+            <span style={{ fontSize: 22, fontWeight: 800, fontFamily: "Inter", color: "#404040" }}>
+              File Size
+            </span>
+            <span style={{ fontSize: 26, color: "#858585", fontFamily: "Inter" }}>
+              {pretifyFileSize(res.file_size) || "Unknown"}
+            </span>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", position: "absolute", left: 94, top: 460 }}>
+          <div style={{ display: "flex", flexDirection: "column", width: "360px" }}>
+            <span style={{ fontSize: 22, fontWeight: 800, fontFamily: "Inter", color: "#404040" }}>
+              File Type
+            </span>
+            <span style={{ fontSize: 26, color: "#858585", fontFamily: "Inter" }}>
+              {res.file_type ? res.file_type : "Unknown"}
+            </span>
+          </div>
+        </div>
+      </div>
+    ),
+    {
+      width: 1200,
+      height: 600,
+      fonts: [
+        {
+          name: "Overused Grotesk",
+          data: await readFile(
+            join(process.cwd(), "public/fonts/OverusedGrotesk-Black.ttf"),
+          ),
+          weight: 900,
+          style: "normal",
+        },
+        {
+          name: "Inter",
+          data: await readFile(join(process.cwd(), "public/fonts/Inter-Regular.ttf")),
+          weight: 400,
+          style: "normal",
+        },
+        {
+          name: "Inter",
+          data: await readFile(
+            join(process.cwd(), "public/fonts/Inter-Extrabold.ttf"),
+          ),
+          weight: 800,
+          style: "normal",
+        },
+      ],
+    },
+  );
+}

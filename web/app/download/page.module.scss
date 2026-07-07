@@ -1,0 +1,95 @@
+.page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100%;
+}
+
+.content {
+    width: 50vw;
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+}
+
+.title {
+    font-weight: 800;
+    font-style: var(--font-overused-grotesk);
+    color: var(--color-text-bold);
+    font-size: 2.5rem;
+    letter-spacing: -0.08rem;
+    margin: 0;
+    line-height: .6;
+}
+
+
+.table {
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+    border: var(--border-style);
+    border-radius: 8px;
+}
+
+.label {
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    width: 50%;
+}
+
+.value {
+    font-weight: 600;
+    color: var(--color-text-primary);
+    width: 50%;
+    text-align: right;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.1rem;
+
+
+    &:not(:last-child) {
+        border-bottom: var(--border-style);
+    }
+}
+
+.buttonContainer {
+    width: 100%;
+}
+
+@media (max-width: 1300px) {
+    .content {
+        width: 90vw;
+    }
+}
+
+@media (max-width: 768px) {
+    .content {
+        width: calc(100% - 20px);
+        margin: 10px;
+
+        gap: .2rem;
+    }
+
+    .title {
+        font-size: 2rem;
+        letter-spacing: -0.05rem;
+        line-height: 1;
+        margin-bottom: -10px;
+    }
+
+    .label, .value {
+        font-size: 0.9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .row {
+        padding: .8rem;
+    }
+}

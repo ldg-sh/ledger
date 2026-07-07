@@ -732,8 +732,9 @@ export default function FileList({ parentContainerRef }: FileListProps) {
                   }}
                 />
               )}
-              {(selectedFiles.size === 1 ||
-                (rightClickedFile != null && selectedFiles.size <= 1)) && (
+              {((selectedFiles.size === 1 ||
+                (rightClickedFile != null && selectedFiles.size <= 1))
+                && !(selectedFiles.values().next().value?.file_type == "directory" || (rightClickedFile != null && rightClickedFile.file_type == "directory"))) && (
                 <ContextMenuItem
                   label="Copy Shareable Link"
                   glyph="link"

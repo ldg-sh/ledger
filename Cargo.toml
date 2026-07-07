@@ -5,6 +5,9 @@ members = [
     "migration",
     "services/*",
 ]
+exclude = [
+    "services/.idea",
+]
 
 [workspace.dependencies]
 serde = { version = "1.0", features = ["derive"] }

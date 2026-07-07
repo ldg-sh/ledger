@@ -7,13 +7,14 @@ export function proxy(request: NextRequest) {
 
   const validSession = (refreshToken && refreshToken.value != "");
 
-  if (!validSession && !pathname.startsWith("/login") && !pathname.startsWith("/signup")) {
+  if (!validSession && !pathname.startsWith("/login") && !pathname.startsWith("/signup") && !pathname.startsWith("/download")) {
     const response = NextResponse.redirect(new URL("/login", request.url));
     response.cookies.set("session_exists", "false", { path: "/" });
     return response;
   }
 
   if (validSession && pathname.startsWith("/login")) {
+    console.log("Redirecting to home from login");
     return NextResponse.redirect(new URL("/", request.url));
   }
 
@@ -34,7 +35,7 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/', 
-    '/((?!api|signup|auth|about|callback|_next/static|_next/image|favicon.ico|sw.js|mitm.js).*)'
+    '/',
+    '/((?!api|signup|download|auth|about|callback|_next/static|_next/image|favicon.ico|sw.js|mitm.js).*)'
   ],
 };
