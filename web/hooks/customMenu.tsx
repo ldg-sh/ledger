@@ -62,11 +62,11 @@ export const useCustomMenu = (menuId: string) => {
       closeMenu();
     };
 
-    document.addEventListener("click", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener("click", handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [isVisible, closeMenu]);

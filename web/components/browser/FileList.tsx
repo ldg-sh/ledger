@@ -451,7 +451,9 @@ export default function FileList({ parentContainerRef }: FileListProps) {
     pasteFileIdFromClipboard,
     pasteFileIdsFromClipboard,
     getAllFiles,
-    lastDeliberateClick
+    lastDeliberateClick,
+    selectedFiles,
+    fileContext
   ]);
 
   useEffect(() => {
