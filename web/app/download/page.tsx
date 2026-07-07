@@ -53,7 +53,7 @@ export async function generateMetadata({
 
   return {
     metadataBase: new URL("https://ldg.sh"),
-    title: share.file_name ? `${share.file_name} · Ledger` : "Ledger",
+    title: share.file_name ? `${share.file_name} ● Ledger` : "Ledger",
     openGraph: {
       title: share.file_name || "Ledger",
       siteName: "Ledger",
