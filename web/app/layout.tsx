@@ -18,7 +18,7 @@ const overusedGrotesk = localFont({
 
 export const metadata: Metadata = {
   title: "Ledger",
-  description: "A modern file explorer built with Rust.",
+  description: "File storage at the edge.",
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

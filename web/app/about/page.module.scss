@@ -89,7 +89,7 @@
     z-index: -1;
     height: 80%;
     fill: var(--color-framework);
-    opacity: 0.3;
+    opacity: 0.1;
 }
 
 .topBar {
@@ -106,13 +106,14 @@
 
 .features {
     display: flex;
-    align-items: center;
+    align-items: start;
     justify-content: center;
     gap: 5rem;
     border-left: var(--border-style);
     width: 70%;
     padding: 5rem;
-    height: 40%;
+    padding-top: 5rem;
+    height: 70%;
 }
 
 .footer {
@@ -121,7 +122,7 @@
     align-items: center;
     justify-content: center;
     border-top: var(--border-style);
-    height: 15%;
+    height: 20%;
 }
 
 .innerFooter {
