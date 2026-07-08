@@ -4,31 +4,23 @@ import type { NextRequest } from "next/server";
 export function proxy(request: NextRequest) {
   const refreshToken = request.cookies.get("refresh_token");
   const { pathname } = request.nextUrl;
+  const validSession = Boolean(refreshToken?.value);
 
-  const validSession = (refreshToken && refreshToken.value != "");
+  let response: NextResponse;
 
-  if (!validSession && !pathname.startsWith("/login") && !pathname.startsWith("/signup") && !pathname.startsWith("/download")) {
-    const response = NextResponse.redirect(new URL("/login", request.url));
-    response.cookies.set("session_exists", "false", { path: "/" });
-    return response;
-  }
-
-  if (validSession && pathname.startsWith("/login")) {
-    console.log("Redirecting to home from login");
-    return NextResponse.redirect(new URL("/", request.url));
-  }
-
-  const response = NextResponse.next();
-
-  if (validSession) {
-    response.cookies.set("session_exists", "true", {
-      path: "/",
-      httpOnly: false,
-      sameSite: "lax",
-    });
+  if (!validSession && pathname === "/") {
+    response = NextResponse.redirect(new URL("/login", request.url));
+  } else if (validSession && pathname.startsWith("/login")) {
+    response = NextResponse.redirect(new URL("/", request.url));
   } else {
-    response.cookies.set("session_exists", "false", { path: "/" });
+    response = NextResponse.next();
   }
+
+  response.cookies.set("session_exists", String(validSession), {
+    path: "/",
+    httpOnly: false,
+    sameSite: "lax",
+  });
 
   return response;
 }

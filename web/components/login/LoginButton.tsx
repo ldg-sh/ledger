@@ -50,7 +50,7 @@ export default function LoginButton({
             { "aria-hidden": "true" } as React.HTMLAttributes<HTMLElement>,
           )
         : svg}
-      {image ? <Image src={image} width={16} height={16} alt={title ?? ""} /> : null}
+      {image ? <Image src={image} width={50} height={50} alt={title ?? ""} className={styles.image} /> : null}
       {title ? <span className={styles.span}>{title}</span> : null}
     </Tag>
   );

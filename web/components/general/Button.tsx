@@ -3,14 +3,17 @@
 import { ReactNode, MouseEventHandler } from "react";
 import styles from "./Button.module.scss";
 import { cn } from "@/lib/util/class";
+import Link from "next/link";
 
 interface ButtonProps {
-  icon: ReactNode;
+  icon?: ReactNode;
   label: string;
   onClick?: MouseEventHandler<HTMLDivElement>;
   variant?: "primary" | "secondary";
   className?: string;
   href?: string;
+  width?: string;
+  height?: string;
 }
 
 export default function Button({
@@ -20,13 +23,15 @@ export default function Button({
   variant = "primary",
   className,
   href,
+  width,
+  height,
 }: ButtonProps) {
   return (
     <div className={cn(styles.topButtonComponent,
       variant === "primary" ? styles.primary : cn(styles.secondary, styles.nonPrimaryElement),
       className,
-    )}>
-      {href ? <a href={href} className={styles.linkComponent}><div
+    )} style={{ width, height }}>
+      {href ? <Link href={href} className={styles.linkComponent}><div
         className={cn(
           styles.buttonComponent,
           variant === "primary" ? styles.primary : cn(styles.secondary, styles.nonPrimaryElement),
@@ -35,7 +40,7 @@ export default function Button({
       >
         {icon}
         <span>{label}</span>
-      </div></a> : <div
+      </div></Link> : <div
         className={cn(
           styles.buttonComponent,
           className,

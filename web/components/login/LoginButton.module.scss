@@ -58,6 +58,11 @@
     font-family: var(--font-inter);
 }
 
+.image {
+    height: 14px;
+    width: 14px;
+}
+
 @media (max-width: 600px) {
     .loginButton {
         font-size: 0.8rem;

@@ -6,6 +6,7 @@ import styles from "./page.module.scss";
 import Button from "@/components/general/Button";
 import { Download } from "lucide-react";
 import AutoDownload from "@/components/general/AutoDownload";
+import NotFound from "../not-found";
 
 
 const EDGE_URL = process.env.NEXT_PUBLIC_EDGE_URL || "http://localhost:8787";
@@ -69,10 +70,10 @@ export async function generateMetadata({
 
 export default async function SharePage({ searchParams }: SharePageProps) {
   const { t } = await searchParams;
-  if (!t) return null;
+  if (!t) return <NotFound />;
 
   const share = await getShare(t);
-  if (!share) return null;
+  if (!share) return <NotFound />;
 
   const downloadUrl = `/api/share/download?t=${encodeURIComponent(t)}`;
 

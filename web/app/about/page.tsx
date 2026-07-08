@@ -1,8 +1,8 @@
-import GetStarted from "@/components/about/GetStarted";
 import styles from "./page.module.scss";
 import User from "@/components/header/user/User";
 import FeatureCard from "@/components/about/FeatureCard";
 import { cn } from "@/lib/util/class";
+import Button from "@/components/general/Button";
 
 export default function AboutPage() {
   return (
@@ -37,7 +37,7 @@ export default function AboutPage() {
           upload and download speeds in a simplistic interface.
         </p>
         <div className={styles.buttonContainer}>
-          <GetStarted />
+          <Button label="Get Started" href="/" height="45px" />
         </div>
       </div>
       <div className={styles.bottomContainer}>
