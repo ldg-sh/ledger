@@ -66,7 +66,7 @@ export default function User() {
           showMenu(event)
         }
       >
-        <h1 className={styles.title}>Logged in as</h1>
+        <h1 className={styles.title}>Logged in</h1>
         <p className={styles.username}>{user.user?.username}</p>
       </button>
       <AnimatePresence>
