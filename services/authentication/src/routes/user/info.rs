@@ -1,6 +1,5 @@
-use crate::middleware::middleware::AuthenticatedUser;
 use crate::routes::user::providers::database::ProviderExtension;
-use actix_web::{web, HttpResponse};
+use actix_web::{HttpResponse, web};
 use common::types::user::user_info::UserInfoRequest;
 use sea_orm::DatabaseConnection;
 use std::io::ErrorKind;
@@ -10,12 +9,7 @@ pub async fn info(
     _req: actix_web::HttpRequest,
     payload: web::Json<UserInfoRequest>,
     database: web::Data<DatabaseConnection>,
-    authenticated_user: AuthenticatedUser,
 ) -> HttpResponse {
-    if authenticated_user.id != payload.account_id {
-        return HttpResponse::Unauthorized().finish();
-    }
-
     let user = database.get_user_information(payload.account_id.clone()).await;
 
     match user {

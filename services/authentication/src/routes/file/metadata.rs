@@ -1,4 +1,3 @@
-use crate::middleware::middleware::AuthenticatedUser;
 use actix_web::{HttpResponse, post, web};
 use common::entities::file;
 use common::entities::prelude::File;
@@ -10,11 +9,9 @@ use sea_orm::{DatabaseConnection, EntityTrait, QueryFilter};
 pub async fn metadata(
     database: web::Data<DatabaseConnection>,
     payload: web::Json<MetadataRequest>,
-    authenticated_user: AuthenticatedUser,
 ) -> HttpResponse {
     let file = File::find()
         .filter(file::Column::Id.eq(payload.file_id.clone()))
-        .filter(file::Column::OwnerId.eq(authenticated_user.id.clone()))
         .one(database.get_ref())
         .await;
 
@@ -38,6 +35,7 @@ pub async fn metadata(
             content_type: data.file_type,
             path: data.path,
             created_at: data.created_at,
+            owner_id: data.owner_id,
         }),
         None => {
             HttpResponse::NotFound().body(format!("File with ID {} not found", payload.file_id))

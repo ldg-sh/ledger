@@ -83,7 +83,7 @@ impl Configuration {
         method: Method,
         payload: &T,
         incoming_headers: Option<&Headers>,
-    ) -> Result<(u16, serde_json::Value, Headers), worker::Error> {
+    ) -> Result<(u16, R, Headers), worker::Error> {
         let headers = Headers::new();
         headers.set("Content-Type", "application/json")?;
 
@@ -108,10 +108,20 @@ impl Configuration {
         let response_headers = response.headers().clone();
         let text = response.text().await?;
 
-        let json_body: serde_json::Value = if text.is_empty() {
-            serde_json::Value::Null
+        let json_body: R = if text.is_empty() {
+            serde_json::from_str("{}").map_err(|e| {
+                worker::Error::from(format!(
+                    "Raw body was empty. Error deserializing empty JSON: {}",
+                    e
+                ))
+            })?
         } else {
-            serde_json::from_str(&text).unwrap_or(serde_json::json!({ "error": text }))
+            serde_json::from_str(&text).map_err(|e| {
+                worker::Error::from(format!(
+                    "Raw body was: {}. Error deserializing JSON: {}",
+                    text, e
+                ))
+            })?
         };
 
         Ok((status, json_body, response_headers))

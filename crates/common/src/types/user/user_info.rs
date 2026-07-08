@@ -16,3 +16,12 @@ pub struct UserInfoResponse {
     pub username: String,
     pub avatar_url: Option<String>,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+#[derive(ts_rs::TS)]
+#[ts(export)]
+pub struct UserInfoPublicResponse {
+    pub id: String,
+    pub username: String,
+    pub avatar_url: Option<String>,
+}

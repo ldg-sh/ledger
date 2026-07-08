@@ -17,5 +17,6 @@ pub struct MetadataResponse {
     pub content_type: String,
     pub path: String,
     #[ts(type = "string")]
-    pub created_at: DateTime<FixedOffset>
+    pub created_at: DateTime<FixedOffset>,
+    pub owner_id: String,
 }
