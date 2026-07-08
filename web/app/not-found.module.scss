@@ -22,7 +22,14 @@
   color: var(--color-text-bold);
   margin: 0;
   line-height: .7;
-  letter-spacing: -3rem;
+  margin: -20px;
+  text-align: center;
+}
+
+.statusContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .message {
@@ -51,4 +58,14 @@
     height: 80%;
     fill: var(--color-framework);
     opacity: 0.1;
+}
+
+@media (max-width: 768px) {
+    .status {
+        font-size: 15rem;
+    }
+
+    .message {
+        font-size: 1rem;
+    }
 }

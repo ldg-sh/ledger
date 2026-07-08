@@ -10,7 +10,7 @@ export default function NotFound() {
   return (
     <div className={styles.notFound}>
       <div className={styles.content}>
-        <h1 className={styles.status}>404</h1>
+        <div className={styles.statusContainer}><span className={styles.status}>4</span><span className={styles.status}>0</span><span className={styles.status}>4</span></div>
         <p className={styles.message}>The page or file you are looking for does not exist.</p>
         <Button width='150px' label="Go Home" href={user ? '/' : '/about'} />
       </div>
