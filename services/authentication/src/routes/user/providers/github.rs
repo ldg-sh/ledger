@@ -70,7 +70,7 @@ pub async fn github_callback(
         Ok(t) => t,
         Err(e) => {
             error!("JSON Parse Error: {:?}. Raw body was: {}", e, clean_body);
-            return HttpResponse::BadRequest().body(format!("Failed to parse GitHub response: {}", clean_body));
+            return HttpResponse::BadRequest().body("Invalid or expired login code. Please try again.".to_string());
         }
     };
 

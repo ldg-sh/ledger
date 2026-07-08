@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/components/general/Button";
 import Spinner from "@/components/svg/Spinner";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -57,7 +58,15 @@ export default function CallbackPage() {
     <div className={styles.container}>
       {error ? (
         <div className={styles.error}>
-          <strong>Failed to authenticate:</strong> {error}
+          <div className={styles.info}>
+            <h1 className={styles.errorTitle}>Failed to Authenticate</h1>
+            <p className={styles.errorMessage}>{error}</p>
+          </div>
+          <Button
+            width="180px"
+            label="Go Back"
+            onClick={() => router.push("/login")}
+          />
         </div>
       ) : (
         <Spinner height={30} />

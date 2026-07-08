@@ -2,15 +2,14 @@ use crate::routes::user::providers::Provider;
 use common::entities::prelude::{RefreshToken, User};
 use common::entities::user::{ActiveModel, Column};
 use common::entities::{refresh_token, user};
-use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
-use sea_orm::prelude::{async_trait, DateTimeWithTimeZone};
+use sea_orm::prelude::{DateTimeWithTimeZone, async_trait};
 use sea_orm::sea_query::OnConflict;
 use sea_orm::sea_query::prelude::Utc;
+use sea_orm::{ActiveModelTrait, ColumnTrait};
 use sea_orm::{DatabaseConnection, EntityTrait, Set};
 use std::io::Error;
 use std::io::ErrorKind;
-use sea_query::Expr;
 
 #[async_trait::async_trait]
 pub trait ProviderExtension {
@@ -44,44 +43,32 @@ impl ProviderExtension for DatabaseConnection {
         avatar: Option<String>,
         provider: Provider,
     ) -> Result<String, Error> {
-        let existing_result = User::find()
+        let existing_user = User::find()
             .filter(Column::Email.eq(email.clone()))
             .one(self)
             .await
             .map_err(|e| Error::new(ErrorKind::Other, format!("DB Query Error: {}", e)))?;
 
-        if existing_result.is_some() {
-            let existing_id = match provider {
-                Provider::Google => {
-                    User::update_many()
-                        .col_expr(Column::GoogleId, Expr::value(username.clone()))
-                        .col_expr(Column::UpdatedAt, Expr::value(DateTimeWithTimeZone::from(Utc::now())))
-                        .filter(Column::Email.eq(email.clone()))
-                        .exec(self)
-                        .await
-                        .map_err(|e| Error::new(ErrorKind::Other, format!("DB Update Error: {}", e)))?;
+        if let Some(existing_user) = existing_user {
+            let mut active_model: ActiveModel = existing_user.into();
+            active_model.updated_at = Set(Some(DateTimeWithTimeZone::from(Utc::now())));
 
-                    existing_result.unwrap().id
-                }
-                Provider::GitHub => {
-                    User::update_many()
-                        .col_expr(Column::GithubId, Expr::value(username.clone()))
-                        .col_expr(Column::UpdatedAt, Expr::value(DateTimeWithTimeZone::from(Utc::now())))
-                        .filter(Column::Email.eq(email.clone()))
-                        .exec(self)
-                        .await
-                        .map_err(|e| Error::new(ErrorKind::Other, format!("DB Update Error: {}", e)))?;
+            match provider {
+                Provider::Google => active_model.google_id = Set(Some(provider_id)),
+                Provider::GitHub => active_model.github_id = Set(Some(provider_id)),
+            }
 
-                    existing_result.unwrap().id
-                }
-            };
+            let updated = active_model
+                .update(self)
+                .await
+                .map_err(|e| Error::new(ErrorKind::Other, format!("DB Update Error: {}", e)))?;
 
-            return Ok(existing_id);
+            return Ok(updated.id);
         }
 
         let mut active_model = ActiveModel {
             id: Set(uuid::Uuid::new_v4().to_string()),
-            email: Set(email.to_owned()),
+            email: Set(email),
             username: Set(username),
             created_at: Set(DateTimeWithTimeZone::from(Utc::now())),
             updated_at: Set(Some(DateTimeWithTimeZone::from(Utc::now()))),

@@ -6,3 +6,24 @@
     height: 100vh;
     gap: 20px;
 }
+
+.error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3rem;
+}
+
+.errorTitle {
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.errorMessage {
+    font-size: 1rem;
+    margin: 0;
+    text-align: center;
+
+}
