@@ -31,144 +31,136 @@ export async function GET(request: Request) {
         hour: "2-digit",
         minute: "2-digit",
       })
-    : "";
+    : "Unknown";
+
+  const rows = [
+    { label: "File Name", value: res.file_name || "Unknown" },
+    { label: "File Size", value: pretifyFileSize(res.file_size) || "Unknown" },
+    { label: "File Type", value: res.file_type || "Unknown" },
+    { label: "Uploaded", value: formattedDate },
+    { label: "Owner", value: res.owner || "Unknown" },
+  ];
 
   return new ImageResponse(
-    (
+    <div
+      style={{
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#121212",
+        fontFamily: "'Inter', sans-serif",
+      }}
+    >
       <div
         style={{
+          width: "80%",
           height: "100%",
-          width: "100%",
           display: "flex",
-          backgroundColor: "white",
-          position: "relative",
-          fontFamily: "'Overused Grotesk', sans-serif",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
         }}
       >
-        <svg
-          width="1200"
-          height="600"
-          viewBox="0 0 1200 600"
-          fill="none"
-          style={{ position: "absolute" }}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            width: "100%",
+            maxWidth: 1200,
+            gap: 16,
+            alignContent: "center",
+            justifyContent: "space-between",
+            marginTop: "-30px",
+          }}
         >
-          <rect width="1200" height="600" fill="white" />
-          <path
-            d="M1004 98.4185H1023.47V144.527H1067.53V161.946H1087V225.473H961.995V289H896.419V269.532H879V206.005H942.527V223.424H959.946V206.005H942.527V81H1004V98.4185ZM942.527 269.532H898.468V286.951H959.946V225.473H942.527V269.532ZM1067.53 206.005H961.995V223.424H1084.95V163.995H1067.53V206.005ZM1004 144.527H1021.42V100.468H1004V144.527Z"
-            fill="#F0F0F0"
-          />
-        </svg>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "'Overused Grotesk'",
+                fontWeight: 800,
+                fontSize: 38,
+                color: "#ffffff",
+                margin: 0,
+              }}
+            >
+              Shared Download
+            </span>
+            <span
+              style={{ fontFamily: "Inter", fontSize: 17, color: "#e0e0e0" }}
+            >
+              Download a file shared on Ledger.
+            </span>
+          </div>
+          <svg width="74" viewBox="130 85 90 75" fill="none">
+            <path
+              d="M180.192 98.3307H185.777V111.557H198.415V116.554H204V134.777H168.142V153H149.331V147.416H144.334V129.192H162.557V134.189H167.554V129.192H162.557V93.3341H180.192V98.3307ZM162.557 147.416H149.918V152.412H167.554V134.777H162.557V147.416ZM198.415 129.192H168.142V134.189H203.412V117.142H198.415V129.192ZM180.192 111.557H185.189V98.9186H180.192V111.557Z"
+              fill="white"
+            />
+          </svg>
+        </div>
 
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            padding: "94px",
-          }}
-        >
-          <span
-            style={{
-              fontSize: 100,
-              marginTop: -30,
-              marginBottom: -20,
-              fontWeight: 900,
-              color: "#2A2A2A",
-              fontFamily: "Overused Grotesk",
-            }}
-          >
-            Ledger
-          </span>
-          <span
-            style={{
-              fontSize: 26,
-              fontWeight: "bold",
-              color: "#404040",
-              marginTop: 10,
-              fontFamily: "Inter",
-            }}
-          >
-            Fast and efficient file storage.
-          </span>
-          <span
-            style={{
-              fontSize: 26,
-              color: "#858585",
-              maxWidth: "600px",
-              fontFamily: "Inter",
-            }}
-          >
-            Web storage at the edge, providing you with the fastest possible
-            speeds in a simplistic interface.
-          </span>
-        </div>
-
-        <div
-          style={{
-            top: 325,
-            left: 0,
-            position: "absolute",
+            marginTop: 40,
+            backgroundColor: "#161616",
+            borderRadius: 11,
+            border: "1px solid #333333",
+            overflow: "hidden",
             width: "100%",
-            height: "2px",
-            backgroundColor: "#F0F0F0",
-          }}
-        />
-
-        <div
-          style={{
-            display: "flex",
-            position: "absolute",
-            left: 94,
-            top: 370,
           }}
         >
-          <div style={{ display: "flex", flexDirection: "column", width: "360px" }}>
-            <span style={{ fontSize: 22, fontWeight: 800, fontFamily: "Inter", color: "#404040" }}>
-              File Name
-            </span>
-            <span
+          {rows.map((row, i) => (
+            <div
+              key={row.label}
               style={{
-                fontSize: 26,
-                color: "#858585",
-                fontFamily: "Inter",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                width: "320px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                height: 59,
+                padding: "0 21px",
+                borderBottom:
+                  i < rows.length - 1 ? "1px solid #333333" : "none",
               }}
             >
-              {res.file_name}
-            </span>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", width: "360px" }}>
-            <span style={{ fontSize: 22, fontWeight: 800, fontFamily: "Inter", color: "#404040" }}>
-              Created at
-            </span>
-            <span style={{ fontSize: 26, color: "#858585", fontFamily: "Inter" }}>
-              {formattedDate || "Unknown"}
-            </span>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", width: "360px" }}>
-            <span style={{ fontSize: 22, fontWeight: 800, fontFamily: "Inter", color: "#404040" }}>
-              File Size
-            </span>
-            <span style={{ fontSize: 26, color: "#858585", fontFamily: "Inter" }}>
-              {pretifyFileSize(res.file_size) || "Unknown"}
-            </span>
-          </div>
-        </div>
-
-        <div style={{ display: "flex", position: "absolute", left: 94, top: 460 }}>
-          <div style={{ display: "flex", flexDirection: "column", width: "360px" }}>
-            <span style={{ fontSize: 22, fontWeight: 800, fontFamily: "Inter", color: "#404040" }}>
-              File Type
-            </span>
-            <span style={{ fontSize: 26, color: "#858585", fontFamily: "Inter" }}>
-              {res.file_type ? res.file_type : "Unknown"}
-            </span>
-          </div>
+              <span
+                style={{
+                  fontFamily: "Inter",
+                  fontSize: 17,
+                  fontWeight: 400,
+                  color: "#858585",
+                }}
+              >
+                {row.label}
+              </span>
+              <span
+                style={{
+                  fontFamily: "Inter",
+                  fontSize: 17,
+                  fontWeight: 500,
+                  color: "#e0e0e0",
+                  maxWidth: 400,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {row.value}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
-    ),
+    </div>,
     {
       width: 1200,
       height: 600,
@@ -178,13 +170,31 @@ export async function GET(request: Request) {
           data: await readFile(
             join(process.cwd(), "public/fonts/OverusedGrotesk-Black.ttf"),
           ),
-          weight: 900,
+          weight: 800,
           style: "normal",
         },
         {
           name: "Inter",
-          data: await readFile(join(process.cwd(), "public/fonts/Inter-Regular.ttf")),
+          data: await readFile(
+            join(process.cwd(), "public/fonts/Inter-Regular.ttf"),
+          ),
           weight: 400,
+          style: "normal",
+        },
+        {
+          name: "Inter",
+          data: await readFile(
+            join(process.cwd(), "public/fonts/Inter-Medium.ttf"),
+          ),
+          weight: 500,
+          style: "normal",
+        },
+        {
+          name: "Inter",
+          data: await readFile(
+            join(process.cwd(), "public/fonts/Inter-SemiBold.ttf"),
+          ),
+          weight: 600,
           style: "normal",
         },
         {
