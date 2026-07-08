@@ -40,7 +40,7 @@ impl Configuration {
         user: &AuthenticatedUser,
         method: Method,
         payload: &T,
-    ) -> Result<(u16, serde_json::Value), worker::Error> {
+    ) -> Result<(u16, R), worker::Error> {
         let headers = Headers::new();
         headers.set("Content-Type", "application/json")?;
         headers.set("x-user-id", user.id.as_str())?;
@@ -62,8 +62,13 @@ impl Configuration {
         let status = response.status_code();
         let text = response.text().await?;
 
-        let json_body: serde_json::Value = if text.is_empty() {
-            serde_json::Value::Null
+        let json_body: R = if text.is_empty() {
+            serde_json::from_str("{}").map_err(|e| {
+                worker::Error::from(format!(
+                    "Raw body was empty. Error deserializing empty JSON: {}",
+                    e
+                ))
+            })?
         } else {
             serde_json::from_str(&text)
                 .map_err(|e| worker::Error::from(format!("Raw body was: {}. Error: {}", text, e)))?

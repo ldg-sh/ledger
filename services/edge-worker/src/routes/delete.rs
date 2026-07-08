@@ -22,6 +22,11 @@ pub async fn handle_delete(mut req: Request, ctx: RouteContext<Arc<AppState>>) -
         for file_id in payload.file_ids {
             let file_lookup_key = format!("file_map:{}:{}", user.id, file_id);
 
+            let result: String = kv.get(&file_lookup_key).text().await?.unwrap_or_default();
+            if !result.is_empty() {
+                kv.delete(&result).await?;
+            }
+
             kv.delete(&file_lookup_key).await?;
         }
     }

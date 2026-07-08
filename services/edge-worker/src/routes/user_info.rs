@@ -5,8 +5,12 @@ use worker::*;
 use common::types::user::user_info::{UserInfoRequest, UserInfoResponse};
 
 pub async fn handle_info(req: Request, ctx: RouteContext<Arc<AppState>>) -> Result<Response> {
+    handle_info_inner(req, &ctx).await
+}
+
+pub async fn handle_info_inner(req: Request, ctx: &RouteContext<Arc<AppState>>) -> Result<Response> {
     let user = authenticate!(&req, &ctx);
-    let state = ctx.data;
+    let state = ctx.data.clone();
     let kv = ctx.env.kv("USER_CACHE")?;
 
     let cache_key = format!("user:{}", user.id);

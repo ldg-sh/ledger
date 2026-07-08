@@ -1,12 +1,12 @@
-use actix_web::{get, web, HttpResponse};
+use crate::middleware::middleware::AuthenticatedUser;
+use actix_web::{HttpResponse, post, web};
 use common::entities::file;
 use common::entities::prelude::File;
 use common::types::file::metadata::{MetadataRequest, MetadataResponse};
 use sea_orm::ColumnTrait;
 use sea_orm::{DatabaseConnection, EntityTrait, QueryFilter};
-use crate::middleware::middleware::AuthenticatedUser;
 
-#[get("metadata")]
+#[post("metadata")]
 pub async fn metadata(
     database: web::Data<DatabaseConnection>,
     payload: web::Json<MetadataRequest>,
@@ -33,10 +33,11 @@ pub async fn metadata(
 
     match file {
         Some(data) => HttpResponse::Ok().json(MetadataResponse {
-            filename: data.file_name,
+            file_name: data.file_name,
             size: data.file_size as u64,
             content_type: data.file_type,
             path: data.path,
+            created_at: data.created_at,
         }),
         None => {
             HttpResponse::NotFound().body(format!("File with ID {} not found", payload.file_id))

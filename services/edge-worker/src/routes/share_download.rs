@@ -51,7 +51,7 @@ pub async fn handle_share_download(
         file_type: claims.file_type,
         file_name: claims.file_name,
         file_size: claims.file_size,
-        created_at: claims.created_at,
+        created_at: claims.created_at.to_string(),
         owner: claims.owner
     })
 }
