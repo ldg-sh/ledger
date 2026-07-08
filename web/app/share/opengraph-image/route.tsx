@@ -89,6 +89,7 @@ export async function GET(request: Request) {
                 fontSize: 38,
                 color: "#ffffff",
                 margin: 0,
+                letterSpacing: "-0.03em"
               }}
             >
               Shared Download
