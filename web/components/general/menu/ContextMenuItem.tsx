@@ -4,6 +4,8 @@ import { useRef } from "react";
 import Spinner from "@/components/svg/Spinner";
 import { ICON_REGISTRY, IconName } from "@/lib/util/icon";
 import { Check } from "lucide-react";
+import { useEffect, useState } from "react";
+
 
 interface ContextMenuItemProps {
   label: string;
@@ -14,6 +16,21 @@ interface ContextMenuItemProps {
   hotkey?: string;
   isLoading?: boolean;
   isSuccess?: boolean;
+}
+
+function useWindowSize() {
+  const [size, setSize] = useState<{ width: number; height: number } | null>(null);
+
+  useEffect(() => {
+    const update = () =>
+      setSize({ width: window.innerWidth, height: window.innerHeight });
+
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  return size;
 }
 
 export default function ContextMenuItem({
@@ -28,6 +45,7 @@ export default function ContextMenuItem({
 }: ContextMenuItemProps) {
   const button = useRef<HTMLButtonElement>(null);
   const IconComponent = ICON_REGISTRY[glyph];
+  const windowSize = useWindowSize();
 
   if (hotkey) {
     if (navigator.userAgent.toUpperCase().includes("MAC")) {
@@ -58,7 +76,7 @@ export default function ContextMenuItem({
     >
       <div className={styles.left}>
         {isLoading ? (
-          <Spinner height={16} destructive={destructive} />
+          <Spinner height={(windowSize?.width ?? 1000) > 720 ? 16 : 12} destructive={destructive} />
         ) : (
           isSuccess ? <Check size={16} className={styles.icon} /> : IconComponent && <IconComponent className={styles.icon} size={16} />
         )}
