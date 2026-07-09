@@ -83,7 +83,7 @@ export default function CallbackPage() {
         </div>
       ) : (
         <div className={styles.loading}>
-          <Spinner height={35} />
+          <Spinner height={38} />
           <p className={styles.status}>{status}</p>
           <p className={styles.description}>This should only take a moment</p>
         </div>

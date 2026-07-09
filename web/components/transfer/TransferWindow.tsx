@@ -46,6 +46,7 @@ export default function TransferWindow() {
         created_at: new Date().toISOString(),
         upload_completed: false,
         path: fileContext.currentPath,
+        is_directory: false,
       };
 
       return { ...prev, files: [...prev.files, newFile] };
