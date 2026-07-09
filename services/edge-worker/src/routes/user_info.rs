@@ -10,12 +10,20 @@ pub async fn handle_info(req: Request, ctx: RouteContext<Arc<AppState>>) -> Resu
 
 pub async fn handle_info_inner(mut req: Request, ctx: &RouteContext<Arc<AppState>>) -> Result<Response> {
     let user = try_authenticate!(&req, &ctx).await;
-    let payload: UserInfoRequest = req.json().await?;
+    let payload: Result<UserInfoRequest> = req.json().await;
+
+    let user_id = if let Ok(user) = &user {
+        &user.id
+    } else if let Ok(payload) = &payload {
+        &payload.account_id
+    } else {
+        return Response::error("Missing account_id in request body and no valid authentication token provided", 400);
+    };
 
     let state = ctx.data.clone();
     let kv = ctx.env.kv("USER_CACHE")?;
 
-    let cache_key = format!("user:{}", payload.account_id);
+    let cache_key = format!("user:{}", user_id);
 
     if let Some(cached) = kv.get(&cache_key).json::<UserInfoResponse>().await? {
         return if user.is_err() {
@@ -30,6 +38,10 @@ pub async fn handle_info_inner(mut req: Request, ctx: &RouteContext<Arc<AppState
             Response::from_json(&cached)
         }
     }
+
+    let payload = UserInfoRequest {
+        account_id: user_id.clone(),
+    };
 
     let metadata = state
         .config

@@ -50,7 +50,7 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response, wor
         .post_async("/directory/create", routes::directory::handle_directory)
         .delete_async("/directory/delete", routes::directory::handle_directory_delete)
         .post_async("/file/list", routes::list::handle_list)
-        .get_async("/user/info", routes::user_info::handle_info)
+        .post_async("/user/info", routes::user_info::handle_info)
         .post_async("/user/refresh", routes::user_refresh::handle_refresh)
         .post_async("/user/logout", routes::user_logout::handle_logout)
         .run(req, env)

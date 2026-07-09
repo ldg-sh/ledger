@@ -51,6 +51,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       let res = await fetch(`${EDGE_URL}/user/info`, {
+        method: "POST",
         credentials: "include",
       });
 
@@ -61,6 +62,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         });
         if (refreshRes.ok) {
           res = await fetch(`${EDGE_URL}/user/info`, {
+            method: "POST",
             credentials: "include",
           });
         } else {
