@@ -15,15 +15,20 @@ export default function Spinner({ height, destructive }: SpinnerProps) {
       xmlns="http://www.w3.org/2000/svg"
       className={styles.container}
     >
-      <style></style>
-      <path
-        d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z"
-        fill="var(--color-framework)"
+      <circle
+        cx="12" cy="12" r="9.5"
+        fill="none"
+        stroke="var(--color-framework)"
+        strokeWidth="1.5"
         className={cn(destructive && styles.destructiveBackground)}
       />
-      <path
-        d="M10.14,1.16a11,11,0,0,0-9,8.92A1.59,1.59,0,0,0,2.46,12,1.52,1.52,0,0,0,4.11,10.7a8,8,0,0,1,6.66-6.61A1.42,1.42,0,0,0,12,2.69h0A1.57,1.57,0,0,0,10.14,1.16Z"
-        fill={"var(--color-text-primary)"}
+      <circle
+        cx="12" cy="12" r="9.5"
+        fill="none"
+        stroke="var(--color-text-primary)"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeDasharray="15 44.7"
         className={cn(styles.spinner, destructive && styles.destructive)}
       />
     </svg>

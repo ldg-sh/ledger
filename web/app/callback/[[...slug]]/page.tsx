@@ -11,6 +11,7 @@ export default function CallbackPage() {
   const params = useParams();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
 
   useEffect(() => {
     const slug = params.slug;
@@ -21,6 +22,13 @@ export default function CallbackPage() {
       setError("Missing authentication code or provider.");
       return;
     }
+
+    let formattedProvider = provider.charAt(0).toUpperCase() + provider.slice(1);
+    if (provider == "github") {
+      formattedProvider = "GitHub";
+    }
+
+    setStatus(`Communicating with ${formattedProvider}`);
 
     const exchangeCode = async () => {
       try {
@@ -37,6 +45,8 @@ export default function CallbackPage() {
 
           throw new Error(errorText || "Failed to authenticate");
         }
+
+        setStatus(`Finalizing your session`);
 
         document.dispatchEvent(
           new CustomEvent("reload-user", {
@@ -69,7 +79,11 @@ export default function CallbackPage() {
           />
         </div>
       ) : (
-        <Spinner height={30} />
+        <div className={styles.loading}>
+          <Spinner height={40} />
+            <p className={styles.status}>{status}</p>
+            <p className={styles.description}>This should only take a moment</p>
+        </div>
       )}
     </div>
   );
