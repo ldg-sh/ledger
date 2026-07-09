@@ -14,7 +14,7 @@
 }
 
 .destructiveBackground {
-  fill: var(--color-error-background-active);
+  stroke: var(--color-error-background-active);
 }
 
 @keyframes rotator {

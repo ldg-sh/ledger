@@ -73,7 +73,7 @@ export default function CallbackPage() {
           <div className={styles.loading}>
             <UserRoundX className={styles.icon} />
             <p className={styles.status}>Failed to authenticate</p>
-            <p className={styles.errorMessage}>{error}</p>
+            <p className={styles.description}>{error}</p>
           </div>
           <Button
             width="180px"
@@ -83,7 +83,7 @@ export default function CallbackPage() {
         </div>
       ) : (
         <div className={styles.loading}>
-          <Spinner height={40} />
+          <Spinner height={35} />
           <p className={styles.status}>{status}</p>
           <p className={styles.description}>This should only take a moment</p>
         </div>
