@@ -25,8 +25,6 @@ export default function User() {
       if (container.current) {
         const rect = container.current.getBoundingClientRect();
         setCoords({ x: rect.left, y: rect.bottom });
-      } else {
-        console.warn("User menu container not found for positioning.");
       }
     };
 
