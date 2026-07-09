@@ -66,7 +66,7 @@ impl Configuration {
         let text = response.text().await?;
 
         let json_body: R = if text.is_empty() {
-            serde_json::from_str("{}").map_err(|e| {
+            serde_json::from_str("null").map_err(|e| {
                 worker::Error::from(format!(
                     "Raw body was empty. Error deserializing empty JSON: {}",
                     e

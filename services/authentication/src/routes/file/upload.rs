@@ -1,5 +1,6 @@
 use crate::middleware::middleware::AuthenticatedUser;
 use actix_web::{post, web, HttpResponse};
+use log::{error, info};
 use common::entities::file;
 use common::entities::prelude::File;
 use common::types::file::upload_complete::CompleteUploadRequest;
@@ -88,9 +89,9 @@ pub async fn complete(
         Ok(_) => {}
         Err(err) => {
             if let Some(s3_err) = err.downcast_ref::<aws_sdk_s3::Error>() {
-                println!("S3 Error: {:?}", s3_err);
+                error!("S3 Error: {:?}", s3_err);
             } else {
-                println!("S3 Error: {:?}", err);
+                error!("S3 Error: {:?}", err);
             }
             return HttpResponse::InternalServerError().body(format!(
                 "S3 Error: {}", err
@@ -106,6 +107,7 @@ pub async fn complete(
         .await;
     
     if update.is_err() {
+        error!("Failed to update file records: {}", update.clone().err().unwrap());
         HttpResponse::InternalServerError().body(format!(
             "Failed to update file record: {}",
             update.err().unwrap()
