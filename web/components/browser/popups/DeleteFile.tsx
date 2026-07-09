@@ -3,10 +3,12 @@
 import Popup from "./Popup";
 import styles from "./DeleteFile.module.scss";
 import { cn } from "@/lib/util/class";
-import { useState } from "react";
+import { useRef, useEffect } from "react";
 import { deleteFiles } from "@/lib/api/file";
 import { deleteDirectory } from "@/lib/api/directory";
 import { ListFileElement } from "@/lib/types/generated/ListFileElement";
+import { useFile } from "@/context/FileExplorerContext";
+import { useLoading } from "@/context/LoadingContext";
 
 interface DeleteFileProps {
   onClose: () => void;
@@ -15,10 +17,12 @@ interface DeleteFileProps {
 }
 
 export default function DeleteFile({ onClose, files }: DeleteFileProps) {
-  const [isLoading, setIsLoading] = useState(false);
+  const submitButton = useRef<HTMLButtonElement>(null);
+  const { setFileData } = useFile();
+  const { setLoading } = useLoading();
 
   function handleSubmit() {
-    setIsLoading(true);
+    setLoading(true);
 
     const directories = files.filter((file) => file.file_type === "directory");
     const regularFiles = files.filter((file) => file.file_type !== "directory");
@@ -40,17 +44,39 @@ export default function DeleteFile({ onClose, files }: DeleteFileProps) {
       promises.push(deleteFiles(regularFiles.map((f) => f.id)));
     }
 
+    setFileData((prev) => {
+      return {
+        files: prev?.files.filter((f) => !regularFiles.map((file) => file.id).includes(f.id)),
+        folders: prev?.folders.filter((f) => !directories.map((dir) => dir.id).includes(f.id)),
+      }
+    });
+
     Promise.all(promises).then(() => {
       const event = new CustomEvent("refresh-file-list", {
         detail: () => {
-          setIsLoading(false);
-          onClose();
+          setLoading(false);
         },
       });
 
       window.dispatchEvent(event);
     });
+
+    onClose();
   }
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (event.key === "Enter") {
+      submitButton.current?.click();
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
 
   return (
     <div>
@@ -87,9 +113,9 @@ export default function DeleteFile({ onClose, files }: DeleteFileProps) {
               className={cn(
                 styles.submitButton,
                 styles.actionButton,
-                isLoading && styles.loading,
               )}
               onClick={handleSubmit}
+              ref={submitButton}
             >
               Delete
             </button>

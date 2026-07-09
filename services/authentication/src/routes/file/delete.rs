@@ -17,16 +17,18 @@ pub async fn delete(
     payload: web::Json<DeleteFilesRequest>,
     authenticated_user: AuthenticatedUser
 ) -> impl Responder {
-    let result = match File::delete_many()
-        .filter(file::Column::Id.is_in(payload.file_ids.clone()))
+    let file_ids = payload.into_inner().file_ids;
+
+    let delete_result = File::delete_many()
+        .filter(file::Column::Id.is_in(file_ids.clone()))
         .filter(file::Column::OwnerId.eq(authenticated_user.id.clone()))
         .exec(database.get_ref())
-        .await
-        .map_err(|err| {
-            HttpResponse::InternalServerError().body(format!("Failed to delete files: {}", err));
-        }) {
-        Ok(result) => result,
-        Err(_) => {
+        .await;
+
+    let result = match delete_result {
+        Ok(res) => res,
+        Err(err) => {
+            log::error!("Database deletion failed: {}", err);
             return HttpResponse::InternalServerError().body("Failed to delete files.");
         }
     };
@@ -41,14 +43,14 @@ pub async fn delete(
         client: s3_manager.client.clone(),
     };
 
-    match storage.delete_many(
-        payload.file_ids.clone()
-    ).await {
-        Ok(_) => {}
-        Err(err) => {
-            return HttpResponse::InternalServerError().body(format!("Failed to delete files from S3: {}", err));
+    tokio::spawn(
+        async move {
+            match storage.delete_many(file_ids.clone()).await {
+                Ok(_) => log::info!("Successfully deleted files from S3: {:?}", file_ids),
+                Err(err) => log::error!("Failed to delete files from S3: {}", err),
+            }
         }
-    }
+    );
 
     HttpResponse::Ok().finish()
 }

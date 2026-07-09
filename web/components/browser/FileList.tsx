@@ -521,7 +521,9 @@ export default function FileList({ parentContainerRef }: FileListProps) {
         'button, a, input, select, textarea, [role="button"], [onclick]'
       );
 
-      if (isInteractive) return;
+      const closest = target.closest(`[role="menu"]`);
+
+      if (isInteractive || closest) return;
 
       const computedStyle = window.getComputedStyle(target);
       if (computedStyle.cursor === "pointer") return;

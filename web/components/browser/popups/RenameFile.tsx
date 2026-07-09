@@ -4,9 +4,10 @@ import Popup from "./Popup";
 import styles from "./RenameFile.module.scss";
 import TextInput from "./TextInput";
 import { cn } from "@/lib/util/class";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { renameFile } from "@/lib/api/file";
 import { useFile } from "@/context/FileExplorerContext";
+import { useLoading } from "@/context/LoadingContext";
 
 interface RenameFileProps {
   onClose: () => void;
@@ -20,12 +21,12 @@ export default function RenameFile({
   fileId,
 }: RenameFileProps) {
   const [value, setValue] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const submitButton = useRef<HTMLButtonElement>(null);
   const { setFileData } = useFile();
+  const { setLoading } = useLoading();
 
   function handleSubmit() {
-    setIsLoading(true);
-
+    setLoading(true);
     setFileData((prev) => {
       return {
         folders: prev.folders.map((folder) => {
@@ -50,13 +51,27 @@ export default function RenameFile({
     renameFile(fileId, value).then(() => {
       const event = new CustomEvent("refresh-file-list", {
         detail: () => {
-          setIsLoading(false);
+          setLoading(false);
         },
       });
 
       window.dispatchEvent(event);
     });
   }
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (event.key === "Enter") {
+      submitButton.current?.click();
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
 
   return (
     <div>
@@ -94,10 +109,10 @@ export default function RenameFile({
               className={cn(
                 styles.submitButton,
                 styles.actionButton,
-                isLoading && styles.loading,
               )}
               disabled={!value}
               onClick={handleSubmit}
+              ref={submitButton}
             >
               Submit
             </button>

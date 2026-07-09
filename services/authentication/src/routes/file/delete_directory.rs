@@ -66,10 +66,13 @@ pub async fn delete(
     };
 
     if !file_ids_for_s3.is_empty() {
-        if let Err(e) = storage.delete_many(file_ids_for_s3).await {
-            log::error!("S3 delete error: {:?}", e);
-            return HttpResponse::InternalServerError().body("Failed to sync with storage");
-        }
+        tokio::spawn(
+            async move {
+                if let Err(e) = storage.delete_many(file_ids_for_s3.clone()).await {
+                    log::error!("S3 delete error: {:?}", e);
+                }
+            }
+        );
     }
 
     match File::delete_many()

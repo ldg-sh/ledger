@@ -42,6 +42,7 @@ export default function Popup({ children, onClosePopup }: PopupProps) {
         transition={{ ease: easeOut, duration: 0.2 }}
       />
       <motion.div
+        role="menu"
         className={styles.popupContainer}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

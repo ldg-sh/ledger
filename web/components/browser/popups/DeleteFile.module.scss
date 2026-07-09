@@ -57,11 +57,6 @@
     cursor: not-allowed;
 }
 
-.submitButton.loading {
-    pointer-events: none;
-    opacity: 0.7;
-}
-
 .cancelButton {
     background-color: var(--color-button-background);
     color: var(--color-text-primary);
@@ -90,7 +85,7 @@
 
 .text {
     margin-bottom: 12px;
-    width: calc(100% - 40px);
+    width: calc(100% - 60px);
 }
 
 @media (max-width: 600px) {

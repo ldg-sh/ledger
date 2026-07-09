@@ -31,8 +31,8 @@ export default function TextInput({
 }: TextInputProps) {
   const [value, setValue] = useState(originalValue || "");
   const inputRef = useRef<HTMLInputElement>(null);
-  
-  const generatedId = useId(); 
+
+  const generatedId = useId();
   const hintId = `${generatedId}-hint`;
 
   useEffect(() => {
@@ -53,7 +53,7 @@ export default function TextInput({
           </label>
         ) : null}
         {!isReactNodeHint && hint && (
-          <p 
+          <p
             id={hintId}
             className={cn(styles.hint, errorHint ? styles.error : undefined)}
             role={errorHint ? "alert" : undefined}
@@ -68,7 +68,7 @@ export default function TextInput({
         ref={inputRef}
         autoFocus={select}
         type={formType}
-        name={title?.toLowerCase().replace(/\s/g, "-") || "input"} 
+        name={title?.toLowerCase().replace(/\s/g, "-") || "input"}
         className={styles.textInput}
         aria-required={required}
         aria-invalid={errorHint}
