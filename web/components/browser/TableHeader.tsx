@@ -93,7 +93,7 @@ export default function TableHeader() {
           opacity: loading ? 1 : 0,
         }}
       >
-        <Spinner />
+        <Spinner height={18} />
       </div>
     </header>
   );
