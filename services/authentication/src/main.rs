@@ -20,6 +20,7 @@ pub struct ProviderConfiguration {
     pub github_client_secret: String,
     pub jwt_secret: String,
     pub domain_root: String,
+    pub origin_secret: String,
 }
 
 #[tokio::main]
@@ -46,6 +47,8 @@ async fn main() -> std::io::Result<()> {
     let rp_origin = env::var("RP_ORIGIN").expect("RP_ORIGIN must be set").to_owned();
     let rp_id = env::var("RP_ID").expect("RP_ID must be set").to_owned();
 
+    let origin_secret = env::var("ORIGIN_SECRET").expect("ORIGIN_SECRET must be set").trim().to_owned();
+    
     let rp_origin = Url::parse(&rp_origin).expect("Invalid RP_ORIGIN URL");
 
     let builder = WebauthnBuilder::new(&rp_id, &rp_origin).expect("Invalid configuration");
@@ -59,6 +62,7 @@ async fn main() -> std::io::Result<()> {
         github_client_secret,
         jwt_secret,
         domain_root,
+        origin_secret
     };
 
     let s3_manager = S3StorageManager::new_s3(

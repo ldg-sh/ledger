@@ -7,6 +7,8 @@ import Button from "@/components/general/Button";
 import { Download } from "lucide-react";
 import AutoDownload from "@/components/general/AutoDownload";
 import NotFound from "../not-found";
+import LocalDate from "@/components/general/LocalDate";
+import { ReactNode } from "react";
 
 
 const EDGE_URL = process.env.NEXT_PUBLIC_EDGE_URL || "http://localhost:8787";
@@ -27,17 +29,6 @@ async function getShare(token: string): Promise<ShareDownloadResponse | null> {
 
   if (!res.ok) return null;
   return res.json();
-}
-
-function formatDate(createdAt?: string) {
-  if (!createdAt) return "Unknown";
-  return new Date(createdAt).toLocaleString(undefined, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 }
 
 export async function generateMetadata({
@@ -77,11 +68,11 @@ export default async function SharePage({ searchParams }: SharePageProps) {
 
   const downloadUrl = `/api/share/download?t=${encodeURIComponent(t)}`;
 
-  const rows: Array<[string, string]> = [
+  const rows: Array<[string, ReactNode]> = [
     ["File Name", share.file_name || "Unknown"],
     ["File Size", pretifyFileSize(share.file_size) || "Unknown"],
     ["File Type", share.file_type || "Unknown"],
-    ["Created", formatDate(share.created_at)],
+    ["Created", <LocalDate timestamp={share.created_at} type="full" />],
     ["Owner", share.owner || "Unknown"],
   ];
 
@@ -92,7 +83,9 @@ export default async function SharePage({ searchParams }: SharePageProps) {
         <div className={styles.header}>
           <h1 className={styles.title}>Your download will begin shortly...</h1>
           <p className={styles.subtitle}>
-            Uploaded by <strong>{share.owner || "Unknown"}</strong> on <strong>{formatDate(share.created_at).split(" at ")[0]}</strong> at <strong>{formatDate(share.created_at).split(" at ")[1]}</strong>.
+            Uploaded by <strong>{share.owner || "Unknown"}</strong> on{" "}
+            <strong><LocalDate timestamp={share.created_at} type="date" /></strong> at{" "}
+            <strong><LocalDate timestamp={share.created_at} type="time" /></strong>.
           </p>
         </div>
 
@@ -100,7 +93,7 @@ export default async function SharePage({ searchParams }: SharePageProps) {
           {rows.map(([label, value]) => (
             <div className={styles.row} key={label}>
               <dt className={styles.label}>{label}</dt>
-              <dd className={styles.value} title={value}>
+              <dd className={styles.value} title={value?.toString()}>
                 {value}
               </dd>
             </div>

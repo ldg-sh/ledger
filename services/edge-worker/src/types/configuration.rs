@@ -11,6 +11,7 @@ pub struct Configuration {
     pub bucket: String,
     pub jwt_secret: String,
     pub share_secret: String,
+    pub origin_secret: String,
     pub auth_server_uri: String,
 }
 
@@ -28,6 +29,7 @@ impl Configuration {
             bucket: env.var("BUCKET").unwrap().to_string(),
             jwt_secret: env.var("JWT_SECRET").unwrap().to_string(),
             share_secret: env.var("SHARE_SECRET").unwrap().to_string(),
+            origin_secret: env.var("ORIGIN_SECRET").unwrap().to_string(),
             auth_server_uri: env.var("AUTH_SERVER_URI").unwrap().to_string(),
         };
 
@@ -44,6 +46,7 @@ impl Configuration {
         let headers = Headers::new();
         headers.set("Content-Type", "application/json")?;
         headers.set("x-user-id", user.id.as_str())?;
+        headers.set("X-Origin-Secret", &self.origin_secret)?;
 
         let cookie_value = format!("session={}", user.session_token);
         headers.set("Cookie", &cookie_value)?;
@@ -86,6 +89,7 @@ impl Configuration {
     ) -> Result<(u16, R, Headers), worker::Error> {
         let headers = Headers::new();
         headers.set("Content-Type", "application/json")?;
+        headers.set("X-Origin-Secret", &self.origin_secret)?;
 
         if let Some(h) = incoming_headers {
             if let Ok(Some(cookie_str)) = h.get("Cookie") {

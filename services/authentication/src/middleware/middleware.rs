@@ -1,10 +1,12 @@
 use crate::ProviderConfiguration;
-use actix_web::dev::Payload;
+use actix_web::dev::{Payload, ServiceRequest, ServiceResponse};
 use actix_web::web::Data;
 use actix_web::{Error, FromRequest, HttpRequest};
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
 use serde::{Deserialize, Serialize};
 use std::future::{Ready, ready};
+use actix_web::body::MessageBody;
+use actix_web::middleware::Next;
 
 #[derive(Debug, Clone)]
 pub struct AuthenticatedUser {
@@ -54,4 +56,27 @@ impl FromRequest for AuthenticatedUser {
             }
         }
     }
+}
+
+pub async fn reject_bypassed_traffic(
+    req: ServiceRequest,
+    next: Next<impl MessageBody>,
+) -> Result<ServiceResponse<impl MessageBody>, Error> {
+    let origin_secret = req
+        .app_data::<Data<ProviderConfiguration>>()
+        .unwrap()
+        .origin_secret
+        .clone();
+
+    if let Some(header_value) = req.headers().get("X-Origin-Secret") {
+        if let Ok(secret_str) = header_value.to_str() {
+            if secret_str == origin_secret {
+                return next.call(req).await;
+            }
+        }
+    }
+
+    Err(actix_web::error::ErrorForbidden(
+        "Direct access to the authentication server is forbidden.",
+    ))
 }
