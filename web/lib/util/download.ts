@@ -52,7 +52,10 @@ export const handleClientDownload = async (
     );
 
     if (res.body.pipeTo) {
-      return res.body.pipeTo(fileStream);
+      res.body.pipeTo(fileStream).catch((err) => {
+        console.error("Stream piping failed:", err);
+      });
+      return;
     }
 
     const writer = fileStream.getWriter();
@@ -64,6 +67,10 @@ export const handleClientDownload = async (
           res.done ? writer.close() : writer.write(res.value).then(pump),
         );
 
-    return pump();
+    pump().catch((err) => {
+      console.error("Stream pump failed:", err);
+    });
+
+    return;
   }
 };

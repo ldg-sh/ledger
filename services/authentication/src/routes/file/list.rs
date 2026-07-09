@@ -113,6 +113,7 @@ pub async fn list(
             created_at: v.created_at,
             path: v.path,
             upload_completed: v.upload_completed,
+            is_directory: v.is_directory,
         })
         .collect();
 

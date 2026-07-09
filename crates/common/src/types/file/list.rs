@@ -23,7 +23,8 @@ pub struct ListFileElement {
     pub created_at: DateTime<FixedOffset>,
     pub upload_completed: bool,
     pub file_type: String,
-    pub path: String
+    pub path: String,
+    pub is_directory: bool
 }
 
 #[derive(Serialize, Deserialize)]

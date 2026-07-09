@@ -33,9 +33,11 @@ export default function FileList({ parentContainerRef }: FileListProps) {
   const [selectedFiles, setSelectedFiles] = useState<Set<ListFileElement>>(
     new Set(),
   );
+
+  const [isLoading, setIsLoading] = useState(false);
   const [lastDeliberateClick, setLastDeliberateClick] =
     useState<ListFileElement | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [currentOffset, setCurrentOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -399,7 +401,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
           const file = selectedFiles.keys().next().value;
 
           if (file) {
-            if (file.file_type === "directory") {
+            if (file.is_directory) {
               fileContext.gotoPath(file.id);
             }
           }
@@ -797,7 +799,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
               )}
               {((selectedFiles.size === 1 ||
                 (rightClickedFile != null && selectedFiles.size <= 1))
-                && !(selectedFiles.values().next().value?.file_type == "directory" || (rightClickedFile != null && rightClickedFile.file_type == "directory"))) && (
+                && !(selectedFiles.values().next().value?.is_directory || (rightClickedFile != null && rightClickedFile.is_directory))) && (
                 <ContextMenuItem
                   label="Copy Shareable Link"
                   glyph="link"
@@ -835,7 +837,10 @@ export default function FileList({ parentContainerRef }: FileListProps) {
               <ContextMenuItem
                 label="Download"
                 glyph="download"
-                onClick={() => {
+                isLoading={isDownloading}
+                onClick={async () => {
+                  setIsDownloading(true);
+
                   const files = Array.from(selectedFiles).some(
                     (f) => f.id === rightClickedFile?.id,
                   )
@@ -844,11 +849,12 @@ export default function FileList({ parentContainerRef }: FileListProps) {
                       ? [rightClickedFile]
                       : [];
 
-                  if (files.length == 1 && files[0].file_type !== "directory") {
-                    handleClientDownload([files[0].id], files[0].file_name);
+                  if (files.length == 1 && !files[0].is_directory) {
+                    await handleClientDownload([files[0].id], files[0].file_name);
                   } else {
-                    handleClientDownload(files.map((f) => f.id));
+                    await handleClientDownload(files.map((f) => f.id));
                   }
+                  setIsDownloading(false);
                   hideMenu();
                 }}
               />

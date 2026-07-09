@@ -69,7 +69,7 @@ export default function Row({
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
   const [isCopyLinkLoading, setIsCopyLinkLoading] = useState(false);
   const [isCopyLinkSuccess, setIsCopyLinkSuccess] = useState(false);
-
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const prefetchTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -138,8 +138,8 @@ export default function Row({
   const IconComponent =
     ICON_MAP[fileType] ?? ICON_MAP[fileType.split("/")[0]] ?? ICON_MAP.default;
 
-  function handleDownload() {
-    handleClientDownload([fileId], fileName);
+  async function handleDownload() {
+    await handleClientDownload([fileId], fileName);
   }
 
   const lastDotIndex = fileName.lastIndexOf(".");
@@ -313,8 +313,11 @@ export default function Row({
             <ContextMenuItem
               label="Download"
               glyph="download"
-              onClick={() => {
-                handleDownload();
+              isLoading={isDownloading}
+              onClick={async () => {
+                setIsDownloading(true);
+                await handleDownload();
+                setIsDownloading(false);
                 hideMenu();
               }}
             />

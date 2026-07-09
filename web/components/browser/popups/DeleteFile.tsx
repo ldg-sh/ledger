@@ -24,8 +24,8 @@ export default function DeleteFile({ onClose, files }: DeleteFileProps) {
   function handleSubmit() {
     setLoading(true);
 
-    const directories = files.filter((file) => file.file_type === "directory");
-    const regularFiles = files.filter((file) => file.file_type !== "directory");
+    const directories = files.filter((file) => file.is_directory);
+    const regularFiles = files.filter((file) => !file.is_directory);
 
     const promises = [];
 

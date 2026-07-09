@@ -40,11 +40,11 @@ export async function listFiles(
   const files = json.files;
 
   const folders: ListFileElement[] = files.filter(
-    (file) => file.file_type === "directory",
+    (file) => file.is_directory,
   );
   let fileList: ListFileElement[];
 
-  fileList = files.filter((file) => file.file_type !== "directory");
+  fileList = files.filter((file) => !file.is_directory);
 
   fileList = fileList.map((file) => {
     if (!file.upload_completed) {

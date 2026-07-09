@@ -97,6 +97,7 @@ export default function CreateFolder({ onClose }: CreateFolderProps) {
           file_size: 0,
           upload_completed: true,
           path: fileContext.currentFolderId,
+          is_directory: true,
         });
 
         return {
