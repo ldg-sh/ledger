@@ -14,18 +14,8 @@
     gap: 1.5rem;
 }
 
-.errorTitle {
-    font-size: 1.8rem;
-    font-weight: 800;
-    margin: 0;
-    line-height: 1.4;
-    color: var(--color-text-bold);
-    letter-spacing: -0.04rem;
-    text-align: center;
-}
-
 .loading {
-    font-size: 1rem;
+    font-size: .8rem;
     margin: 0;
     text-align: center;
 }
@@ -41,10 +31,10 @@
 }
 
 .description {
-    font-size: 1rem;
+    font-size: .8rem;
     margin: 0;
     text-align: center;
-    color: var(--color-text-primary);
+    color: var(--color-text-secondary);
 }
 
 .icon {
