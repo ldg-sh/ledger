@@ -1,6 +1,6 @@
 use crate::middleware::middleware::AuthenticatedUser;
 use actix_web::{post, web, HttpResponse};
-use log::{error, info};
+use log::{error};
 use common::entities::file;
 use common::entities::prelude::File;
 use common::types::file::upload_complete::CompleteUploadRequest;

@@ -9,10 +9,10 @@ import TransferWindow from "@/components/transfer/TransferWindow";
 import Footer from "@/components/browser/Footer";
 import { FileProvider } from "@/context/FileExplorerContext";
 
-export default function MainPage({ 
-  searchParams 
-}: { 
-  searchParams: Promise<{ folder?: string }> 
+export default function MainPage({
+  searchParams
+}: {
+  searchParams: Promise<{ folder?: string }>
 }) {
   const resolvedParams = use(searchParams);
   const folder = resolvedParams.folder || "";

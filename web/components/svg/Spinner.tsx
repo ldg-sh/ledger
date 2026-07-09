@@ -19,18 +19,20 @@ export default function Spinner({ height, destructive }: SpinnerProps) {
         cx="12" cy="12" r="9.5"
         fill="none"
         stroke="var(--color-framework)"
-        strokeWidth="1.5"
+        strokeWidth="2"
         className={cn(destructive && styles.destructiveBackground)}
       />
-      <circle
-        cx="12" cy="12" r="9.5"
-        fill="none"
-        stroke="var(--color-text-primary)"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeDasharray="15 44.7"
-        className={cn(styles.spinner, destructive && styles.destructive)}
-      />
+      <g className={styles.rotator}>
+        <circle
+          cx="12" cy="12" r="9.5"
+          fill="none"
+          stroke="var(--color-text-bold)"
+          strokeWidth="2"
+          strokeLinecap="round"
+          pathLength="100"
+          className={cn(styles.spinnerArc, destructive && styles.destructive)}
+        />
+      </g>
     </svg>
   );
 }

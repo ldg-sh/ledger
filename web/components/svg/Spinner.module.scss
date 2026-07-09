@@ -1,19 +1,39 @@
-.spinner {
-    transform-origin: center;
-    animation: spin 0.75s infinite linear;
+.rotator {
+  transform-origin: center;
+  animation: rotator 2s linear infinite;
+}
+
+.spinnerArc {
+  stroke-dasharray: 100;
+  transform-origin: center;
+  animation: dash 1.5s ease-in-out infinite;
 }
 
 .destructive {
-    fill: var(--color-error-foreground);
+  stroke: var(--color-error-foreground);
 }
 
 .destructiveBackground {
-    fill: var(--color-error-background-active);
+  fill: var(--color-error-background-active);
 }
 
+@keyframes rotator {
+  100% {
+    transform: rotate(720deg);
+  }
+}
 
-@keyframes spin {
-    100% {
-        transform: rotate(360deg);
-    }
+@keyframes dash {
+  0% {
+    stroke-dashoffset: 90;
+    transform: rotate(0deg);
+  }
+  50% {
+    stroke-dashoffset: 60;
+    transform: rotate(135deg);
+  }
+  100% {
+    stroke-dashoffset: 90;
+    transform: rotate(360deg);
+  }
 }

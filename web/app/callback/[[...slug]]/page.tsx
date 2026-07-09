@@ -5,6 +5,7 @@ import Spinner from "@/components/svg/Spinner";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import styles from "./page.module.scss";
+import { UserRoundX } from "lucide-react";
 
 export default function CallbackPage() {
   const searchParams = useSearchParams();
@@ -23,7 +24,8 @@ export default function CallbackPage() {
       return;
     }
 
-    let formattedProvider = provider.charAt(0).toUpperCase() + provider.slice(1);
+    let formattedProvider =
+      provider.charAt(0).toUpperCase() + provider.slice(1);
     if (provider == "github") {
       formattedProvider = "GitHub";
     }
@@ -68,8 +70,9 @@ export default function CallbackPage() {
     <div className={styles.container}>
       {error ? (
         <div className={styles.error}>
-          <div className={styles.info}>
-            <h1 className={styles.errorTitle}>Failed to Authenticate</h1>
+          <div className={styles.loading}>
+            <UserRoundX className={styles.icon} />
+            <p className={styles.status}>Failed to authenticate</p>
             <p className={styles.errorMessage}>{error}</p>
           </div>
           <Button
@@ -81,8 +84,8 @@ export default function CallbackPage() {
       ) : (
         <div className={styles.loading}>
           <Spinner height={40} />
-            <p className={styles.status}>{status}</p>
-            <p className={styles.description}>This should only take a moment</p>
+          <p className={styles.status}>{status}</p>
+          <p className={styles.description}>This should only take a moment</p>
         </div>
       )}
     </div>
