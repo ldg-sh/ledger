@@ -51,12 +51,11 @@ pub async fn handle_info_inner(mut req: Request, ctx: &RouteContext<Arc<AppState
     if metadata.0 != 200 {
         return Ok(Response::from_json(&metadata.1)?.with_status(metadata.0));
     }
-
-
+    
     let metadata: UserInfoResponse = serde_json::from_value(metadata.1)?;
 
     kv.put(&cache_key, &metadata)?
-        .expiration_ttl(300)
+        .expiration_ttl(3600)
         .execute()
         .await?;
 

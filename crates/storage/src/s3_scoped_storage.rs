@@ -28,7 +28,15 @@ impl StorageBackend for S3ScopedStorage {
             .send()
             .await?;
 
-        Ok(res.upload_id.unwrap())
+        let upload_id = match res.upload_id {
+            None => {
+                return Err(anyhow::anyhow!("Failed to create upload session: No upload ID returned from S3"
+                ))
+            }
+            Some(id) => {id}
+        };
+
+        Ok(upload_id)
     }
 
     async fn complete_upload(

@@ -117,12 +117,26 @@ pub async fn handle_zip(mut req: Request, ctx: RouteContext<Arc<AppState>>) -> R
 
     let items_clone = items.clone();
     wasm_bindgen_futures::spawn_local(async move {
-        let writer = writable.get_writer().unwrap();
+        let writer = match writable.get_writer() {
+            Ok(writer) => writer,
+            Err(_) => {
+                console_error!("Failed to get writer from writable stream");
+                return;
+            }
+        };
         let web_writer = WebStreamWriter::new(writer);
         let mut zip = ZipFileWriter::new(web_writer);
 
         for item in items_clone.items {
-            if let Ok(mut s3_resp) = Fetch::Url(item.presign_url.parse().unwrap()).send().await {
+            let presign_url: Url = match item.presign_url.parse() {
+                Ok(url) => url,
+                Err(e) => {
+                    console_error!("Failed to parse presign URL: {:?}", e);
+                    continue;
+                }
+            };
+
+            if let Ok(mut s3_resp) = Fetch::Url(presign_url).send().await {
                 if s3_resp.status_code() == 200 {
                     let entry = ZipEntryBuilder::new(item.virtual_path.into(), Compression::Stored);
 
