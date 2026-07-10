@@ -734,7 +734,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
                 No results found for "{fileContext.searchQuery}".
               </span>
             ) : (
-              "This folder is empty."
+              "This folder is empty"
             )}
           </div>
         ) : (
