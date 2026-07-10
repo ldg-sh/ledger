@@ -503,7 +503,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
 
     const handleScroll = () => {
       const { scrollHeight, scrollTop, clientHeight } = container;
-      if (scrollHeight - scrollTop - clientHeight < 100 && !isLoading) {
+      if (scrollHeight - scrollTop - clientHeight < 4000) {
         setCurrentOffset((prev) => prev + CHUNK_SIZE);
       }
     };
@@ -564,7 +564,7 @@ export default function FileList({ parentContainerRef }: FileListProps) {
     if (currentOffset > 0) {
       loadMoreData();
     }
-  }, [currentOffset, loadMoreData]);
+  }, [currentOffset]);
 
   const onDragStart = (e: React.DragEvent, file: ListFileElement) => {
     let filesToMove: ListFileElement[];
