@@ -54,9 +54,11 @@
 
 .spinner {
     position: absolute;
-    top: 18px;
+    top: 0;
     right: 0.5rem;
-    transform: translateY(-50%);
+    transform: translateY(calc(50% - .75px));
+    height: 18px;
+    width: 18px;
 
     transition: opacity 0.2s ease;
 }
