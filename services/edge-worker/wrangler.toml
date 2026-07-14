@@ -36,11 +36,17 @@ custom_domain = true
 [env.production.observability]
 enabled = true
 head_sampling_rate = 1
+
 [env.production.observability.logs]
 enabled = true
 head_sampling_rate = 1
 persist = true
 invocation_logs = true
+
+[env.production.observability.traces]
+enabled = true
+persist = true
+head_sampling_rate = 1
 
 [env.dev]
 vars = { ALLOWED_ORIGIN = "http://localhost:3000", AUTH_SERVER_URI = "http://localhost:8080" }
@@ -56,3 +62,4 @@ id = "423b2f30666c496a846a4782f0e00c5b"
 [[env.dev.kv_namespaces]]
 binding = "DOWNLOAD_SESSIONS"
 id = "d1e7b1cf0bb64150be0c94ecb0845576"
+

@@ -61,6 +61,8 @@ export default function RenameFile({
 
   const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key === "Enter") {
+      event.preventDefault();
+      event.stopPropagation();
       submitButton.current?.click();
     }
   };

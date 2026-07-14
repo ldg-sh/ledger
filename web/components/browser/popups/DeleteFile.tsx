@@ -66,6 +66,8 @@ export default function DeleteFile({ onClose, files }: DeleteFileProps) {
 
   const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key === "Enter") {
+      event.preventDefault();
+      event.stopPropagation();
       submitButton.current?.click();
     }
   };
